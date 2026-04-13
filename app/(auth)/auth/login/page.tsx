@@ -31,7 +31,12 @@ function LoginForm() {
   const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirectTo') ?? '/profile'
+  const rawRedirect = searchParams.get('redirectTo') ?? ''
+  // Only allow relative paths (must start with / but not //)
+  const redirectTo =
+    rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+      ? rawRedirect
+      : '/profile'
   const [serverError, setServerError] = useState<string | null>(null)
 
   const {

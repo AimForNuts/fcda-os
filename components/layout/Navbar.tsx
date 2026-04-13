@@ -25,12 +25,11 @@ type NavbarProps = {
 export function Navbar({ profile, roles }: NavbarProps) {
   const { t } = useTranslation()
   const router = useRouter()
-  const supabase = createClient()
-
   const isMod = roles.includes('mod') || roles.includes('admin')
   const isAdmin = roles.includes('admin')
 
   async function handleLogout() {
+    const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')
     router.refresh()

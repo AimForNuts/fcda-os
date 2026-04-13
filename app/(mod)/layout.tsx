@@ -9,8 +9,12 @@ export default async function ModLayout({
 }) {
   const session = await fetchSessionContext()
 
-  if (!session || !session.profile.approved) {
+  if (!session) {
     redirect('/auth/login')
+  }
+
+  if (!session.profile.approved) {
+    redirect('/auth/pending')
   }
 
   if (!canAccessMod(session.roles)) {

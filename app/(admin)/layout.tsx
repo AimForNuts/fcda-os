@@ -9,8 +9,12 @@ export default async function AdminLayout({
 }) {
   const session = await fetchSessionContext()
 
-  if (!session || !session.profile.approved) {
+  if (!session) {
     redirect('/auth/login')
+  }
+
+  if (!session.profile.approved) {
+    redirect('/auth/pending')
   }
 
   if (!canAccessAdmin(session.roles)) {
