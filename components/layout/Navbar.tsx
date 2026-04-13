@@ -102,25 +102,23 @@ export function Navbar({ profile, roles }: NavbarProps) {
 
           {profile ? (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-8 w-8 rounded-full"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-green-600 text-white text-xs">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
+              <DropdownMenuTrigger
+                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted focus-visible:outline-none"
+                aria-label="User menu"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-green-600 text-white text-xs">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium">{profile.display_name}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">{t('nav.profile')}</Link>
+                <DropdownMenuItem render={<Link href="/profile" />}>
+                  {t('nav.profile')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -133,11 +131,15 @@ export function Navbar({ profile, roles }: NavbarProps) {
             </DropdownMenu>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/auth/login">{t('nav.login')}</Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                render={<Link href="/auth/login" />}
+              >
+                {t('nav.login')}
               </Button>
-              <Button size="sm" asChild>
-                <Link href="/auth/register">{t('nav.register')}</Link>
+              <Button size="sm" render={<Link href="/auth/register" />}>
+                {t('nav.register')}
               </Button>
             </div>
           )}
