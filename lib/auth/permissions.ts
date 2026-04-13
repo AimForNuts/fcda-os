@@ -1,4 +1,4 @@
-import type { UserRole } from '@/types'
+import type { UserRole, Profile, SessionContext } from '@/types'
 
 /** Returns true if the role list grants mod-level access (mod or admin). */
 export function canAccessMod(roles: UserRole[]): boolean {
@@ -72,5 +72,5 @@ export async function fetchSessionContext() {
 
   const roles = await fetchUserRoles(user.id)
 
-  return { userId: user.id, profile, roles }
+  return { userId: user.id, profile: profile as Profile, roles } satisfies SessionContext
 }
