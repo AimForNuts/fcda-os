@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "home": "Home",
+    "matches": "Matches",
+    "stats": "Stats",
+    "profile": "Profile",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "admin": "Admin",
+    "mod": "Manage"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "displayName": "Full Name",
+    "loginSubmit": "Sign In",
+    "registerSubmit": "Create Account",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "pending": {
+      "title": "Account Pending Approval",
+      "description": "Your account is awaiting admin approval. You'll have full access once approved.",
+      "publicNote": "You can still browse the public site while you wait."
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password.",
+      "emailInUse": "An account with this email already exists.",
+      "weakPassword": "Password must be at least 8 characters."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back"
+  }
+}
