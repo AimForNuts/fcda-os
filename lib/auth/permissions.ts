@@ -44,7 +44,8 @@ export async function fetchUserRoles(userId: string): Promise<UserRole[]> {
     .from('user_roles')
     .select('role')
     .eq('user_id', userId)
-  return (data?.map((r) => r.role as UserRole)) ?? []
+  const rows = data as Array<{ role: UserRole }> | null
+  return rows?.map((r) => r.role) ?? []
 }
 
 /**
