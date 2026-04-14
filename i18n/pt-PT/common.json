@@ -7,33 +7,33 @@
     "login": "Entrar",
     "register": "Registar",
     "logout": "Sair",
-    "admin": "Administração",
+    "admin": "Admin",
     "mod": "Gerir"
   },
   "auth": {
     "login": "Entrar",
     "register": "Criar Conta",
     "email": "Email",
-    "password": "Password",
+    "password": "Palavra-passe",
     "displayName": "Nome Completo",
     "loginSubmit": "Entrar",
     "registerSubmit": "Criar Conta",
-    "noAccount": "Não tens conta?",
+    "noAccount": "Ainda não tens conta?",
     "hasAccount": "Já tens conta?",
     "pending": {
       "title": "Conta Pendente de Aprovação",
-      "description": "A tua conta está à espera de aprovação pelo administrador. Terás acesso completo assim que for aprovada.",
-      "publicNote": "Podes continuar a ver o site público enquanto esperas."
+      "description": "A tua conta está à espera de aprovação. Terás acesso completo após aprovação.",
+      "publicNote": "Podes continuar a explorar o site público enquanto aguardas."
     },
     "errors": {
-      "invalidCredentials": "Email ou password inválidos.",
+      "invalidCredentials": "Email ou palavra-passe inválidos.",
       "emailInUse": "Já existe uma conta com este email.",
-      "weakPassword": "A password deve ter pelo menos 8 caracteres."
+      "weakPassword": "A palavra-passe deve ter pelo menos 8 caracteres."
     }
   },
   "common": {
     "loading": "A carregar...",
-    "error": "Ocorreu um erro.",
+    "error": "Algo correu mal.",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
@@ -62,7 +62,58 @@
     "title": "Estatísticas",
     "player": "Jogador",
     "rating": "Nota",
-    "noPlayers": "Sem dados de jogadores.",
+    "noPlayers": "Ainda sem dados de jogadores.",
     "anonymisedNote": "Inicia sessão para ver os nomes dos jogadores."
+  },
+  "mod": {
+    "newGame": "Novo Jogo",
+    "editGame": "Editar Jogo",
+    "gameDetails": "Detalhes do Jogo",
+    "date": "Data e Hora",
+    "location": "Local",
+    "countsForStats": "Conta para estatísticas",
+    "createGame": "Criar Jogo",
+    "saveChanges": "Guardar Alterações",
+    "editLineup": "Editar Convocados",
+    "finishGame": "Terminar Jogo",
+    "game": {
+      "created": "Jogo criado.",
+      "updated": "Jogo atualizado.",
+      "errorCreate": "Erro ao criar jogo.",
+      "errorUpdate": "Erro ao atualizar jogo."
+    },
+    "lineup": {
+      "title": "Definir Convocados",
+      "whatsappPaste": "Cola a mensagem do WhatsApp",
+      "placeholder": "Cola a mensagem do grupo do WhatsApp aqui...\n\nDomingo 11:00h\nArca de água 7v7 outdoor\n@Jogador A\n@Jogador B",
+      "parse": "Analisar Nomes",
+      "saveLineup": "Guardar Convocados",
+      "saving": "A guardar...",
+      "saved": "Convocados guardados.",
+      "matched": "Encontrado",
+      "ambiguous": "Vários encontrados — escolhe um",
+      "unmatched": "Não encontrado",
+      "pickPlayer": "Selecionar jogador",
+      "searchPlayer": "Procurar jogador...",
+      "addGuest": "Adicionar como convidado",
+      "teamLabel": "Equipa",
+      "teamA": "A",
+      "teamB": "B",
+      "noTeam": "—",
+      "current": "Convocados atuais",
+      "noLineup": "Ainda sem convocados.",
+      "errorParse": "Erro ao analisar convocados.",
+      "errorSave": "Erro ao guardar convocados."
+    },
+    "finish": {
+      "title": "Terminar Jogo",
+      "score": "Resultado Final",
+      "scoreA": "Equipa Branca",
+      "scoreB": "Equipa Preta",
+      "warning": "Esta ação não pode ser desfeita.",
+      "confirm": "Confirmar e Terminar",
+      "alreadyFinished": "Este jogo já foi terminado.",
+      "errorFinish": "Erro ao terminar jogo."
+    }
   }
 }

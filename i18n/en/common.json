@@ -64,5 +64,56 @@
     "rating": "Rating",
     "noPlayers": "No player data yet.",
     "anonymisedNote": "Sign in to see player names."
+  },
+  "mod": {
+    "newGame": "New Game",
+    "editGame": "Edit Game",
+    "gameDetails": "Game Details",
+    "date": "Date & Time",
+    "location": "Location",
+    "countsForStats": "Counts for statistics",
+    "createGame": "Create Game",
+    "saveChanges": "Save Changes",
+    "editLineup": "Edit Lineup",
+    "finishGame": "Finish Game",
+    "game": {
+      "created": "Game created.",
+      "updated": "Game updated.",
+      "errorCreate": "Failed to create game.",
+      "errorUpdate": "Failed to update game."
+    },
+    "lineup": {
+      "title": "Set Lineup",
+      "whatsappPaste": "Paste WhatsApp message",
+      "placeholder": "Paste the WhatsApp group message here...\n\nDomingo 11:00h\nArca de água 7v7 outdoor\n@Player A\n@Player B",
+      "parse": "Parse Names",
+      "saveLineup": "Save Lineup",
+      "saving": "Saving...",
+      "saved": "Lineup saved.",
+      "matched": "Matched",
+      "ambiguous": "Multiple matches — pick one",
+      "unmatched": "Not found",
+      "pickPlayer": "Select player",
+      "searchPlayer": "Search player...",
+      "addGuest": "Add as guest",
+      "teamLabel": "Team",
+      "teamA": "A",
+      "teamB": "B",
+      "noTeam": "—",
+      "current": "Current lineup",
+      "noLineup": "No lineup set yet.",
+      "errorParse": "Failed to parse lineup.",
+      "errorSave": "Failed to save lineup."
+    },
+    "finish": {
+      "title": "Finish Game",
+      "score": "Final Score",
+      "scoreA": "Team White",
+      "scoreB": "Team Black",
+      "warning": "This action cannot be undone.",
+      "confirm": "Confirm & Finish",
+      "alreadyFinished": "This game is already finished.",
+      "errorFinish": "Failed to finish game."
+    }
   }
 }
