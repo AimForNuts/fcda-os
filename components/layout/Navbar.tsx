@@ -135,6 +135,7 @@ export function Navbar({ profile, roles }: NavbarProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                nativeButton={false}
                 className="text-white/80 hover:text-white hover:bg-white/10"
                 render={<Link href="/auth/login" />}
               >
@@ -142,6 +143,7 @@ export function Navbar({ profile, roles }: NavbarProps) {
               </Button>
               <Button
                 size="sm"
+                nativeButton={false}
                 className="bg-fcda-gold text-fcda-navy hover:bg-fcda-gold/90 font-semibold"
                 render={<Link href="/auth/register" />}
               >
