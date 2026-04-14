@@ -1,0 +1,45 @@
+import { notFound } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import type { Game } from '@/types'
+import { FinishGameForm } from './FinishGameForm'
+
+export default async function FinishGamePage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: game } = await supabase
+    .from('games')
+    .select('id, date, location, status, score_a, score_b')
+    .eq('id', id)
+    .single() as { data: Pick<Game, 'id' | 'date' | 'location' | 'status' | 'score_a' | 'score_b'> | null; error: unknown }
+
+  if (!game) notFound()
+
+  const d = new Date(game.date)
+  const dateStr = d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
+
+  if (game.status === 'finished') {
+    return (
+      <div className="max-w-lg mx-auto space-y-4">
+        <h1 className="text-2xl font-bold text-fcda-navy">Terminar Jogo</h1>
+        <p className="text-sm text-muted-foreground">{dateStr} · {game.location}</p>
+        <p className="text-sm text-amber-600 font-medium">Este jogo já foi terminado.</p>
+        {game.score_a != null && game.score_b != null && (
+          <p className="text-lg font-bold">{game.score_a} – {game.score_b}</p>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-lg mx-auto space-y-4">
+      <h1 className="text-2xl font-bold text-fcda-navy">Terminar Jogo</h1>
+      <p className="text-sm text-muted-foreground">{dateStr} · {game.location}</p>
+      <FinishGameForm gameId={id} />
+    </div>
+  )
+}
