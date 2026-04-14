@@ -66,8 +66,8 @@ export function EditGameForm({ gameId, defaultDate, defaultLocation, defaultCoun
       return
     }
 
-    router.push(`/matches/${gameId}`)
     router.refresh()
+    router.push(`/matches/${gameId}`)
   }
 
   return (

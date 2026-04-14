@@ -32,11 +32,15 @@ export async function PUT(
   // Verify game exists
   const { data: game } = await supabase
     .from('games')
-    .select('id')
+    .select('id, status')
     .eq('id', gameId)
-    .single() as { data: { id: string } | null; error: unknown }
+    .single() as { data: { id: string; status: string } | null; error: unknown }
 
   if (!game) return Response.json({ error: 'Not found' }, { status: 404 })
+
+  if (game.status !== 'scheduled') {
+    return Response.json({ error: 'Cannot edit lineup of a non-scheduled game' }, { status: 409 })
+  }
 
   // Replace lineup: delete all existing, then insert new
   const { error: deleteErr } = await supabase

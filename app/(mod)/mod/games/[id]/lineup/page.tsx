@@ -53,6 +53,22 @@ export default async function LineupPage({
   const dateStr = d.toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' })
   const timeStr = d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })
 
+  if (game.status !== 'scheduled') {
+    return (
+      <div className="max-w-lg mx-auto space-y-4">
+        <h1 className="text-2xl font-bold text-fcda-navy">Convocados</h1>
+        <p className="text-sm text-muted-foreground">
+          {dateStr} · {timeStr} · {game.location}
+        </p>
+        <p className="text-sm text-amber-600 font-medium">
+          {game.status === 'finished'
+            ? 'Este jogo já foi terminado — a convocatória não pode ser alterada.'
+            : 'Este jogo foi cancelado — a convocatória não pode ser alterada.'}
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div>
