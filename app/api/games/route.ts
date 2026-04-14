@@ -28,22 +28,23 @@ export async function POST(request: Request) {
       counts_for_stats: parsed.data.counts_for_stats,
       created_by: session.userId,
       status: 'scheduled',
-    })
+    } as any)
     .select('id, date, location')
-    .single()
+    .single() as { data: { id: string; date: string; location: string } | null; error: unknown }
 
   if (error || !game) {
     return Response.json({ error: 'Failed to create game' }, { status: 500 })
   }
 
   const admin = createServiceClient()
-  await admin.from('audit_log').insert({
+  const { error: auditErr } = await admin.from('audit_log').insert({
     action: 'game.created',
     performed_by: session.userId,
     target_id: game.id,
     target_type: 'game',
     metadata: { date: game.date, location: game.location },
-  })
+  } as any)
+  if (auditErr) console.error('audit_log insert failed', auditErr)
 
   return Response.json({ id: game.id }, { status: 201 })
 }
