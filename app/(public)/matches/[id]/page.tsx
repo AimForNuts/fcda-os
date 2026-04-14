@@ -11,7 +11,6 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
   const { data: game } = await supabase
     .from('games')
