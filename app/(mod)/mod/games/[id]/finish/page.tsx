@@ -22,13 +22,15 @@ export default async function FinishGamePage({
   const d = new Date(game.date)
   const dateStr = d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
 
-  if (game.status === 'finished') {
+  if (game.status !== 'scheduled') {
     return (
       <div className="max-w-lg mx-auto space-y-4">
         <h1 className="text-2xl font-bold text-fcda-navy">Terminar Jogo</h1>
         <p className="text-sm text-muted-foreground">{dateStr} · {game.location}</p>
-        <p className="text-sm text-amber-600 font-medium">Este jogo já foi terminado.</p>
-        {game.score_a != null && game.score_b != null && (
+        <p className="text-sm text-amber-600 font-medium">
+          {game.status === 'finished' ? 'Este jogo já foi terminado.' : 'Este jogo foi cancelado.'}
+        </p>
+        {game.status === 'finished' && game.score_a != null && game.score_b != null && (
           <p className="text-lg font-bold">{game.score_a} – {game.score_b}</p>
         )}
       </div>

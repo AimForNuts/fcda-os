@@ -52,8 +52,8 @@ export function FinishGameForm({ gameId }: { gameId: string }) {
       return
     }
 
-    router.push(`/matches/${gameId}`)
     router.refresh()
+    router.push(`/matches/${gameId}`)
   }
 
   return (
@@ -64,7 +64,7 @@ export function FinishGameForm({ gameId }: { gameId: string }) {
         </CardHeader>
         <CardContent className="space-y-4">
           {serverError && (
-            <p className="text-sm text-destructive">{serverError}</p>
+            <p role="alert" className="text-sm text-destructive">{serverError}</p>
           )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -74,10 +74,12 @@ export function FinishGameForm({ gameId }: { gameId: string }) {
                 type="number"
                 min="0"
                 className="text-center text-xl font-bold"
+                aria-invalid={!!errors.score_a}
+                aria-describedby={errors.score_a ? 'score_a_error' : undefined}
                 {...register('score_a', { valueAsNumber: true })}
               />
               {errors.score_a && (
-                <p className="text-xs text-destructive">{errors.score_a.message}</p>
+                <p id="score_a_error" role="alert" className="text-xs text-destructive">{errors.score_a.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -87,10 +89,12 @@ export function FinishGameForm({ gameId }: { gameId: string }) {
                 type="number"
                 min="0"
                 className="text-center text-xl font-bold"
+                aria-invalid={!!errors.score_b}
+                aria-describedby={errors.score_b ? 'score_b_error' : undefined}
                 {...register('score_b', { valueAsNumber: true })}
               />
               {errors.score_b && (
-                <p className="text-xs text-destructive">{errors.score_b.message}</p>
+                <p id="score_b_error" role="alert" className="text-xs text-destructive">{errors.score_b.message}</p>
               )}
             </div>
           </div>
