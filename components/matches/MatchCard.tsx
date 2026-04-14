@@ -24,7 +24,7 @@ export function MatchCard({ game }: Props) {
   })
 
   return (
-    <Link href={`/matches/${game.id}`} className="block">
+    <Link href={`/matches/${game.id}`} className="block" aria-label={`${game.location} — ${dateStr}`}>
       <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
         <CardContent className="flex items-center justify-between gap-4 py-4">
           <div className="flex flex-col gap-0.5">

@@ -20,18 +20,18 @@ const baseGame: Game = {
 describe('MatchCard', () => {
   it('renders the game location', () => {
     render(<MatchCard game={baseGame} />)
-    expect(screen.getByText('Arca de Água')).toBeTruthy()
+    expect(screen.getByText('Arca de Água')).toBeInTheDocument()
   })
 
   it('shows score when game is finished', () => {
     const finished: Game = { ...baseGame, status: 'finished', score_a: 3, score_b: 2 }
     render(<MatchCard game={finished} />)
-    expect(screen.getByText('3 – 2')).toBeTruthy()
+    expect(screen.getByText('3 – 2')).toBeInTheDocument()
   })
 
   it('does not show score when game is scheduled', () => {
     render(<MatchCard game={baseGame} />)
-    expect(screen.queryByText(/–/)).toBeNull()
+    expect(screen.queryByText(/–/)).not.toBeInTheDocument()
   })
 
   it('links to the match detail page', () => {
@@ -42,18 +42,18 @@ describe('MatchCard', () => {
 
   it('shows Agendado badge for scheduled game', () => {
     render(<MatchCard game={baseGame} />)
-    expect(screen.getByText('Agendado')).toBeTruthy()
+    expect(screen.getByText('Agendado')).toBeInTheDocument()
   })
 
   it('shows Terminado badge for finished game', () => {
     const finished: Game = { ...baseGame, status: 'finished', score_a: 1, score_b: 0 }
     render(<MatchCard game={finished} />)
-    expect(screen.getByText('Terminado')).toBeTruthy()
+    expect(screen.getByText('Terminado')).toBeInTheDocument()
   })
 
   it('shows Cancelado badge for cancelled game', () => {
     const cancelled: Game = { ...baseGame, status: 'cancelled' }
     render(<MatchCard game={cancelled} />)
-    expect(screen.getByText('Cancelado')).toBeTruthy()
+    expect(screen.getByText('Cancelado')).toBeInTheDocument()
   })
 })
