@@ -20,7 +20,7 @@ describe('StatsTable', () => {
 
   it('renders dash for null rating', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    expect(screen.getAllByText('–').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('–')).toHaveLength(1)
   })
 
   it('shows anonymised note when isAnonymised is true', () => {
