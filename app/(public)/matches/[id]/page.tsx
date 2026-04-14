@@ -1,12 +1,32 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { LineupGrid } from '@/components/matches/LineupGrid'
 import { Badge } from '@/components/ui/badge'
 import type { PlayerPublic, GamePlayer, Game } from '@/types'
 
-export const metadata = { title: 'Jogo — FCDA' }
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const { createClient } = await import('@/lib/supabase/server')
+  const supabase = await createClient()
+  const { data: game } = await supabase
+    .from('games')
+    .select('date, location')
+    .eq('id', id)
+    .single()
 
-const STATUS_LABEL: Record<string, string> = {
+  if (!game) return { title: 'Jogo — FCDA' }
+
+  const d = new Date(game.date)
+  const dateStr = d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
+  return { title: `${dateStr} · ${game.location} — FCDA` }
+}
+
+const STATUS_LABEL: Record<Game['status'], string> = {
   scheduled: 'Agendado',
   finished: 'Terminado',
   cancelled: 'Cancelado',
@@ -81,8 +101,8 @@ export default async function MatchDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-0.5">
-          <p className="text-sm font-medium capitalize">
-            {dateStr} · {timeStr}
+          <p className="text-sm font-medium">
+            {dateStr.charAt(0).toUpperCase() + dateStr.slice(1)} · {timeStr}
           </p>
           <p className="text-sm text-muted-foreground">{game.location}</p>
         </div>

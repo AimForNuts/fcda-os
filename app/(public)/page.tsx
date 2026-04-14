@@ -19,10 +19,7 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero — icy blue background echoing the match card */}
-      <section
-        className="relative flex flex-col items-center justify-center gap-6 px-4 py-16 text-center"
-        style={{ background: 'var(--fcda-ice)' }}
-      >
+      <section className="relative flex flex-col items-center justify-center gap-6 px-4 py-16 text-center bg-fcda-ice">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/crest.png"
