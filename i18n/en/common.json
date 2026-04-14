@@ -39,5 +39,30 @@
     "delete": "Delete",
     "confirm": "Confirm",
     "back": "Back"
+  },
+  "home": {
+    "nextMatch": "Next Match",
+    "noNextMatch": "No upcoming matches.",
+    "viewAll": "View all matches"
+  },
+  "matches": {
+    "title": "Matches",
+    "noMatches": "No matches recorded yet.",
+    "status": {
+      "scheduled": "Scheduled",
+      "finished": "Finished",
+      "cancelled": "Cancelled"
+    },
+    "teamA": "Team White",
+    "teamB": "Team Black",
+    "lineup": "Lineup",
+    "noLineup": "Lineup not available."
+  },
+  "stats": {
+    "title": "Stats",
+    "player": "Player",
+    "rating": "Rating",
+    "noPlayers": "No player data yet.",
+    "anonymisedNote": "Sign in to see player names."
   }
 }

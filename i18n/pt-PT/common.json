@@ -39,5 +39,30 @@
     "delete": "Eliminar",
     "confirm": "Confirmar",
     "back": "Voltar"
+  },
+  "home": {
+    "nextMatch": "Próximo Jogo",
+    "noNextMatch": "Sem jogos agendados.",
+    "viewAll": "Ver todos os jogos"
+  },
+  "matches": {
+    "title": "Jogos",
+    "noMatches": "Ainda não há jogos registados.",
+    "status": {
+      "scheduled": "Agendado",
+      "finished": "Terminado",
+      "cancelled": "Cancelado"
+    },
+    "teamA": "Equipa Branca",
+    "teamB": "Equipa Preta",
+    "lineup": "Convocatória",
+    "noLineup": "Convocatória não disponível."
+  },
+  "stats": {
+    "title": "Estatísticas",
+    "player": "Jogador",
+    "rating": "Nota",
+    "noPlayers": "Sem dados de jogadores.",
+    "anonymisedNote": "Inicia sessão para ver os nomes dos jogadores."
   }
 }
