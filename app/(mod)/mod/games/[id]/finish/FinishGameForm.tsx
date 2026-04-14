@@ -74,7 +74,7 @@ export function FinishGameForm({ gameId }: { gameId: string }) {
                 type="number"
                 min="0"
                 className="text-center text-xl font-bold"
-                {...register('score_a')}
+                {...register('score_a', { valueAsNumber: true })}
               />
               {errors.score_a && (
                 <p className="text-xs text-destructive">{errors.score_a.message}</p>
@@ -87,7 +87,7 @@ export function FinishGameForm({ gameId }: { gameId: string }) {
                 type="number"
                 min="0"
                 className="text-center text-xl font-bold"
-                {...register('score_b')}
+                {...register('score_b', { valueAsNumber: true })}
               />
               {errors.score_b && (
                 <p className="text-xs text-destructive">{errors.score_b.message}</p>
