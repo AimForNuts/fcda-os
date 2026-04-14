@@ -22,6 +22,7 @@ const DOT_STYLES: Record<ChipStatus, string> = {
 export function PlayerChip({ name, status }: PlayerChipProps) {
   return (
     <span
+      data-testid="player-chip"
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-medium',
         STATUS_STYLES[status]
