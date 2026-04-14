@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import { LineupGrid } from '@/components/matches/LineupGrid'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import type { PlayerPublic, GamePlayer, Game } from '@/types'
 
 export async function generateMetadata({
@@ -16,7 +19,7 @@ export async function generateMetadata({
     .from('games')
     .select('date, location')
     .eq('id', id)
-    .single()
+    .single() as { data: { date: string; location: string } | null; error: unknown }
 
   if (!game) return { title: 'Jogo — FCDA' }
 
@@ -37,7 +40,13 @@ export default async function MatchDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const supabase = await createClient()
+
+  // Run session check and game fetch in parallel
+  const [session, supabase] = await Promise.all([
+    fetchSessionContext(),
+    createClient(),
+  ])
+  const isMod = session ? canAccessMod(session.roles) : false
 
   const { data: game } = await supabase
     .from('games')
@@ -47,8 +56,6 @@ export default async function MatchDetailPage({
 
   if (!game) notFound()
 
-  // Fetch game_players, then resolve player names via players_public view.
-  // The view handles anonymisation: guests see "Jogador N", approved members see real names.
   const { data: gamePlayers } = await supabase
     .from('game_players')
     .select('player_id, team')
@@ -117,6 +124,38 @@ export default async function MatchDetailPage({
           {STATUS_LABEL[game.status]}
         </Badge>
       </div>
+
+      {/* Mod action buttons */}
+      {isMod && (
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Button
+            size="sm"
+            variant="outline"
+            nativeButton={false}
+            render={<Link href={`/mod/games/${id}/edit`} />}
+          >
+            Editar jogo
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            nativeButton={false}
+            render={<Link href={`/mod/games/${id}/lineup`} />}
+          >
+            Gerir convocados
+          </Button>
+          {game.status === 'scheduled' && (
+            <Button
+              size="sm"
+              className="bg-fcda-gold text-fcda-navy hover:bg-fcda-gold/90 font-semibold"
+              nativeButton={false}
+              render={<Link href={`/mod/games/${id}/finish`} />}
+            >
+              Terminar jogo
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Score — only shown for finished games */}
       {game.status === 'finished' &&
