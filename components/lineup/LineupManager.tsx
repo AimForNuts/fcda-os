@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { WhatsAppPasteBox } from './WhatsAppPasteBox'
@@ -46,6 +46,8 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [searchResults, setSearchResults] = useState<Record<number, SearchResult[]>>({})
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>({})
+  const [addingGuest, setAddingGuest] = useState<Set<number>>(new Set())
+  const searchAbortRefs = useRef<Record<number, AbortController>>({})
 
   // ── Parse ──────────────────────────────────────────────────────────────
   const handleParse = useCallback(async (text: string) => {
@@ -98,27 +100,43 @@ export function LineupManager({ gameId, currentLineup }: Props) {
       setSearchResults((prev) => ({ ...prev, [index]: [] }))
       return
     }
-    const res = await fetch(`/api/players?q=${encodeURIComponent(q)}`)
-    if (res.ok) {
-      const data: SearchResult[] = await res.json()
-      setSearchResults((prev) => ({ ...prev, [index]: data }))
+    // Cancel in-flight request for this index
+    searchAbortRefs.current[index]?.abort()
+    const controller = new AbortController()
+    searchAbortRefs.current[index] = controller
+    try {
+      const res = await fetch(`/api/players?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+      if (res.ok) {
+        const data: SearchResult[] = await res.json()
+        setSearchResults((prev) => ({ ...prev, [index]: data }))
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
+      setSearchResults((prev) => ({ ...prev, [index]: [] }))
     }
   }
 
   // ── Add guest ──────────────────────────────────────────────────────────
   async function addGuest(index: number) {
-    const entry = entries[index]
-    const res = await fetch('/api/players', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sheet_name: entry.raw,
-        alias_display: entry.raw,
-      }),
-    })
-    if (res.ok) {
-      const { id, sheet_name } = await res.json()
-      resolveEntry(index, id, sheet_name)
+    if (addingGuest.has(index)) return
+    setAddingGuest((prev) => new Set(prev).add(index))
+    try {
+      const entry = entries[index]
+      const res = await fetch('/api/players', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheet_name: entry.raw, alias_display: entry.raw }),
+      })
+      if (res.ok) {
+        const { id, sheet_name } = await res.json()
+        resolveEntry(index, id, sheet_name)
+      } else {
+        setSaveError(t('mod.lineup.errorSave'))
+      }
+    } catch {
+      setSaveError(t('mod.lineup.errorSave'))
+    } finally {
+      setAddingGuest((prev) => { const s = new Set(prev); s.delete(index); return s })
     }
   }
 
@@ -201,7 +219,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
 
           <div className="space-y-3">
             {entries.map((entry, i) => (
-              <div key={i} className="rounded-lg border p-3 space-y-2">
+              <div key={entry.raw} className="rounded-lg border p-3 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <PlayerChip
                     name={entry.resolvedName ?? entry.raw}
@@ -232,7 +250,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                 {!entry.resolvedPlayerId && entry.status === 'ambiguous' && (
                   <select
                     className="w-full rounded border border-input bg-background px-2 py-1 text-sm"
-                    defaultValue=""
+                    value={entry.resolvedPlayerId ?? ''}
                     onChange={(e) => {
                       const match = entry.matches.find((m) => m.id === e.target.value)
                       if (match) resolveEntry(i, match.id, match.sheet_name)
@@ -275,8 +293,9 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                       variant="outline"
                       size="sm"
                       onClick={() => addGuest(i)}
+                      disabled={addingGuest.has(i)}
                     >
-                      {t('mod.lineup.addGuest')} "{entry.raw}"
+                      {addingGuest.has(i) ? t('common.loading') : `${t('mod.lineup.addGuest')} "${entry.raw}"`}
                     </Button>
                   </div>
                 )}
