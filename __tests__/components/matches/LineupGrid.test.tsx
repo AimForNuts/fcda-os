@@ -39,4 +39,10 @@ describe('LineupGrid', () => {
     render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
     expect(screen.getByText('7')).toBeInTheDocument()
   })
+
+  it('does not render shirt number when absent', () => {
+    const a = [makePlayer('1', 'Rui')]  // makePlayer without shirt arg → shirt_number: null
+    render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
+    expect(screen.queryByText(/^\d+$/)).not.toBeInTheDocument()
+  })
 })
