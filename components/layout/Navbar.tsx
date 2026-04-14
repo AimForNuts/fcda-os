@@ -45,31 +45,33 @@ export function Navbar({ profile, roles }: NavbarProps) {
     : '?'
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full bg-fcda-navy text-white shadow-md">
       <div className="container flex h-14 max-w-screen-xl items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <span className="text-green-600">FCDA</span>
+        <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-wide">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/crest.png" alt="FCDA crest" className="h-8 w-8 object-contain" />
+          <span className="text-fcda-gold">FCDA</span>
         </Link>
 
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-6 text-sm">
           <Link
             href="/matches"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="text-white/70 hover:text-white transition-colors"
           >
             {t('nav.matches')}
           </Link>
           <Link
             href="/stats"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="text-white/70 hover:text-white transition-colors"
           >
             {t('nav.stats')}
           </Link>
           {isMod && (
             <Link
               href="/mod/games/new"
-              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1 text-white/70 hover:text-white transition-colors"
             >
               <Settings className="h-3.5 w-3.5" />
               {t('nav.mod')}
@@ -78,7 +80,7 @@ export function Navbar({ profile, roles }: NavbarProps) {
           {isAdmin && (
             <Link
               href="/admin/users"
-              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1 text-white/70 hover:text-white transition-colors"
             >
               <ShieldCheck className="h-3.5 w-3.5" />
               {t('nav.admin')}
@@ -93,7 +95,7 @@ export function Navbar({ profile, roles }: NavbarProps) {
             variant="ghost"
             size="sm"
             onClick={toggleLanguage}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10"
             aria-label="Toggle language"
           >
             <Globe className="h-4 w-4" />
@@ -102,11 +104,11 @@ export function Navbar({ profile, roles }: NavbarProps) {
           {profile ? (
             <DropdownMenu>
               <DropdownMenuTrigger
-                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted focus-visible:outline-none"
+                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 focus-visible:outline-none"
                 aria-label="User menu"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-green-600 text-white text-xs">
+                  <AvatarFallback className="bg-fcda-gold text-fcda-navy text-xs font-bold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -133,11 +135,16 @@ export function Navbar({ profile, roles }: NavbarProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                className="text-white/80 hover:text-white hover:bg-white/10"
                 render={<Link href="/auth/login" />}
               >
                 {t('nav.login')}
               </Button>
-              <Button size="sm" render={<Link href="/auth/register" />}>
+              <Button
+                size="sm"
+                className="bg-fcda-gold text-fcda-navy hover:bg-fcda-gold/90 font-semibold"
+                render={<Link href="/auth/register" />}
+              >
                 {t('nav.register')}
               </Button>
             </div>

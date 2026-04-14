@@ -1,34 +1,71 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 
 export default function HomePage() {
   return (
-    <div className="container max-w-screen-xl mx-auto px-4 py-12">
-      <div className="flex flex-col items-center text-center gap-6">
-        <Badge variant="outline" className="text-green-600 border-green-600">
-          Futebol Clube Dragões da Areosa
-        </Badge>
-        <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-          Bem-vindos ao{' '}
-          <span className="text-green-600">FCDA</span>
-        </h1>
-        <p className="text-muted-foreground text-lg max-w-xl">
+    <div className="flex flex-col">
+      {/* Hero — icy blue texture echoing the match card background */}
+      <section
+        className="relative flex flex-col items-center justify-center gap-6 px-4 py-16 text-center"
+        style={{ background: 'var(--fcda-ice)' }}
+      >
+        {/* Crest */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/crest.png"
+          alt="Futebol Clube Dragões da Areosa"
+          className="h-36 w-36 object-contain drop-shadow-lg"
+        />
+
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-fcda-navy/60">
+            Futebol Clube
+          </p>
+          <h1 className="mt-1 text-3xl font-extrabold uppercase tracking-tight text-fcda-navy md:text-5xl">
+            Dragões da Areosa
+          </h1>
+        </div>
+
+        <p className="max-w-md text-fcda-navy/70">
           Acompanha os jogos, vê as estatísticas e gere a equipa.
         </p>
 
-        <Card className="w-full max-w-md mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        {/* Decorative divider */}
+        <div className="flex items-center gap-3 text-fcda-gold">
+          <span className="h-px w-16 bg-fcda-gold/50" />
+          <span className="text-lg">✦</span>
+          <span className="h-px w-16 bg-fcda-gold/50" />
+        </div>
+      </section>
+
+      {/* Next match card */}
+      <section className="container mx-auto max-w-screen-md px-4 py-10">
+        <Card className="overflow-hidden border-border shadow-sm">
+          {/* Card header strip — navy like the crest */}
+          <div className="flex items-center justify-between bg-fcda-navy px-5 py-3">
+            <span className="text-xs font-semibold uppercase tracking-widest text-fcda-gold">
               Próximo Jogo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-sm">
+            </span>
+          </div>
+
+          <CardContent className="py-8 text-center">
+            {/* Match-card style VS layout */}
+            <div className="flex items-center justify-center gap-4">
+              <span className="text-lg font-bold uppercase tracking-wide text-fcda-navy">
+                Team White
+              </span>
+              <span className="rounded bg-fcda-navy px-3 py-1 text-sm font-extrabold uppercase tracking-widest text-fcda-gold">
+                VS
+              </span>
+              <span className="text-lg font-bold uppercase tracking-wide text-fcda-navy">
+                Team Black
+              </span>
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">
               Sem jogos agendados de momento.
             </p>
           </CardContent>
         </Card>
-      </div>
+      </section>
     </div>
   )
 }
