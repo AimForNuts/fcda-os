@@ -36,7 +36,7 @@ function LoginForm() {
   const redirectTo =
     rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
       ? rawRedirect
-      : '/profile'
+      : '/matches'
   const [serverError, setServerError] = useState<string | null>(null)
 
   const {
