@@ -122,10 +122,14 @@ export function LineupManager({ gameId, currentLineup }: Props) {
     setAddingGuest((prev) => new Set(prev).add(index))
     try {
       const entry = entries[index]
+      // If the mod typed a custom name in the search box, use it as the player name.
+      // Keep the original WhatsApp name as the alias so future parses auto-match.
+      const typedName = searchQueries[index]?.trim()
+      const sheet_name = typedName || entry.raw
       const res = await fetch('/api/players', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sheet_name: entry.raw, alias_display: entry.raw }),
+        body: JSON.stringify({ sheet_name, alias_display: entry.raw }),
       })
       if (res.ok) {
         const { id, sheet_name } = await res.json()
@@ -295,7 +299,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                       onClick={() => addGuest(i)}
                       disabled={addingGuest.has(i)}
                     >
-                      {addingGuest.has(i) ? t('common.loading') : `${t('mod.lineup.addGuest')} "${entry.raw}"`}
+                      {addingGuest.has(i) ? t('common.loading') : `${t('mod.lineup.addGuest')} "${searchQueries[i]?.trim() || entry.raw}"`}
                     </Button>
                   </div>
                 )}
