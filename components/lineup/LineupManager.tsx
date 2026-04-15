@@ -49,6 +49,33 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   const [addingGuest, setAddingGuest] = useState<Set<number>>(new Set())
   const searchAbortRefs = useRef<Record<number, AbortController>>({})
 
+  // Editable copy of the current lineup for team assignment in the paste phase
+  const [editableLineup, setEditableLineup] = useState(currentLineup)
+  const [isSavingTeams, setIsSavingTeams] = useState(false)
+  const [teamsError, setTeamsError] = useState<string | null>(null)
+
+  // ── Current lineup team editing ────────────────────────────────────────
+  function setCurrentTeam(playerId: string, team: 'a' | 'b' | null) {
+    setEditableLineup((prev) => prev.map((p) => p.player_id === playerId ? { ...p, team } : p))
+  }
+
+  async function saveTeams() {
+    setIsSavingTeams(true)
+    setTeamsError(null)
+    const players = editableLineup.map((p) => ({ player_id: p.player_id, team: p.team }))
+    const res = await fetch(`/api/games/${gameId}/lineup`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ players }),
+    })
+    if (!res.ok) {
+      setTeamsError(t('mod.lineup.errorSave'))
+    } else {
+      router.refresh()
+    }
+    setIsSavingTeams(false)
+  }
+
   // ── Parse ──────────────────────────────────────────────────────────────
   const handleParse = useCallback(async (text: string) => {
     setIsParsing(true)
@@ -174,22 +201,47 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* Current lineup (if set) */}
-      {currentLineup.length > 0 && (
-        <div>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+      {/* Current lineup (if set) — editable team assignments */}
+      {editableLineup.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             {t('mod.lineup.current')}
           </h2>
-          <div className="flex flex-wrap gap-2">
-            {currentLineup.map((p) => (
-              <span key={p.player_id} className="inline-flex items-center gap-1.5 rounded-full border bg-fcda-ice border-fcda-navy/20 px-2.5 py-1 text-sm font-medium text-fcda-navy">
-                {p.shirt_number != null ? `#${p.shirt_number} ` : ''}{p.sheet_name}
-                {p.team && (
-                  <span className="ml-1 text-xs text-fcda-navy/60 uppercase">{p.team}</span>
-                )}
-              </span>
+          <div className="space-y-2">
+            {editableLineup.map((p) => (
+              <div key={p.player_id} className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium truncate">
+                  {p.shirt_number != null ? `#${p.shirt_number} ` : ''}{p.sheet_name}
+                </span>
+                <div className="flex items-center gap-1 shrink-0">
+                  {TEAM_OPTIONS.map((tm) => (
+                    <button
+                      key={String(tm)}
+                      type="button"
+                      onClick={() => setCurrentTeam(p.player_id, tm)}
+                      className={`px-2 py-0.5 rounded text-xs font-semibold border transition-colors ${
+                        p.team === tm
+                          ? 'bg-fcda-navy text-white border-fcda-navy'
+                          : 'bg-white text-fcda-navy border-fcda-navy/30 hover:border-fcda-navy'
+                      }`}
+                    >
+                      {tm === null ? '—' : tm.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
+          {teamsError && <p role="alert" className="text-sm text-destructive">{teamsError}</p>}
+          <Button
+            type="button"
+            size="sm"
+            onClick={saveTeams}
+            disabled={isSavingTeams}
+            className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
+          >
+            {isSavingTeams ? t('common.loading') : t('mod.lineup.saveLineup')}
+          </Button>
         </div>
       )}
 
