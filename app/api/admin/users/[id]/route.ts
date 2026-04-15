@@ -19,10 +19,6 @@ export async function PATCH(
 
   const { id } = await params
 
-  if (id === session.userId) {
-    return Response.json({ error: 'Cannot modify your own account' }, { status: 400 })
-  }
-
   const body = await request.json().catch(() => null)
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
@@ -32,6 +28,9 @@ export async function PATCH(
   const admin = createServiceClient()
 
   if ('approved' in parsed.data) {
+    if (!parsed.data.approved && id === session.userId) {
+      return Response.json({ error: 'Cannot unapprove your own account' }, { status: 400 })
+    }
     const { error } = await (admin.from('profiles') as any)
       .update({ approved: parsed.data.approved, updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -89,10 +88,11 @@ export async function PATCH(
   }
 
   if ('removeRole' in parsed.data) {
-    await admin.from('user_roles')
+    const { error: deleteErr } = await admin.from('user_roles')
       .delete()
       .eq('user_id', id)
       .eq('role', parsed.data.removeRole)
+    if (deleteErr) return Response.json({ error: 'Failed to remove role' }, { status: 500 })
 
     const { error: auditErr } = await admin.from('audit_log').insert({
       action: 'user.role.removed',
