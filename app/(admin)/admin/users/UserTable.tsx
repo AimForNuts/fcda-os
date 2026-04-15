@@ -207,7 +207,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                 <td className="px-4 py-3">
                   {user.approved && (
                     <div className="flex flex-wrap gap-1">
-                      <Badge variant="outline" className="text-xs">Player</Badge>
+                      {user.roles.includes('player') && <Badge variant="outline" className="text-xs">Player</Badge>}
                       {hasMod && <Badge variant="outline" className="text-xs text-fcda-navy border-fcda-navy">Mod</Badge>}
                       {hasAdmin && <Badge variant="outline" className="text-xs text-fcda-gold border-fcda-gold">Admin</Badge>}
                     </div>
@@ -321,35 +321,34 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                         >
                           {loadingMap[user.id] === 'unapprove' ? '...' : t('admin.unapprove')}
                         </Button>
+                        {!isLinking && (
+                          user.player ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-xs text-muted-foreground"
+                              onClick={() => handleUnlinkPlayer(user.id, user.player!.id)}
+                              disabled={isLoading}
+                            >
+                              {loadingMap[user.id] === 'unlink' ? '...' : t('admin.unlinkPlayer')}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs"
+                              onClick={() => {
+                                setLinkingUserId(user.id)
+                                setSearchQuery('')
+                                setSearchResults([])
+                              }}
+                              disabled={isLoading}
+                            >
+                              {t('admin.linkPlayer')}
+                            </Button>
+                          )
+                        )}
                       </>
-                    )}
-
-                    {!isLinking && (
-                      user.player ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-xs text-muted-foreground"
-                          onClick={() => handleUnlinkPlayer(user.id, user.player!.id)}
-                          disabled={isLoading}
-                        >
-                          {loadingMap[user.id] === 'unlink' ? '...' : t('admin.unlinkPlayer')}
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-xs"
-                          onClick={() => {
-                            setLinkingUserId(user.id)
-                            setSearchQuery('')
-                            setSearchResults([])
-                          }}
-                          disabled={isLoading}
-                        >
-                          {t('admin.linkPlayer')}
-                        </Button>
-                      )
                     )}
                   </div>
                 </td>
