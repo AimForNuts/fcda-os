@@ -260,7 +260,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
               {!isEditing && (
                 <div className="flex flex-wrap gap-1 shrink-0">
                   <Button size="sm" variant="outline" className="text-xs" onClick={() => startEdit(player)} disabled={isLoading}>
-                    Editar
+                    {t('admin.edit')}
                   </Button>
                   <Button
                     size="sm"
