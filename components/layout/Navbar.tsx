@@ -124,10 +124,6 @@ export function Navbar({ profile, roles }: NavbarProps) {
                   <p className="text-sm font-medium">{profile.display_name}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem render={<Link href="/players" />}>
-                  {t('nav.profile')}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleLogout}
                   className="text-destructive"
