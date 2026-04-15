@@ -63,6 +63,12 @@ export function Navbar({ profile, roles }: NavbarProps) {
             {t('nav.matches')}
           </Link>
           <Link
+            href="/players"
+            className="text-white/70 hover:text-white transition-colors"
+          >
+            {t('nav.players')}
+          </Link>
+          <Link
             href="/stats"
             className="text-white/70 hover:text-white transition-colors"
           >
@@ -117,10 +123,6 @@ export function Navbar({ profile, roles }: NavbarProps) {
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium">{profile.display_name}</p>
                 </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem render={<Link href="/profile" />}>
-                  {t('nav.profile')}
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleLogout}

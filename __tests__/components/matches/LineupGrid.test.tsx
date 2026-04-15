@@ -46,4 +46,17 @@ describe('LineupGrid', () => {
     render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
     expect(screen.queryByText(/^\d+$/)).not.toBeInTheDocument()
   })
+
+  it('renders player name as a link when isApproved is true', () => {
+    const a = [makePlayer('1', 'Carlos', 10)]
+    render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} isApproved={true} />)
+    const link = screen.getByRole('link', { name: 'Carlos' })
+    expect(link).toHaveAttribute('href', '/players/1')
+  })
+
+  it('does not render player name as a link when isApproved is false', () => {
+    const a = [makePlayer('1', 'Carlos', 10)]
+    render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} isApproved={false} />)
+    expect(screen.queryByRole('link', { name: 'Carlos' })).not.toBeInTheDocument()
+  })
 })

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { PlayerPublic } from '@/types'
 
 type Props = {
@@ -40,7 +41,13 @@ export function StatsTable({ players, isAnonymised }: Props) {
                     #{p.shirt_number}
                   </span>
                 )}
-                {p.display_name}
+                {!isAnonymised ? (
+                  <Link href={`/players/${p.id}`} className="hover:underline">
+                    {p.display_name}
+                  </Link>
+                ) : (
+                  p.display_name
+                )}
               </td>
               <td className="px-4 py-2.5 text-right tabular-nums font-medium">
                 {p.current_rating != null

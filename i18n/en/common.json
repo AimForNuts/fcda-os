@@ -2,6 +2,7 @@
   "nav": {
     "home": "Home",
     "matches": "Matches",
+    "players": "Players",
     "stats": "Stats",
     "profile": "Profile",
     "login": "Login",
