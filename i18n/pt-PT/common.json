@@ -25,10 +25,21 @@
       "description": "A tua conta está à espera de aprovação. Terás acesso completo após aprovação.",
       "publicNote": "Podes continuar a explorar o site público enquanto aguardas."
     },
+    "forgotPassword": "Esqueceste a palavra-passe?",
+    "forgotTitle": "Recuperar Palavra-passe",
+    "forgotDescription": "Introduz o teu email e enviamos um link de recuperação.",
+    "forgotSubmit": "Enviar Link",
+    "forgotSent": "Verifica o teu email para o link de recuperação.",
+    "newPassword": "Nova Palavra-passe",
+    "resetTitle": "Definir Nova Palavra-passe",
+    "resetSubmit": "Atualizar Palavra-passe",
+    "resetSuccess": "Palavra-passe atualizada. Podes iniciar sessão.",
     "errors": {
       "invalidCredentials": "Email ou palavra-passe inválidos.",
       "emailInUse": "Já existe uma conta com este email.",
-      "weakPassword": "A palavra-passe deve ter pelo menos 8 caracteres."
+      "weakPassword": "A palavra-passe deve ter pelo menos 8 caracteres.",
+      "resetFailed": "Erro ao enviar email. Verifica o endereço e tenta novamente.",
+      "updateFailed": "Erro ao atualizar palavra-passe. O link pode ter expirado."
     }
   },
   "common": {

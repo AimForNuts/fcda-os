@@ -25,10 +25,21 @@
       "description": "Your account is awaiting admin approval. You'll have full access once approved.",
       "publicNote": "You can still browse the public site while you wait."
     },
+    "forgotPassword": "Forgot password?",
+    "forgotTitle": "Reset Password",
+    "forgotDescription": "Enter your email and we'll send you a reset link.",
+    "forgotSubmit": "Send Reset Link",
+    "forgotSent": "Check your email for a reset link.",
+    "newPassword": "New Password",
+    "resetTitle": "Set New Password",
+    "resetSubmit": "Update Password",
+    "resetSuccess": "Password updated. You can now sign in.",
     "errors": {
       "invalidCredentials": "Invalid email or password.",
       "emailInUse": "An account with this email already exists.",
-      "weakPassword": "Password must be at least 8 characters."
+      "weakPassword": "Password must be at least 8 characters.",
+      "resetFailed": "Failed to send reset email. Check the address and try again.",
+      "updateFailed": "Failed to update password. The link may have expired."
     }
   },
   "common": {

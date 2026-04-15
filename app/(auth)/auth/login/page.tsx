@@ -32,6 +32,7 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const rawRedirect = searchParams.get('redirectTo') ?? ''
+  const justReset = searchParams.get('reset') === '1'
   // Only allow relative paths (must start with / but not //)
   const redirectTo =
     rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
@@ -70,6 +71,9 @@ function LoginForm() {
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
+          {justReset && (
+            <p className="text-sm text-green-600">{t('auth.resetSuccess')}</p>
+          )}
           {serverError && (
             <p className="text-sm text-destructive">{serverError}</p>
           )}
@@ -86,7 +90,12 @@ function LoginForm() {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">{t('auth.password')}</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">{t('auth.password')}</Label>
+              <Link href="/auth/forgot-password" className="text-xs text-muted-foreground underline">
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"
