@@ -47,6 +47,7 @@ export default async function MatchDetailPage({
     createClient(),
   ])
   const isMod = session ? canAccessMod(session.roles) : false
+  const isApproved = session?.profile?.approved ?? false
 
   const { data: game } = await supabase
     .from('games')
@@ -187,7 +188,7 @@ export default async function MatchDetailPage({
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
           Convocatória
         </h2>
-        <LineupGrid teamA={teamA} teamB={teamB} unassigned={unassigned} />
+        <LineupGrid teamA={teamA} teamB={teamB} unassigned={unassigned} isApproved={isApproved} />
       </div>
     </div>
   )
