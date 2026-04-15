@@ -43,4 +43,15 @@ describe('StatsTable', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
     expect(screen.getByText('#10')).toBeInTheDocument()
   })
+
+  it('renders player name as a link when not anonymised', () => {
+    render(<StatsTable players={players} isAnonymised={false} />)
+    const link = screen.getByRole('link', { name: 'Carlos Silva' })
+    expect(link).toHaveAttribute('href', '/players/1')
+  })
+
+  it('does not render player name as a link when anonymised', () => {
+    render(<StatsTable players={players} isAnonymised={true} />)
+    expect(screen.queryByRole('link', { name: 'Carlos Silva' })).not.toBeInTheDocument()
+  })
 })
