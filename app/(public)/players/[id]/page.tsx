@@ -4,6 +4,16 @@ import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
 import type { Game, PlayerAlias, PlayerPublic } from '@/types'
 
+type MatchRow = {
+  game_id: string
+  team: string | null
+  date: string
+  location: string
+  score_a: number | null
+  score_b: number | null
+  rating: number | null
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -66,15 +76,6 @@ export default async function PlayerProfilePage({
     matchesPlayed = count ?? 0
   }
 
-  type MatchRow = {
-    game_id: string
-    team: string | null
-    date: string
-    location: string
-    score_a: number | null
-    score_b: number | null
-    rating: number | null
-  }
   const isOwnProfile = !!player.profile_id && player.profile_id === session.userId
   let matchHistory: MatchRow[] = []
 
