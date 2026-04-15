@@ -23,7 +23,8 @@ export async function DELETE(
 
   if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
 
-  await admin.from('player_aliases').delete().eq('id', aliasId)
+  const { error: deleteErr } = await admin.from('player_aliases').delete().eq('id', aliasId)
+  if (deleteErr) return Response.json({ error: 'Failed to delete alias' }, { status: 500 })
 
   const { error: auditErr } = await admin.from('audit_log').insert({
     action: 'player.alias.removed',
