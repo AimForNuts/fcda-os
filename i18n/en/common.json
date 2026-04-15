@@ -115,5 +115,31 @@
       "alreadyFinished": "This game is already finished.",
       "errorFinish": "Failed to finish game."
     }
+  },
+  "admin": {
+    "users": "Users",
+    "players": "Players",
+    "pending": "Pending",
+    "approved": "Approved",
+    "approve": "Approve",
+    "unapprove": "Unapprove",
+    "linkPlayer": "Link player",
+    "unlinkPlayer": "Unlink player",
+    "linkUser": "Link to user",
+    "unlinkUser": "Unlink user",
+    "guest": "Guest",
+    "addAlias": "Add alias",
+    "noPlayer": "—",
+    "searchPlayer": "Search player...",
+    "searchUser": "Search user...",
+    "saveEdit": "Save",
+    "cancelEdit": "Cancel",
+    "errors": {
+      "approveFailed": "Failed to update approval.",
+      "roleFailed": "Failed to update role.",
+      "playerUpdateFailed": "Failed to update player.",
+      "aliasFailed": "Failed to save alias.",
+      "linkFailed": "Failed to link."
+    }
   }
 }

@@ -115,5 +115,31 @@
       "alreadyFinished": "Este jogo já foi terminado.",
       "errorFinish": "Erro ao terminar jogo."
     }
+  },
+  "admin": {
+    "users": "Utilizadores",
+    "players": "Jogadores",
+    "pending": "Pendente",
+    "approved": "Aprovado",
+    "approve": "Aprovar",
+    "unapprove": "Revogar",
+    "linkPlayer": "Ligar jogador",
+    "unlinkPlayer": "Desligar jogador",
+    "linkUser": "Ligar utilizador",
+    "unlinkUser": "Desligar utilizador",
+    "guest": "Convidado",
+    "addAlias": "Adicionar alias",
+    "noPlayer": "—",
+    "searchPlayer": "Procurar jogador...",
+    "searchUser": "Procurar utilizador...",
+    "saveEdit": "Guardar",
+    "cancelEdit": "Cancelar",
+    "errors": {
+      "approveFailed": "Erro ao atualizar aprovação.",
+      "roleFailed": "Erro ao atualizar papel.",
+      "playerUpdateFailed": "Erro ao atualizar jogador.",
+      "aliasFailed": "Erro ao guardar alias.",
+      "linkFailed": "Erro ao ligar."
+    }
   }
 }
