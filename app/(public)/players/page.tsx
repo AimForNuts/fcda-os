@@ -17,7 +17,7 @@ export default async function PlayersPage() {
 
   const { data: players } = await supabase
     .from('players_public')
-    .select('id, display_name, shirt_number, current_rating, profile_id')
+    .select('id, display_name, shirt_number, current_rating')
     .order('shirt_number', { ascending: true, nullsFirst: false })
     .order('display_name', { ascending: true }) as { data: PlayerPublic[] | null; error: unknown }
 
