@@ -83,4 +83,71 @@ describe('RatingForm', () => {
       expect(screen.getByText('matches.errors.ratingFailed')).toBeInTheDocument()
     )
   })
+
+  it('textarea is disabled when no ratings are filled', () => {
+    render(
+      <RatingForm
+        gameId="game-1"
+        teammates={teammates}
+        existingRatings={{}}
+        locked={false}
+      />
+    )
+    expect(screen.getByRole('textbox')).toBeDisabled()
+  })
+
+  it('textarea is enabled when at least one rating is filled', () => {
+    render(
+      <RatingForm
+        gameId="game-1"
+        teammates={teammates}
+        existingRatings={{}}
+        locked={false}
+      />
+    )
+    const inputs = screen.getAllByRole('spinbutton')
+    fireEvent.change(inputs[0], { target: { value: '8' } })
+    expect(screen.getByRole('textbox')).not.toBeDisabled()
+  })
+
+  it('includes feedback content in the submitted payload', async () => {
+    mockFetch.mockResolvedValue({ ok: true })
+    render(
+      <RatingForm
+        gameId="game-1"
+        teammates={teammates}
+        existingRatings={{}}
+        locked={false}
+      />
+    )
+    const inputs = screen.getAllByRole('spinbutton')
+    fireEvent.change(inputs[0], { target: { value: '8' } })
+
+    const textarea = screen.getByRole('textbox')
+    fireEvent.change(textarea, { target: { value: 'Great teamwork' } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'matches.ratingSubmit' }))
+
+    await waitFor(() =>
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          body: expect.stringContaining('"content":"Great teamwork"'),
+        })
+      )
+    )
+  })
+
+  it('shows existing feedback as read-only in locked view', () => {
+    render(
+      <RatingForm
+        gameId="game-1"
+        teammates={teammates}
+        existingRatings={{ 'player-1': 7.5 }}
+        locked={true}
+        existingFeedback="Great game"
+      />
+    )
+    expect(screen.getByText('Great game')).toBeInTheDocument()
+  })
 })
