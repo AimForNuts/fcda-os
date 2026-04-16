@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { MatchCard, type LineupSummary } from '@/components/matches/MatchCard'
+import { sortGames } from '@/lib/games/sort'
 import type { Game } from '@/types'
 
 export const metadata = { title: 'Jogos — FCDA' }
@@ -9,10 +10,9 @@ export default async function MatchesPage() {
 
   const { data: games } = await supabase
     .from('games')
-    .select('*')
-    .order('date', { ascending: false }) as { data: Game[] | null; error: unknown }
+    .select('*') as { data: Game[] | null; error: unknown }
 
-  const gameList = games ?? []
+  const gameList = sortGames(games ?? [])
 
   // Batch-fetch all game_players and player names for the listed games
   const lineupsByGame = new Map<string, LineupSummary>()

@@ -28,4 +28,9 @@ describe('AdminNav', () => {
     const playersLink = screen.getByRole('link', { name: 'admin.players' })
     expect(playersLink).toHaveClass('border-transparent')
   })
+
+  it('renders the ratings nav link', () => {
+    render(<AdminNav />)
+    expect(screen.getByRole('link', { name: 'admin.ratings' })).toBeInTheDocument()
+  })
 })

@@ -73,6 +73,13 @@ export default async function MatchDetailPage({
     players = data ?? []
   }
 
+  const showRateButton =
+    game.status === 'finished' &&
+    game.counts_for_stats === true &&
+    isApproved &&
+    !!session &&
+    players.some((p) => p.profile_id === session.userId)
+
   const playerMap = new Map(players.map((p) => [p.id, p]))
   const gpList = gamePlayers ?? []
 
@@ -182,6 +189,20 @@ export default async function MatchDetailPage({
             </div>
           </div>
         )}
+
+      {/* Rate button */}
+      {showRateButton && (
+        <div className="flex pt-1">
+          <Button
+            size="sm"
+            variant="outline"
+            nativeButton={false}
+            render={<Link href={`/matches/${id}/rate`} />}
+          >
+            Avaliar colegas
+          </Button>
+        </div>
+      )}
 
       {/* Lineup */}
       <div>

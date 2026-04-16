@@ -68,7 +68,16 @@
     "teamA": "Equipa Branca",
     "teamB": "Equipa Preta",
     "lineup": "Convocatória",
-    "noLineup": "Convocatória não disponível."
+    "noLineup": "Convocatória não disponível.",
+    "rate": "Avaliar",
+    "rateTeammates": "Avalia os teus colegas",
+    "ratingSubmitted": "Avaliações submetidas.",
+    "ratingLocked": "Avaliações aprovadas — sem alterações possíveis.",
+    "ratingSubmit": "Submeter avaliações",
+    "ratingSubmitting": "A submeter...",
+    "errors": {
+      "ratingFailed": "Erro ao submeter avaliações."
+    }
   },
   "stats": {
     "title": "Estatísticas",
@@ -131,6 +140,7 @@
   "admin": {
     "users": "Utilizadores",
     "players": "Jogadores",
+    "ratings": "Avaliações",
     "pending": "Pendente",
     "approved": "Aprovado",
     "approve": "Aprovar",
@@ -147,12 +157,16 @@
     "edit": "Editar",
     "saveEdit": "Guardar",
     "cancelEdit": "Cancelar",
+    "approveAll": "Aprovar tudo",
+    "rejectAll": "Rejeitar tudo",
+    "noRatings": "Sem avaliações pendentes.",
     "errors": {
       "approveFailed": "Erro ao atualizar aprovação.",
       "roleFailed": "Erro ao atualizar papel.",
       "playerUpdateFailed": "Erro ao atualizar jogador.",
       "aliasFailed": "Erro ao guardar alias.",
-      "linkFailed": "Erro ao ligar."
+      "linkFailed": "Erro ao ligar.",
+      "ratingFailed": "Erro ao atualizar avaliação."
     }
   }
 }
