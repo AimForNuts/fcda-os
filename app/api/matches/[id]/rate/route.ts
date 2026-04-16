@@ -56,6 +56,9 @@ export async function POST(
 
   // 4. No self-rating
   const { ratings } = parsed.data
+  if (Object.keys(ratings).length === 0) {
+    return Response.json({ error: 'No ratings provided' }, { status: 422 })
+  }
   if (ratings[linkedPlayer.id] !== undefined) {
     return Response.json({ error: 'Cannot rate yourself' }, { status: 422 })
   }
@@ -94,6 +97,8 @@ export async function POST(
     rated_player_id,
     rating: Math.round(rating * 100) / 100,
     status: 'pending' as const,
+    reviewed_by: null,
+    reviewed_at: null,
   }))
 
   const { error: upsertErr } = await (admin.from('rating_submissions') as any)

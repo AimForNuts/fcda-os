@@ -29,29 +29,15 @@ export default async function AdminRatingsPage() {
   const submitterIds = [...new Set(rows.map((r) => r.submitted_by))]
   const playerIds = [...new Set(rows.map((r) => r.rated_player_id))]
 
-  const [{ data: games }, { data: submitters }, { data: players }] = await Promise.all([
-    admin
-      .from('games')
-      .select('id, date, location')
-      .in('id', gameIds) as Promise<{
-        data: Array<{ id: string; date: string; location: string }> | null
-        error: unknown
-      }>,
-    admin
-      .from('profiles')
-      .select('id, display_name')
-      .in('id', submitterIds) as Promise<{
-        data: Array<{ id: string; display_name: string }> | null
-        error: unknown
-      }>,
-    admin
-      .from('players')
-      .select('id, sheet_name')
-      .in('id', playerIds) as Promise<{
-        data: Array<{ id: string; sheet_name: string }> | null
-        error: unknown
-      }>,
+  const [gamesRes, submittersRes, playersRes] = await Promise.all([
+    admin.from('games').select('id, date, location').in('id', gameIds),
+    admin.from('profiles').select('id, display_name').in('id', submitterIds),
+    admin.from('players').select('id, sheet_name').in('id', playerIds),
   ])
+
+  const games = gamesRes.data as Array<{ id: string; date: string; location: string }> | null
+  const submitters = submittersRes.data as Array<{ id: string; display_name: string }> | null
+  const players = playersRes.data as Array<{ id: string; sheet_name: string }> | null
 
   const gameMap = new Map((games ?? []).map((g) => [g.id, g]))
   const submitterMap = new Map((submitters ?? []).map((p) => [p.id, p.display_name]))
