@@ -48,25 +48,16 @@ export default async function RatePage({
 
   if (!linkedPlayer) redirect(`/matches/${gameId}`)
 
-  // User's player must be in the game
-  const { data: inGame } = await supabase
-    .from('game_players')
-    .select('player_id')
-    .eq('game_id', gameId)
-    .eq('player_id', linkedPlayer.id)
-    .single() as { data: { player_id: string } | null; error: unknown }
-
-  if (!inGame) redirect(`/matches/${gameId}`)
-
-  // Fetch all player IDs in the lineup
+  // Fetch all player IDs in the lineup (also used to verify user is in the game)
   const { data: gamePlayersRows } = await supabase
     .from('game_players')
     .select('player_id')
     .eq('game_id', gameId) as { data: Array<{ player_id: string }> | null; error: unknown }
 
-  const teammateIds = (gamePlayersRows ?? [])
-    .map((gp) => gp.player_id)
-    .filter((pid) => pid !== linkedPlayer.id)
+  const allPlayerIds = (gamePlayersRows ?? []).map((gp) => gp.player_id)
+  if (!allPlayerIds.includes(linkedPlayer.id)) redirect(`/matches/${gameId}`)
+
+  const teammateIds = allPlayerIds.filter((pid) => pid !== linkedPlayer.id)
 
   let teammates: PlayerPublic[] = []
   if (teammateIds.length > 0) {

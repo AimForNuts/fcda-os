@@ -45,6 +45,19 @@ describe('RatingForm', () => {
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
   })
 
+  it('shows existing ratings in locked table with toFixed(2) formatting', () => {
+    render(
+      <RatingForm
+        gameId="game-1"
+        teammates={teammates}
+        existingRatings={{ 'player-1': 7.5 }}
+        locked={true}
+      />
+    )
+    expect(screen.getByText('7.50')).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument()
+  })
+
   it('submits ratings and shows confirmation on success', async () => {
     mockFetch.mockResolvedValue({ ok: true })
     render(<RatingForm gameId="game-1" teammates={teammates} existingRatings={{}} locked={false} />)
