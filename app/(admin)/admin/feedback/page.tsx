@@ -23,14 +23,6 @@ export default async function AdminFeedbackPage() {
 
   const feedback = rows ?? []
 
-  if (feedback.length === 0) {
-    return (
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">Sem feedback em aberto.</p>
-      </div>
-    )
-  }
-
   const gameIds = [...new Set(feedback.map((f) => f.game_id))]
   const submitterIds = [...new Set(feedback.map((f) => f.submitted_by))]
 
