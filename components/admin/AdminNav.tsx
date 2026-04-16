@@ -11,6 +11,7 @@ export function AdminNav() {
   const tabs = [
     { href: '/admin/users', label: t('admin.users') },
     { href: '/admin/players', label: t('admin.players') },
+    { href: '/admin/ratings', label: t('admin.ratings') },
   ]
 
   return (

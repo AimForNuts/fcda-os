@@ -68,7 +68,16 @@
     "teamA": "Team White",
     "teamB": "Team Black",
     "lineup": "Lineup",
-    "noLineup": "Lineup not available."
+    "noLineup": "Lineup not available.",
+    "rate": "Rate",
+    "rateTeammates": "Rate your teammates",
+    "ratingSubmitted": "Ratings submitted.",
+    "ratingLocked": "Ratings approved — no changes allowed.",
+    "ratingSubmit": "Submit ratings",
+    "ratingSubmitting": "Submitting...",
+    "errors": {
+      "ratingFailed": "Failed to submit ratings."
+    }
   },
   "stats": {
     "title": "Stats",
@@ -131,6 +140,7 @@
   "admin": {
     "users": "Users",
     "players": "Players",
+    "ratings": "Ratings",
     "pending": "Pending",
     "approved": "Approved",
     "approve": "Approve",
@@ -147,12 +157,16 @@
     "edit": "Edit",
     "saveEdit": "Save",
     "cancelEdit": "Cancel",
+    "approveAll": "Approve all",
+    "rejectAll": "Reject all",
+    "noRatings": "No pending ratings.",
     "errors": {
       "approveFailed": "Failed to update approval.",
       "roleFailed": "Failed to update role.",
       "playerUpdateFailed": "Failed to update player.",
       "aliasFailed": "Failed to save alias.",
-      "linkFailed": "Failed to link."
+      "linkFailed": "Failed to link.",
+      "ratingFailed": "Failed to update rating."
     }
   }
 }
