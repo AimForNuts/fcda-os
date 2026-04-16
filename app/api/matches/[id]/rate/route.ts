@@ -18,7 +18,7 @@ export async function POST(
 
   const body = await request.json().catch(() => null)
   const parsed = schema.safeParse(body)
-  if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 400 })
+  if (!parsed.success) return Response.json({ error: parsed.error.flatten() }, { status: 422 })
 
   const supabase = await createClient()
   const admin = createServiceClient()
@@ -78,7 +78,7 @@ export async function POST(
   }
 
   // 6. Check if batch is locked (any submission already approved)
-  const { data: existingBatch } = await supabase
+  const { data: existingBatch } = await admin
     .from('rating_submissions')
     .select('status')
     .eq('game_id', gameId)
