@@ -10,8 +10,7 @@ export default async function MatchesPage() {
 
   const { data: games } = await supabase
     .from('games')
-    .select('*')
-    .order('date', { ascending: false }) as { data: Game[] | null; error: unknown }
+    .select('*') as { data: Game[] | null; error: unknown }
 
   const gameList = sortGames(games ?? [])
 
