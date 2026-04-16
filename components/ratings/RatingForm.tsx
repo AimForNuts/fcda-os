@@ -20,12 +20,12 @@ export function RatingForm({ gameId, teammates, existingRatings, locked, existin
       teammates.map((p) => [p.id, existingRatings[p.id]?.toString() ?? ''])
     )
   )
-  const [feedback, setFeedback] = useState('')
+  const [feedback, setFeedback] = useState(existingFeedback ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const hasAnyRating = Object.values(ratings).some((v) => v.trim() !== '')
+  const hasAnyRating = Object.values(ratings).some((v) => !isNaN(parseFloat(v)))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

@@ -150,4 +150,17 @@ describe('RatingForm', () => {
     )
     expect(screen.getByText('Great game')).toBeInTheDocument()
   })
+
+  it('pre-fills feedback textarea with existingFeedback when not locked', () => {
+    render(
+      <RatingForm
+        gameId="game-1"
+        teammates={teammates}
+        existingRatings={{ 'player-1': 7.5 }}
+        locked={false}
+        existingFeedback="Previous feedback"
+      />
+    )
+    expect(screen.getByRole('textbox')).toHaveValue('Previous feedback')
+  })
 })
