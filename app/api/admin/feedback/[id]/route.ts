@@ -3,7 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessAdmin } from '@/lib/auth/permissions'
 
 const schema = z.object({
-  action: z.literal('close'),
+  action: z.enum(['close']),
 })
 
 export async function PATCH(
@@ -23,9 +23,20 @@ export async function PATCH(
   const admin = createServiceClient()
   const now = new Date().toISOString()
 
+  // Verify the feedback exists and is currently open
+  const { data: existing } = await admin
+    .from('feedback')
+    .select('status')
+    .eq('id', id)
+    .single() as { data: { status: string } | null; error: unknown }
+
+  if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
+  if (existing.status === 'closed') return Response.json({ error: 'Already closed' }, { status: 400 })
+
   const { error: updateErr } = await (admin.from('feedback') as any)
     .update({ status: 'closed', closed_by: session.userId, closed_at: now })
     .eq('id', id)
+    .eq('status', 'open')
 
   if (updateErr) return Response.json({ error: 'Failed to close feedback' }, { status: 500 })
 
