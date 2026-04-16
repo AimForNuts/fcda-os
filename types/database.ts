@@ -194,6 +194,7 @@ export type Database = {
       feedback: {
         Row: {
           id: string
+          game_id: string
           submitted_by: string
           content: string
           status: 'open' | 'closed'
@@ -203,6 +204,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          game_id: string
           submitted_by: string
           content: string
           status?: 'open' | 'closed'
