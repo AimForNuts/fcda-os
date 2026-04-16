@@ -33,4 +33,9 @@ describe('AdminNav', () => {
     render(<AdminNav />)
     expect(screen.getByRole('link', { name: 'admin.ratings' })).toBeInTheDocument()
   })
+
+  it('renders the feedback nav link', () => {
+    render(<AdminNav />)
+    expect(screen.getByRole('link', { name: 'admin.feedback' })).toBeInTheDocument()
+  })
 })

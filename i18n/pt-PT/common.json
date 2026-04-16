@@ -75,6 +75,9 @@
     "ratingLocked": "Avaliações aprovadas — sem alterações possíveis.",
     "ratingSubmit": "Submeter avaliações",
     "ratingSubmitting": "A submeter...",
+    "feedbackLabel": "Feedback",
+    "feedbackPlaceholder": "Partilha a tua opinião sobre este jogo...",
+    "feedbackHint": "Adiciona pelo menos uma avaliação para ativar o feedback.",
     "errors": {
       "ratingFailed": "Erro ao submeter avaliações."
     }
@@ -160,13 +163,19 @@
     "approveAll": "Aprovar tudo",
     "rejectAll": "Rejeitar tudo",
     "noRatings": "Sem avaliações pendentes.",
+    "feedback": "Feedback",
+    "closeItem": "Fechar",
+    "noOpenFeedback": "Sem feedback em aberto.",
+    "openFeedback": "Em aberto",
+    "closedFeedback": "Fechado",
     "errors": {
       "approveFailed": "Erro ao atualizar aprovação.",
       "roleFailed": "Erro ao atualizar papel.",
       "playerUpdateFailed": "Erro ao atualizar jogador.",
       "aliasFailed": "Erro ao guardar alias.",
       "linkFailed": "Erro ao ligar.",
-      "ratingFailed": "Erro ao atualizar avaliação."
+      "ratingFailed": "Erro ao atualizar avaliação.",
+      "feedbackFailed": "Erro ao atualizar feedback."
     }
   }
 }
