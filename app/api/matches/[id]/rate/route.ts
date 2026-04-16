@@ -111,15 +111,10 @@ export async function POST(
   if (content && content.trim()) {
     const { error: feedbackErr } = await (admin.from('feedback') as any)
       .upsert(
-        {
-          game_id: gameId,
-          submitted_by: session.userId,
-          content: content.trim(),
-          status: 'open',
-        },
+        [{ game_id: gameId, submitted_by: session.userId, content: content.trim(), status: 'open' }],
         { onConflict: 'game_id,submitted_by' }
       )
-    if (feedbackErr) console.error('feedback upsert failed', feedbackErr)
+    if (feedbackErr) console.error(`feedback upsert failed for game ${gameId}`, feedbackErr)
   }
 
   return Response.json({ ok: true })
