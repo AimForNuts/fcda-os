@@ -21,9 +21,10 @@ import { ThemeToggle } from './ThemeToggle'
 type NavbarProps = {
   profile: Profile | null
   roles: UserRole[]
+  pendingCount: number
 }
 
-export function Navbar({ profile, roles }: NavbarProps) {
+export function Navbar({ profile, roles, pendingCount }: NavbarProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const isMod = roles.includes('mod') || roles.includes('admin')
@@ -87,10 +88,13 @@ export function Navbar({ profile, roles }: NavbarProps) {
           {isAdmin && (
             <Link
               href="/admin/users"
-              className="flex items-center gap-1 text-white/70 hover:text-white transition-colors"
+              className="relative flex items-center gap-1 text-white/70 hover:text-white transition-colors"
             >
               <ShieldCheck className="h-3.5 w-3.5" />
               {t('nav.admin')}
+              {pendingCount > 0 && (
+                <span className="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-red-500" />
+              )}
             </Link>
           )}
         </nav>
