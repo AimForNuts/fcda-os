@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Globe, ShieldCheck, Settings } from 'lucide-react'
 import type { Profile, UserRole } from '@/types'
 import i18n from '@/i18n/config'
+import { ThemeToggle } from './ThemeToggle'
 
 type NavbarProps = {
   profile: Profile | null
@@ -109,6 +110,7 @@ export function Navbar({ profile, roles }: NavbarProps) {
               {i18n.language === 'pt-PT' ? 'PT' : 'EN'}
             </span>
           </Button>
+          <ThemeToggle />
 
           {profile ? (
             <DropdownMenu>
