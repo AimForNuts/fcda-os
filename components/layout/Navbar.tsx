@@ -46,7 +46,7 @@ export function Navbar({ profile, roles }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-fcda-navy text-white shadow-md">
-      <div className="container flex h-14 max-w-screen-xl items-center justify-between px-4">
+      <div className="flex h-14 w-full items-center justify-between px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-wide">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -101,10 +101,13 @@ export function Navbar({ profile, roles }: NavbarProps) {
             variant="ghost"
             size="sm"
             onClick={toggleLanguage}
-            className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10"
+            className="h-8 gap-1 px-2 text-white/70 hover:text-white hover:bg-white/10"
             aria-label="Toggle language"
           >
             <Globe className="h-4 w-4" />
+            <span className="text-xs font-medium">
+              {i18n.language === 'pt-PT' ? 'PT' : 'EN'}
+            </span>
           </Button>
 
           {profile ? (
@@ -123,6 +126,10 @@ export function Navbar({ profile, roles }: NavbarProps) {
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium">{profile.display_name}</p>
                 </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">{t('nav.profile')}</Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleLogout}
