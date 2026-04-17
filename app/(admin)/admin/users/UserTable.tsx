@@ -106,7 +106,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
     }
   }
 
-  async function handleRoleToggle(userId: string, role: 'mod' | 'admin', hasRole: boolean) {
+  async function handleRoleToggle(userId: string, role: 'mod' | 'admin' | 'player', hasRole: boolean) {
     const body = hasRole ? { removeRole: role } : { addRole: role }
     const ok = await patchUser(userId, role, body)
     if (ok) {
@@ -187,6 +187,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
           {rows.map((user) => {
             const isLoading = !!loadingMap[user.id]
             const error = errorMap[user.id]
+            const hasPlayer = user.roles.includes('player')
             const hasMod = user.roles.includes('mod')
             const hasAdmin = user.roles.includes('admin')
             const isLinking = linkingUserId === user.id
@@ -294,6 +295,15 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                       </Button>
                     ) : (
                       <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={() => handleRoleToggle(user.id, 'player', hasPlayer)}
+                          disabled={isLoading}
+                        >
+                          {loadingMap[user.id] === 'player' ? '...' : hasPlayer ? '−Player' : '+Player'}
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
