@@ -10,18 +10,22 @@ type Props = {
   teammates: PlayerPublic[]
   existingRatings: Record<string, number>
   locked: boolean
+  existingFeedback?: string
 }
 
-export function RatingForm({ gameId, teammates, existingRatings, locked }: Props) {
+export function RatingForm({ gameId, teammates, existingRatings, locked, existingFeedback }: Props) {
   const { t } = useTranslation()
   const [ratings, setRatings] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       teammates.map((p) => [p.id, existingRatings[p.id]?.toString() ?? ''])
     )
   )
+  const [feedback, setFeedback] = useState(existingFeedback ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const hasAnyRating = Object.values(ratings).some((v) => !isNaN(parseFloat(v)))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -34,10 +38,13 @@ export function RatingForm({ gameId, teammates, existingRatings, locked }: Props
       if (!isNaN(n)) payload[id] = n
     }
 
+    const body: { ratings: Record<string, number>; content?: string } = { ratings: payload }
+    if (feedback.trim()) body.content = feedback.trim()
+
     const res = await fetch(`/api/matches/${gameId}/rate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ratings: payload }),
+      body: JSON.stringify(body),
     })
 
     setSubmitting(false)
@@ -68,6 +75,12 @@ export function RatingForm({ gameId, teammates, existingRatings, locked }: Props
             ))}
           </tbody>
         </table>
+        {existingFeedback && (
+          <div className="space-y-1">
+            <p className="text-sm font-medium">{t('matches.feedbackLabel')}</p>
+            <p className="text-sm text-muted-foreground">{existingFeedback}</p>
+          </div>
+        )}
       </div>
     )
   }
@@ -97,6 +110,18 @@ export function RatingForm({ gameId, teammates, existingRatings, locked }: Props
           ))}
         </tbody>
       </table>
+      <div className="space-y-1">
+        <label className="text-sm font-medium">{t('matches.feedbackLabel')}</label>
+        <textarea
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder={hasAnyRating ? t('matches.feedbackPlaceholder') : t('matches.feedbackHint')}
+          disabled={!hasAnyRating || submitting}
+          maxLength={1000}
+          rows={3}
+          className="w-full border rounded px-3 py-2 text-sm resize-none disabled:opacity-50"
+        />
+      </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit" disabled={submitting}>
         {submitting ? t('matches.ratingSubmitting') : t('matches.ratingSubmit')}

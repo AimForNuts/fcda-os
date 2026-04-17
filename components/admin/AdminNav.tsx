@@ -12,6 +12,7 @@ export function AdminNav() {
     { href: '/admin/users', label: t('admin.users') },
     { href: '/admin/players', label: t('admin.players') },
     { href: '/admin/ratings', label: t('admin.ratings') },
+    { href: '/admin/feedback', label: t('admin.feedback') },
   ]
 
   return (

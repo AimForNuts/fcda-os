@@ -75,6 +75,9 @@
     "ratingLocked": "Ratings approved — no changes allowed.",
     "ratingSubmit": "Submit ratings",
     "ratingSubmitting": "Submitting...",
+    "feedbackLabel": "Feedback",
+    "feedbackPlaceholder": "Share your thoughts about this game...",
+    "feedbackHint": "Add at least one rating to enable feedback.",
     "errors": {
       "ratingFailed": "Failed to submit ratings."
     }
@@ -160,13 +163,19 @@
     "approveAll": "Approve all",
     "rejectAll": "Reject all",
     "noRatings": "No pending ratings.",
+    "feedback": "Feedback",
+    "closeItem": "Close",
+    "noOpenFeedback": "No open feedback.",
+    "openFeedback": "Open",
+    "closedFeedback": "Closed",
     "errors": {
       "approveFailed": "Failed to update approval.",
       "roleFailed": "Failed to update role.",
       "playerUpdateFailed": "Failed to update player.",
       "aliasFailed": "Failed to save alias.",
       "linkFailed": "Failed to link.",
-      "ratingFailed": "Failed to update rating."
+      "ratingFailed": "Failed to update rating.",
+      "feedbackFailed": "Failed to update feedback."
     }
   }
 }

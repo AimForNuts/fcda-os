@@ -4,6 +4,7 @@ import { fetchSessionContext } from '@/lib/auth/permissions'
 
 const schema = z.object({
   ratings: z.record(z.string().uuid(), z.number().min(0).max(10)),
+  content: z.string().max(1000).optional(),
 })
 
 export async function POST(
@@ -55,7 +56,7 @@ export async function POST(
   if (!submitterInGame) return Response.json({ error: 'Not in lineup' }, { status: 403 })
 
   // 4. No self-rating
-  const { ratings } = parsed.data
+  const { ratings, content } = parsed.data
   if (Object.keys(ratings).length === 0) {
     return Response.json({ error: 'No ratings provided' }, { status: 422 })
   }
@@ -105,6 +106,16 @@ export async function POST(
     .upsert(rows, { onConflict: 'game_id,submitted_by,rated_player_id' })
 
   if (upsertErr) return Response.json({ error: 'Failed to submit' }, { status: 500 })
+
+  // Upsert feedback if content was provided
+  if (content && content.trim()) {
+    const { error: feedbackErr } = await (admin.from('feedback') as any)
+      .upsert(
+        [{ game_id: gameId, submitted_by: session.userId, content: content.trim(), status: 'open' }],
+        { onConflict: 'game_id,submitted_by' }
+      )
+    if (feedbackErr) console.error(`feedback upsert failed for game ${gameId}`, feedbackErr)
+  }
 
   return Response.json({ ok: true })
 }

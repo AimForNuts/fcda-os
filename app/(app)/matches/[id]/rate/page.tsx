@@ -85,6 +85,16 @@ export default async function RatePage({
 
   const locked = (existingSubmissions ?? []).some((s) => s.status === 'approved')
 
+  // Fetch existing feedback for this (game, user) pair
+  const { data: feedbackRow } = await supabase
+    .from('feedback')
+    .select('content')
+    .eq('game_id', gameId)
+    .eq('submitted_by', session.userId)
+    .single() as { data: { content: string } | null; error: unknown }
+
+  const existingFeedback = feedbackRow?.content ?? undefined
+
   const d = new Date(game.date)
   const dateStr = d.toLocaleDateString('pt-PT', {
     weekday: 'long',
@@ -106,6 +116,7 @@ export default async function RatePage({
         teammates={teammates}
         existingRatings={existingRatings}
         locked={locked}
+        existingFeedback={existingFeedback}
       />
     </div>
   )
