@@ -5,8 +5,8 @@ import { fetchSessionContext, canAccessAdmin } from '@/lib/auth/permissions'
 const schema = z.union([
   z.object({ approved: z.literal(true) }),
   z.object({ approved: z.literal(false) }),
-  z.object({ addRole: z.enum(['mod', 'admin']) }),
-  z.object({ removeRole: z.enum(['mod', 'admin']) }),
+  z.object({ addRole: z.enum(['mod', 'admin', 'player']) }),
+  z.object({ removeRole: z.enum(['mod', 'admin', 'player']) }),
 ])
 
 export async function PATCH(
