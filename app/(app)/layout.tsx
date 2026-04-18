@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { Navbar } from '@/components/layout/Navbar'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { createServiceClient } from '@/lib/supabase/server'
 
 export default async function AppLayout({
   children,
@@ -17,9 +18,17 @@ export default async function AppLayout({
     redirect('/auth/pending')
   }
 
+  const isAdmin = session.roles.includes('admin')
+  const { count } = isAdmin
+    ? await createServiceClient()
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('approved', false)
+    : { count: 0 }
+
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar profile={session.profile} roles={session.roles} />
+      <Navbar profile={session.profile} roles={session.roles} pendingCount={count ?? 0} />
       <main className="flex-1 container max-w-screen-xl mx-auto px-4 py-8">
         {children}
       </main>
