@@ -19,6 +19,8 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   const [userSearchResults, setUserSearchResults] = useState<ProfileResult[]>([])
   const [loadingMap, setLoadingMap] = useState<Record<string, string>>({})
   const [errorMap, setErrorMap] = useState<Record<string, string>>({})
+  const [editingRatingId, setEditingRatingId] = useState<string | null>(null)
+  const [ratingInput, setRatingInput] = useState<Record<string, string>>({})
   const userSearchAbort = useRef<AbortController | null>(null)
 
   function setLoading(playerId: string, key: string | null) {
@@ -90,6 +92,18 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
         )
       )
       setEditingId(null)
+    }
+  }
+
+  async function saveRating(playerId: string) {
+    const val = parseFloat(ratingInput[playerId] ?? '')
+    if (isNaN(val) || val < 0 || val > 10) return
+    const ok = await patchPlayer(playerId, 'rating', { current_rating: val })
+    if (ok) {
+      setRows((prev) =>
+        prev.map((r) => (r.id === playerId ? { ...r, current_rating: val } : r))
+      )
+      setEditingRatingId(null)
     }
   }
 
@@ -254,6 +268,59 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                 <p className="text-xs text-muted-foreground">
                   {player.profile_name ?? t('admin.guest')}
                 </p>
+
+                {/* Rating */}
+                {editingRatingId === player.id ? (
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-xs text-muted-foreground">Rating:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.01"
+                      className="rounded border border-input bg-background px-2 py-0.5 text-xs w-20"
+                      value={ratingInput[player.id] ?? ''}
+                      onChange={(e) =>
+                        setRatingInput((prev) => ({ ...prev, [player.id]: e.target.value }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveRating(player.id)
+                        if (e.key === 'Escape') setEditingRatingId(null)
+                      }}
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      className="bg-fcda-navy text-white hover:bg-fcda-navy/90 text-xs h-6 px-2"
+                      onClick={() => saveRating(player.id)}
+                      disabled={isLoading}
+                    >
+                      {loadingMap[player.id] === 'rating' ? '...' : t('admin.saveEdit')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs h-6 px-2"
+                      onClick={() => setEditingRatingId(null)}
+                    >
+                      {t('admin.cancelEdit')}
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-fcda-navy cursor-pointer mt-0.5 text-left"
+                    onClick={() => {
+                      setEditingRatingId(player.id)
+                      setRatingInput((prev) => ({
+                        ...prev,
+                        [player.id]: player.current_rating?.toFixed(2) ?? '',
+                      }))
+                    }}
+                  >
+                    Rating: {player.current_rating != null ? player.current_rating.toFixed(2) : '–'}
+                  </button>
+                )}
               </div>
 
               {/* Actions */}
