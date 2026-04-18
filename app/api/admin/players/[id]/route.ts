@@ -6,6 +6,7 @@ const schema = z.object({
   sheet_name: z.string().min(1).max(100).optional(),
   shirt_number: z.number().int().min(1).max(99).nullable().optional(),
   profile_id: z.string().uuid().nullable().optional(),
+  current_rating: z.number().min(0).max(10).optional(),
 })
 
 export async function PATCH(
@@ -30,7 +31,6 @@ export async function PATCH(
 
   const admin = createServiceClient()
 
-  // If setting a new profile_id, ensure it's not already linked to another player
   if (parsed.data.profile_id != null) {
     const { data: existing } = await admin
       .from('players')
@@ -44,16 +44,38 @@ export async function PATCH(
     }
   }
 
+  let previousRating: number | null = null
+  if ('current_rating' in parsed.data) {
+    const { data: player } = await admin
+      .from('players')
+      .select('current_rating')
+      .eq('id', id)
+      .single() as { data: { current_rating: number | null } | null; error: unknown }
+    previousRating = player?.current_rating ?? null
+  }
+
   const { error } = await (admin.from('players') as any)
     .update({ ...parsed.data, updated_at: new Date().toISOString() })
     .eq('id', id)
 
   if (error) return Response.json({ error: 'Failed to update player' }, { status: 500 })
 
+  if ('current_rating' in parsed.data) {
+    await (admin.from('rating_history') as any).insert({
+      player_id: id,
+      rating: parsed.data.current_rating,
+      previous_rating: previousRating,
+      changed_by: session.userId,
+      notes: 'admin override',
+    })
+  }
+
   const action =
-    'profile_id' in parsed.data
-      ? parsed.data.profile_id != null ? 'player.linked' : 'player.unlinked'
-      : 'player.updated'
+    'current_rating' in parsed.data
+      ? 'rating.override'
+      : 'profile_id' in parsed.data
+        ? parsed.data.profile_id != null ? 'player.linked' : 'player.unlinked'
+        : 'player.updated'
 
   const { error: auditErr } = await admin.from('audit_log').insert({
     action,
