@@ -133,8 +133,8 @@ export function Navbar({ profile, roles, pendingCount }: NavbarProps) {
                   <p className="text-sm font-medium">{profile.display_name}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">{t('nav.profile')}</Link>
+                <DropdownMenuItem onClick={() => router.push('/profile')}>
+                  {t('nav.profile')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
