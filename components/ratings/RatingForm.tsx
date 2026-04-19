@@ -96,6 +96,12 @@ export function RatingForm({ gameId, teammates, existingRatings, existingFeedbac
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <table className="w-full text-sm">
+        <thead>
+          <tr>
+            <th className="text-left font-normal text-muted-foreground pb-1">Jogador</th>
+            <th className="text-right font-normal text-muted-foreground pb-1">Nota (0–10)</th>
+          </tr>
+        </thead>
         <tbody>
           {teammates.map((p) => (
             <React.Fragment key={p.id}>
@@ -108,9 +114,12 @@ export function RatingForm({ gameId, teammates, existingRatings, existingFeedbac
                     min="0"
                     max="10"
                     value={ratings[p.id] ?? ''}
-                    onChange={(e) =>
-                      setRatings((prev) => ({ ...prev, [p.id]: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      const raw = e.target.value
+                      const n = parseFloat(raw)
+                      const clamped = !isNaN(n) ? String(Math.min(10, Math.max(0, n))) : raw
+                      setRatings((prev) => ({ ...prev, [p.id]: clamped }))
+                    }}
                     className="w-20 text-right border rounded px-2 py-1"
                     disabled={submitting}
                   />
