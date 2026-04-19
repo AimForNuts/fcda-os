@@ -20,7 +20,7 @@ describe('AdminNav', () => {
   it('marks the active path with active styles', () => {
     render(<AdminNav />)
     const usersLink = screen.getByRole('link', { name: 'admin.users' })
-    expect(usersLink).toHaveClass('border-fcda-navy')
+    expect(usersLink).toHaveClass('border-fcda-gold')
   })
 
   it('marks inactive paths without active styles', () => {
