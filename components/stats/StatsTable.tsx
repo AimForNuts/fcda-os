@@ -98,6 +98,9 @@ export function StatsTable({ players, isAnonymised }: Props) {
                   <th
                     key={col}
                     onClick={() => handleSort(col)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSort(col)}
+                    tabIndex={0}
+                    aria-sort={active ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'}
                     className="px-4 py-2.5 text-right font-semibold cursor-pointer select-none whitespace-nowrap"
                   >
                     {label}{active ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
