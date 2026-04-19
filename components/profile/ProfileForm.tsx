@@ -32,18 +32,24 @@ export function ProfileForm({ sheetName, shirtNumber, preferredPositions }: Prop
       preferred_positions: positions,
     }
 
-    const res = await fetch('/api/players/me', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-
-    setSubmitting(false)
-    if (res.ok) {
-      setSaved(true)
-    } else {
-      const data = await res.json().catch(() => ({}))
-      setError(data.error ?? 'Erro ao guardar.')
+    try {
+      const res = await fetch('/api/players/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      setSubmitting(false)
+      if (res.ok) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        const raw = data.error
+        setError(typeof raw === 'string' ? raw : 'Erro ao guardar.')
+      }
+    } catch {
+      setSubmitting(false)
+      setError('Erro de rede. Tenta novamente.')
     }
   }
 
@@ -56,8 +62,9 @@ export function ProfileForm({ sheetName, shirtNumber, preferredPositions }: Prop
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <label className="text-sm font-medium">Nome</label>
+        <label htmlFor="profile-name" className="text-sm font-medium">Nome</label>
         <input
+          id="profile-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -68,8 +75,9 @@ export function ProfileForm({ sheetName, shirtNumber, preferredPositions }: Prop
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Número de camisola</label>
+        <label htmlFor="profile-shirt" className="text-sm font-medium">Número de camisola</label>
         <input
+          id="profile-shirt"
           type="number"
           value={shirt}
           onChange={(e) => setShirt(e.target.value)}
