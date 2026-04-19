@@ -16,6 +16,7 @@ type ResolvedEntry = {
   resolvedPlayerId: string | null
   resolvedName: string | null
   team: 'a' | 'b' | null
+  originallyUnmatched: boolean
 }
 
 type CurrentPlayer = {
@@ -47,6 +48,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   const [searchResults, setSearchResults] = useState<Record<number, SearchResult[]>>({})
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>({})
   const [addingGuest, setAddingGuest] = useState<Set<number>>(new Set())
+  const [saveAliasMap, setSaveAliasMap] = useState<Record<number, boolean>>({})
   const searchAbortRefs = useRef<Record<number, AbortController>>({})
 
   // Editable copy of the current lineup for team assignment in the paste phase
@@ -93,6 +95,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
         resolvedPlayerId: e.status === 'matched' ? e.matches[0].id : null,
         resolvedName: e.status === 'matched' ? e.matches[0].sheet_name : null,
         team: null,
+        originallyUnmatched: e.status === 'unmatched',
       }))
       setEntries(resolved)
       setPhase('resolve')
@@ -104,7 +107,11 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   }, [t])
 
   // ── Resolve helpers ────────────────────────────────────────────────────
-  function resolveEntry(index: number, playerId: string, playerName: string) {
+  function resolveEntry(index: number, playerId: string, playerName: string, skipAlias = false) {
+    const entry = entries[index]
+    if (entry?.originallyUnmatched && !skipAlias) {
+      setSaveAliasMap((m) => ({ ...m, [index]: true }))
+    }
     setEntries((prev) =>
       prev.map((e, i) =>
         i === index
@@ -160,7 +167,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
       })
       if (res.ok) {
         const { id, sheet_name } = await res.json()
-        resolveEntry(index, id, sheet_name)
+        resolveEntry(index, id, sheet_name, true)
       } else {
         setSaveError(t('mod.lineup.errorSave'))
       }
@@ -175,6 +182,20 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   async function handleSave() {
     setIsSaving(true)
     setSaveError(null)
+
+    // Save aliases for resolved-from-unmatched entries where checkbox is checked
+    await Promise.all(
+      entries
+        .filter((e, i) => e.originallyUnmatched && e.resolvedPlayerId != null && saveAliasMap[i])
+        .map((e) =>
+          fetch('/api/lineup/aliases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player_id: e.resolvedPlayerId, alias_display: e.raw }),
+          }).catch(() => {})
+        )
+    )
+
     const players = entries
       .filter((e) => e.resolvedPlayerId != null)
       .map((e) => ({ player_id: e.resolvedPlayerId!, team: e.team ?? null }))
@@ -354,6 +375,21 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                       {addingGuest.has(i) ? t('common.loading') : `${t('mod.lineup.addGuest')} "${searchQueries[i]?.trim() || entry.raw}"`}
                     </Button>
                   </div>
+                )}
+
+                {/* Alias save checkbox — shown after resolving an originally-unmatched entry */}
+                {entry.resolvedPlayerId != null && entry.originallyUnmatched && (
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      className="h-3.5 w-3.5"
+                      checked={saveAliasMap[i] ?? false}
+                      onChange={(e) =>
+                        setSaveAliasMap((prev) => ({ ...prev, [i]: e.target.checked }))
+                      }
+                    />
+                    Remember &ldquo;{entry.raw}&rdquo; as alias for {entry.resolvedName}
+                  </label>
                 )}
               </div>
             ))}
