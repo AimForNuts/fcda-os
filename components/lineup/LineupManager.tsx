@@ -108,17 +108,17 @@ export function LineupManager({ gameId, currentLineup }: Props) {
 
   // ── Resolve helpers ────────────────────────────────────────────────────
   function resolveEntry(index: number, playerId: string, playerName: string, skipAlias = false) {
-    setEntries((prev) => {
-      const entry = prev[index]
-      if (entry?.originallyUnmatched && !skipAlias) {
-        setSaveAliasMap((m) => ({ ...m, [index]: true }))
-      }
-      return prev.map((e, i) =>
+    const entry = entries[index]
+    if (entry?.originallyUnmatched && !skipAlias) {
+      setSaveAliasMap((m) => ({ ...m, [index]: true }))
+    }
+    setEntries((prev) =>
+      prev.map((e, i) =>
         i === index
           ? { ...e, resolvedPlayerId: playerId, resolvedName: playerName, status: 'matched' }
           : e
       )
-    })
+    )
   }
 
   function setTeam(index: number, team: 'a' | 'b' | null) {
@@ -192,7 +192,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ player_id: e.resolvedPlayerId, alias_display: e.raw }),
-          })
+          }).catch(() => {})
         )
     )
 
