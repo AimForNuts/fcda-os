@@ -1,5 +1,4 @@
 import { createServiceClient } from '@/lib/supabase/server'
-import { AdminNav } from '@/components/admin/AdminNav'
 import { UserTable } from './UserTable'
 import type { UserRole } from '@/types'
 
@@ -100,7 +99,6 @@ export default async function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <AdminNav />
       <div>
         <h1 className="text-2xl font-bold text-fcda-navy">Utilizadores</h1>
         <p className="text-sm text-muted-foreground mt-1">{users.length} utilizadores</p>

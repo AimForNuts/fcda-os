@@ -23,7 +23,7 @@ export function AdminNav() {
           href={tab.href}
           className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
             pathname.startsWith(tab.href)
-              ? 'border-fcda-navy text-fcda-navy'
+              ? 'border-fcda-gold text-foreground'
               : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >

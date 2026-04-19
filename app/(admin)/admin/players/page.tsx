@@ -1,5 +1,4 @@
 import { createServiceClient } from '@/lib/supabase/server'
-import { AdminNav } from '@/components/admin/AdminNav'
 import { PlayerTable } from './PlayerTable'
 
 export type PlayerRow = {
@@ -85,7 +84,6 @@ export default async function PlayersPage() {
 
   return (
     <div className="space-y-6">
-      <AdminNav />
       <div>
         <h1 className="text-2xl font-bold text-fcda-navy">Jogadores</h1>
         <p className="text-sm text-muted-foreground mt-1">{rows.length} jogadores</p>
