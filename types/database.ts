@@ -253,6 +253,22 @@ export type Database = {
           profile_id: string | null
         }
       }
+      player_stats: {
+        Row: {
+          id: string
+          display_name: string
+          shirt_number: number | null
+          profile_id: string | null
+          total_all: number
+          total_comp: number
+          wins_all: number
+          draws_all: number
+          losses_all: number
+          wins_comp: number
+          draws_comp: number
+          losses_comp: number
+        }
+      }
     }
     Functions: {
       has_role: {
