@@ -45,6 +45,7 @@ export type Database = {
           sheet_name: string
           shirt_number: number | null
           current_rating: number | null
+          preferred_positions: string[]
           profile_id: string | null
           created_at: string
           updated_at: string
@@ -54,6 +55,7 @@ export type Database = {
           sheet_name: string
           shirt_number?: number | null
           current_rating?: number | null
+          preferred_positions?: string[]
           profile_id?: string | null
           created_at?: string
           updated_at?: string
@@ -62,6 +64,7 @@ export type Database = {
           sheet_name?: string
           shirt_number?: number | null
           current_rating?: number | null
+          preferred_positions?: string[]
           profile_id?: string | null
           updated_at?: string
         }
