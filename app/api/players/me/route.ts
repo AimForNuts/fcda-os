@@ -1,6 +1,9 @@
 import { z } from 'zod'
+import type { Database } from '@/types/database'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+
+type PlayerUpdate = Database['public']['Tables']['players']['Update']
 
 const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST'] as const
 
@@ -20,7 +23,7 @@ export async function PATCH(request: Request) {
     .from('players')
     .select('id')
     .eq('profile_id', session.userId)
-    .single() as { data: { id: string } | null; error: unknown }
+    .maybeSingle() as { data: { id: string } | null; error: unknown }
 
   if (!player) return Response.json({ error: 'No linked player' }, { status: 404 })
 
@@ -30,11 +33,15 @@ export async function PATCH(request: Request) {
     return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 422 })
   }
 
-  const updates: Record<string, unknown> = {
+  const updates: PlayerUpdate = {
     sheet_name: parsed.data.sheet_name,
   }
-  if ('shirt_number' in parsed.data) updates.shirt_number = parsed.data.shirt_number ?? null
-  if ('preferred_positions' in parsed.data) updates.preferred_positions = parsed.data.preferred_positions
+  if ('shirt_number' in parsed.data) {
+    updates.shirt_number = parsed.data.shirt_number ?? null
+  }
+  if ('preferred_positions' in parsed.data) {
+    updates.preferred_positions = parsed.data.preferred_positions
+  }
 
   const { error } = await (admin.from('players') as any)
     .update(updates)
