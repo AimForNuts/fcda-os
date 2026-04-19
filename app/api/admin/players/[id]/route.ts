@@ -2,11 +2,14 @@ import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessAdmin } from '@/lib/auth/permissions'
 
+const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST'] as const
+
 const schema = z.object({
   sheet_name: z.string().min(1).max(100).optional(),
   shirt_number: z.number().int().min(1).max(99).nullable().optional(),
   profile_id: z.string().uuid().nullable().optional(),
   current_rating: z.number().min(0).max(10).optional(),
+  preferred_positions: z.array(z.enum(POSITIONS)).optional(),
 })
 
 export async function PATCH(
