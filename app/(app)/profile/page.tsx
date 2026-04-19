@@ -1,16 +1,17 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
 import { ProfileForm } from '@/components/profile/ProfileForm'
 
-export const metadata = { title: 'O meu perfil — FCDA' }
+export const metadata: Metadata = { title: 'O meu perfil — FCDA' }
 
 export default async function ProfilePage() {
   const session = await fetchSessionContext()
   if (!session) redirect('/auth/login')
 
   const admin = createServiceClient()
-  const { data: player } = await admin
+  const { data: player, error: playerError } = await admin
     .from('players')
     .select('sheet_name, shirt_number, preferred_positions')
     .eq('profile_id', session.userId)
@@ -20,8 +21,10 @@ export default async function ProfilePage() {
         shirt_number: number | null
         preferred_positions: string[]
       } | null
-      error: unknown
+      error: Error | null
     }
+
+  if (playerError) throw playerError
 
   return (
     <div className="container max-w-screen-sm mx-auto px-4 py-8">
