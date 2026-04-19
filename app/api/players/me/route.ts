@@ -14,12 +14,6 @@ export async function PATCH(request: Request) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
 
-  const body = await request.json().catch(() => null)
-  const parsed = schema.safeParse(body)
-  if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 422 })
-  }
-
   const admin = createServiceClient()
 
   const { data: player } = await admin
@@ -30,12 +24,20 @@ export async function PATCH(request: Request) {
 
   if (!player) return Response.json({ error: 'No linked player' }, { status: 404 })
 
+  const body = await request.json().catch(() => null)
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) {
+    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 422 })
+  }
+
+  const updates: Record<string, unknown> = {
+    sheet_name: parsed.data.sheet_name,
+  }
+  if ('shirt_number' in parsed.data) updates.shirt_number = parsed.data.shirt_number ?? null
+  if ('preferred_positions' in parsed.data) updates.preferred_positions = parsed.data.preferred_positions
+
   const { error } = await (admin.from('players') as any)
-    .update({
-      sheet_name: parsed.data.sheet_name,
-      shirt_number: parsed.data.shirt_number ?? null,
-      preferred_positions: parsed.data.preferred_positions ?? [],
-    })
+    .update(updates)
     .eq('id', player.id)
 
   if (error) return Response.json({ error: 'Failed to update' }, { status: 500 })
