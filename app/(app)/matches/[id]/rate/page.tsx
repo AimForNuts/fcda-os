@@ -51,13 +51,18 @@ export default async function RatePage({
   // Fetch all player IDs in the lineup (also used to verify user is in the game)
   const { data: gamePlayersRows } = await supabase
     .from('game_players')
-    .select('player_id')
-    .eq('game_id', gameId) as { data: Array<{ player_id: string }> | null; error: unknown }
+    .select('player_id, team')
+    .eq('game_id', gameId) as { data: Array<{ player_id: string; team: string | null }> | null; error: unknown }
 
   const allPlayerIds = (gamePlayersRows ?? []).map((gp) => gp.player_id)
   if (!allPlayerIds.includes(linkedPlayer.id)) redirect(`/matches/${gameId}`)
 
-  const teammateIds = allPlayerIds.filter((pid) => pid !== linkedPlayer.id)
+  const submitterRow = (gamePlayersRows ?? []).find((gp) => gp.player_id === linkedPlayer.id)
+  const submitterTeam = submitterRow?.team ?? null
+
+  const teammateIds = (gamePlayersRows ?? [])
+    .filter((gp) => gp.player_id !== linkedPlayer.id && gp.team != null && gp.team === submitterTeam)
+    .map((gp) => gp.player_id)
 
   let teammates: PlayerPublic[] = []
   if (teammateIds.length > 0) {
@@ -71,10 +76,10 @@ export default async function RatePage({
   // Fetch existing submissions for this (game, user) batch
   const { data: existingSubmissions } = await supabase
     .from('rating_submissions')
-    .select('rated_player_id, rating, status')
+    .select('rated_player_id, rating, status, feedback')
     .eq('game_id', gameId)
     .eq('submitted_by', session.userId) as {
-      data: Array<{ rated_player_id: string; rating: number; status: string }> | null
+      data: Array<{ rated_player_id: string; rating: number; status: string; feedback: string | null }> | null
       error: unknown
     }
 
@@ -83,17 +88,12 @@ export default async function RatePage({
     existingRatings[s.rated_player_id] = s.rating
   }
 
-  const locked = (existingSubmissions ?? []).some((s) => s.status === 'approved')
+  const locked = (existingSubmissions ?? []).length > 0
 
-  // Fetch existing feedback for this (game, user) pair
-  const { data: feedbackRow } = await supabase
-    .from('feedback')
-    .select('content')
-    .eq('game_id', gameId)
-    .eq('submitted_by', session.userId)
-    .single() as { data: { content: string } | null; error: unknown }
-
-  const existingFeedback = feedbackRow?.content ?? undefined
+  const existingFeedbacks: Record<string, string> = {}
+  for (const s of existingSubmissions ?? []) {
+    if (s.feedback) existingFeedbacks[s.rated_player_id] = s.feedback
+  }
 
   const d = new Date(game.date)
   const dateStr = d.toLocaleDateString('pt-PT', {
@@ -116,7 +116,7 @@ export default async function RatePage({
         teammates={teammates}
         existingRatings={existingRatings}
         locked={locked}
-        existingFeedback={existingFeedback}
+        existingFeedbacks={existingFeedbacks}
       />
     </div>
   )

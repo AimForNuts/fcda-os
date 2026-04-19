@@ -72,7 +72,7 @@
     "rate": "Rate",
     "rateTeammates": "Rate your teammates",
     "ratingSubmitted": "Ratings submitted.",
-    "ratingLocked": "Ratings approved — no changes allowed.",
+    "ratingLocked": "Ratings submitted — awaiting review.",
     "ratingSubmit": "Submit ratings",
     "ratingSubmitting": "Submitting...",
     "feedbackLabel": "Feedback",

@@ -21,7 +21,7 @@ describe('RatingForm', () => {
   })
 
   it('renders a row per teammate', () => {
-    render(<RatingForm gameId="game-1" teammates={teammates} existingRatings={{}} locked={false} />)
+    render(<RatingForm gameId="game-1" teammates={teammates} existingRatings={{}} existingFeedbacks={{}} locked={false} />)
     expect(screen.getByText('Alice')).toBeInTheDocument()
     expect(screen.getByText('Bob')).toBeInTheDocument()
   })
@@ -32,6 +32,7 @@ describe('RatingForm', () => {
         gameId="game-1"
         teammates={teammates}
         existingRatings={{ 'player-1': 7.5 }}
+        existingFeedbacks={{}}
         locked={false}
       />
     )
@@ -40,7 +41,7 @@ describe('RatingForm', () => {
   })
 
   it('shows locked message and no inputs when locked is true', () => {
-    render(<RatingForm gameId="game-1" teammates={teammates} existingRatings={{}} locked={true} />)
+    render(<RatingForm gameId="game-1" teammates={teammates} existingRatings={{}} existingFeedbacks={{}} locked={true} />)
     expect(screen.getByText('matches.ratingLocked')).toBeInTheDocument()
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
   })
@@ -51,6 +52,7 @@ describe('RatingForm', () => {
         gameId="game-1"
         teammates={teammates}
         existingRatings={{ 'player-1': 7.5 }}
+        existingFeedbacks={{}}
         locked={true}
       />
     )
@@ -60,7 +62,7 @@ describe('RatingForm', () => {
 
   it('submits ratings and shows confirmation on success', async () => {
     mockFetch.mockResolvedValue({ ok: true })
-    render(<RatingForm gameId="game-1" teammates={teammates} existingRatings={{}} locked={false} />)
+    render(<RatingForm gameId="game-1" teammates={teammates} existingRatings={{}} existingFeedbacks={{}} locked={false} />)
 
     const inputs = screen.getAllByRole('spinbutton')
     fireEvent.change(inputs[0], { target: { value: '8' } })
@@ -75,7 +77,7 @@ describe('RatingForm', () => {
 
   it('shows error message on failed submission', async () => {
     mockFetch.mockResolvedValue({ ok: false })
-    render(<RatingForm gameId="game-1" teammates={teammates} existingRatings={{}} locked={false} />)
+    render(<RatingForm gameId="game-1" teammates={teammates} existingRatings={{}} existingFeedbacks={{}} locked={false} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'matches.ratingSubmit' }))
 
@@ -84,47 +86,56 @@ describe('RatingForm', () => {
     )
   })
 
-  it('textarea is disabled when no ratings are filled', () => {
+  it('per-player textarea is disabled when that player has no rating', () => {
     render(
       <RatingForm
         gameId="game-1"
         teammates={teammates}
         existingRatings={{}}
+        existingFeedbacks={{}}
         locked={false}
       />
     )
-    expect(screen.getByRole('textbox')).toBeDisabled()
+    const textareas = screen.getAllByRole('textbox')
+    // Both textareas should be disabled when no ratings are filled
+    expect(textareas[0]).toBeDisabled()
+    expect(textareas[1]).toBeDisabled()
   })
 
-  it('textarea is enabled when at least one rating is filled', () => {
+  it('per-player textarea is enabled after its player gets a rating', () => {
     render(
       <RatingForm
         gameId="game-1"
         teammates={teammates}
         existingRatings={{}}
+        existingFeedbacks={{}}
         locked={false}
       />
     )
     const inputs = screen.getAllByRole('spinbutton')
     fireEvent.change(inputs[0], { target: { value: '8' } })
-    expect(screen.getByRole('textbox')).not.toBeDisabled()
+    const textareas = screen.getAllByRole('textbox')
+    expect(textareas[0]).not.toBeDisabled()
+    // Second player still has no rating, so their textarea remains disabled
+    expect(textareas[1]).toBeDisabled()
   })
 
-  it('includes feedback content in the submitted payload', async () => {
+  it('includes per-player feedbacks in the submitted payload', async () => {
     mockFetch.mockResolvedValue({ ok: true })
     render(
       <RatingForm
         gameId="game-1"
         teammates={teammates}
         existingRatings={{}}
+        existingFeedbacks={{}}
         locked={false}
       />
     )
     const inputs = screen.getAllByRole('spinbutton')
     fireEvent.change(inputs[0], { target: { value: '8' } })
 
-    const textarea = screen.getByRole('textbox')
-    fireEvent.change(textarea, { target: { value: 'Great teamwork' } })
+    const textareas = screen.getAllByRole('textbox')
+    fireEvent.change(textareas[0], { target: { value: 'Great teamwork' } })
 
     fireEvent.click(screen.getByRole('button', { name: 'matches.ratingSubmit' }))
 
@@ -132,35 +143,45 @@ describe('RatingForm', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          body: expect.stringContaining('"content":"Great teamwork"'),
+          body: expect.stringContaining('"feedbacks"'),
+        })
+      )
+    )
+    await waitFor(() =>
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          body: expect.stringContaining('Great teamwork'),
         })
       )
     )
   })
 
-  it('shows existing feedback as read-only in locked view', () => {
+  it('shows existing per-player feedback as read-only in locked view', () => {
     render(
       <RatingForm
         gameId="game-1"
         teammates={teammates}
         existingRatings={{ 'player-1': 7.5 }}
+        existingFeedbacks={{ 'player-1': 'Great game' }}
         locked={true}
-        existingFeedback="Great game"
       />
     )
     expect(screen.getByText('Great game')).toBeInTheDocument()
   })
 
-  it('pre-fills feedback textarea with existingFeedback when not locked', () => {
+  it('pre-fills per-player feedback textareas with existingFeedbacks when not locked', () => {
     render(
       <RatingForm
         gameId="game-1"
         teammates={teammates}
         existingRatings={{ 'player-1': 7.5 }}
+        existingFeedbacks={{ 'player-1': 'Previous feedback' }}
         locked={false}
-        existingFeedback="Previous feedback"
       />
     )
-    expect(screen.getByRole('textbox')).toHaveValue('Previous feedback')
+    const textareas = screen.getAllByRole('textbox')
+    expect(textareas[0]).toHaveValue('Previous feedback')
+    expect(textareas[1]).toHaveValue('')
   })
 })

@@ -154,6 +154,7 @@ export type Database = {
           status: 'pending' | 'approved' | 'rejected'
           reviewed_by: string | null
           reviewed_at: string | null
+          feedback: string | null
           created_at: string
         }
         Insert: {
@@ -165,12 +166,14 @@ export type Database = {
           status?: 'pending' | 'approved' | 'rejected'
           reviewed_by?: string | null
           reviewed_at?: string | null
+          feedback?: string | null
           created_at?: string
         }
         Update: {
           status?: 'pending' | 'approved' | 'rejected'
           reviewed_by?: string | null
           reviewed_at?: string | null
+          feedback?: string | null
         }
       }
       rating_history: {
