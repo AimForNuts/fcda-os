@@ -61,6 +61,7 @@ export function StatsTable({ players, isAnonymised }: Props) {
     <div>
       <div className="flex gap-2 mb-4">
         <button
+          type="button"
           onClick={() => setMode('all')}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             mode === 'all'
@@ -71,6 +72,7 @@ export function StatsTable({ players, isAnonymised }: Props) {
           Todos
         </button>
         <button
+          type="button"
           onClick={() => setMode('competitive')}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             mode === 'competitive'
@@ -98,7 +100,7 @@ export function StatsTable({ players, isAnonymised }: Props) {
                   <th
                     key={col}
                     onClick={() => handleSort(col)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSort(col)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSort(col)}
                     tabIndex={0}
                     aria-sort={active ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'}
                     className="px-4 py-2.5 text-right font-semibold cursor-pointer select-none whitespace-nowrap"
