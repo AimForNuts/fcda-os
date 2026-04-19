@@ -9,12 +9,9 @@ export default async function StatsPage() {
   const session = await fetchSessionContext()
   const isApproved = session?.profile?.approved ?? false
 
-  // players_public view handles anonymisation via is_approved() on the caller's JWT.
-  // Approved users get real sheet_name; guests/pending get "Jogador N".
   const { data: players } = await supabase
-    .from('players_public')
-    .select('id, display_name, shirt_number, current_rating, profile_id')
-    .order('current_rating', { ascending: false, nullsFirst: false })
+    .from('player_stats')
+    .select('id, display_name, shirt_number, profile_id, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp')
 
   return (
     <div className="container max-w-screen-md mx-auto px-4 py-8">

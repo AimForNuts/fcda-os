@@ -11,6 +11,7 @@ export type RatingHistory = Database['public']['Tables']['rating_history']['Row'
 export type Feedback = Database['public']['Tables']['feedback']['Row']
 export type AuditLog = Database['public']['Tables']['audit_log']['Row']
 export type PlayerPublic = Database['public']['Views']['players_public']['Row']
+export type PlayerStats = Database['public']['Views']['player_stats']['Row']
 
 export type GameStatus = Game['status']
 export type RatingSubmissionStatus = RatingSubmission['status']
