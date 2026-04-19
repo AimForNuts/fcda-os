@@ -1,10 +1,10 @@
-import { createServiceClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { AiAssistantClient } from './AiAssistantClient'
 
 export default async function AiAssistantPage() {
-  const admin = createServiceClient()
+  const supabase = await createClient()
 
-  const { data: games } = await admin
+  const { data: games } = await supabase
     .from('games')
     .select('id, date, location')
     .eq('status', 'scheduled')

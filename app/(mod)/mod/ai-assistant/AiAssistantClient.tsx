@@ -34,26 +34,26 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  async function fetchPlayers(gameId: string) {
-    if (!gameId) return
+  useEffect(() => {
+    if (!selectedGameId) return
+    let cancelled = false
     setLoading(true)
     const supabase = createClient()
-    const { data } = await (supabase
+    ;(supabase
       .from('game_players')
       .select('players(sheet_name, current_rating, preferred_positions)')
-      .eq('game_id', gameId) as unknown as Promise<{
+      .eq('game_id', selectedGameId) as unknown as Promise<{
         data: Array<{ players: PlayerEntry | null }> | null
-      }>)
-    setPlayers(
-      (data ?? [])
-        .map((r) => r.players)
-        .filter((p): p is PlayerEntry => p != null)
-    )
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    if (selectedGameId) fetchPlayers(selectedGameId)
+      }>).then(({ data }) => {
+      if (cancelled) return
+      setPlayers(
+        (data ?? [])
+          .map((r) => r.players)
+          .filter((p): p is PlayerEntry => p != null)
+      )
+      setLoading(false)
+    })
+    return () => { cancelled = true }
   }, [selectedGameId])
 
   const prompt = buildPrompt(players)
