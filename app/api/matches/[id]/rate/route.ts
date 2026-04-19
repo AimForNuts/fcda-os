@@ -4,7 +4,7 @@ import { fetchSessionContext } from '@/lib/auth/permissions'
 
 const schema = z.object({
   ratings: z.record(z.string().uuid(), z.number().min(0).max(10)),
-  content: z.string().max(1000).optional(),
+  feedbacks: z.record(z.string().uuid(), z.string().max(300)).optional(),
 })
 
 export async function POST(
@@ -36,7 +36,7 @@ export async function POST(
     return Response.json({ error: 'Game not eligible for ratings' }, { status: 422 })
   }
 
-  // 2. Find submitter's linked player (use service client — players table is not in players_public)
+  // 2. Find submitter's linked player
   const { data: linkedPlayer } = await admin
     .from('players')
     .select('id')
@@ -56,7 +56,7 @@ export async function POST(
   if (!submitterInGame) return Response.json({ error: 'Not in lineup' }, { status: 403 })
 
   // 4. No self-rating
-  const { ratings, content } = parsed.data
+  const { ratings, feedbacks } = parsed.data
   if (Object.keys(ratings).length === 0) {
     return Response.json({ error: 'No ratings provided' }, { status: 422 })
   }
@@ -81,17 +81,17 @@ export async function POST(
     }
   }
 
-  // 6. Check if batch is locked (any submission already approved)
+  // 6. Lock if any submission already exists (not just approved)
   const { data: existingBatch } = await admin
     .from('rating_submissions')
     .select('status')
     .eq('game_id', gameId)
     .eq('submitted_by', session.userId) as { data: Array<{ status: string }> | null; error: unknown }
 
-  const isLocked = (existingBatch ?? []).some((s) => s.status === 'approved')
+  const isLocked = (existingBatch ?? []).length > 0
   if (isLocked) return Response.json({ error: 'Locked' }, { status: 403 })
 
-  // 7. Upsert — one row per rated player
+  // 7. Upsert — one row per rated player, with optional per-player feedback
   const rows = Object.entries(ratings).map(([rated_player_id, rating]) => ({
     game_id: gameId,
     submitted_by: session.userId,
@@ -100,22 +100,13 @@ export async function POST(
     status: 'pending' as const,
     reviewed_by: null,
     reviewed_at: null,
+    feedback: feedbacks?.[rated_player_id]?.trim() || null,
   }))
 
   const { error: upsertErr } = await (admin.from('rating_submissions') as any)
     .upsert(rows, { onConflict: 'game_id,submitted_by,rated_player_id' })
 
   if (upsertErr) return Response.json({ error: 'Failed to submit' }, { status: 500 })
-
-  // Upsert feedback if content was provided
-  if (content && content.trim()) {
-    const { error: feedbackErr } = await (admin.from('feedback') as any)
-      .upsert(
-        [{ game_id: gameId, submitted_by: session.userId, content: content.trim(), status: 'open' }],
-        { onConflict: 'game_id,submitted_by' }
-      )
-    if (feedbackErr) console.error(`feedback upsert failed for game ${gameId}`, feedbackErr)
-  }
 
   return Response.json({ ok: true })
 }
