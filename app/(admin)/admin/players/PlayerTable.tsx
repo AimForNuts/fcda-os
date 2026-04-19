@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import type { PlayerRow } from './page'
 
+const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST'] as const
+
 type ProfileResult = { id: string; display_name: string }
 
 export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
@@ -21,6 +23,8 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   const [errorMap, setErrorMap] = useState<Record<string, string>>({})
   const [editingRatingId, setEditingRatingId] = useState<string | null>(null)
   const [ratingInput, setRatingInput] = useState<Record<string, string>>({})
+  const [editingPositionsId, setEditingPositionsId] = useState<string | null>(null)
+  const [positionsInput, setPositionsInput] = useState<Record<string, string[]>>({})
   const userSearchAbort = useRef<AbortController | null>(null)
 
   function setLoading(playerId: string, key: string | null) {
@@ -104,6 +108,17 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
         prev.map((r) => (r.id === playerId ? { ...r, current_rating: val } : r))
       )
       setEditingRatingId(null)
+    }
+  }
+
+  async function savePositions(playerId: string) {
+    const positions = positionsInput[playerId] ?? []
+    const ok = await patchPlayer(playerId, 'positions', { preferred_positions: positions })
+    if (ok) {
+      setRows((prev) =>
+        prev.map((r) => (r.id === playerId ? { ...r, preferred_positions: positions } : r))
+      )
+      setEditingPositionsId(null)
     }
   }
 
@@ -319,6 +334,71 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     }}
                   >
                     Rating: {player.current_rating != null ? player.current_rating.toFixed(2) : '–'}
+                  </button>
+                )}
+
+                {/* Positions */}
+                {editingPositionsId === player.id ? (
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                    {POSITIONS.map((pos) => {
+                      const selected = (positionsInput[player.id] ?? []).includes(pos)
+                      return (
+                        <button
+                          key={pos}
+                          type="button"
+                          onClick={() =>
+                            setPositionsInput((prev) => {
+                              const current = prev[player.id] ?? []
+                              return {
+                                ...prev,
+                                [player.id]: selected
+                                  ? current.filter((p) => p !== pos)
+                                  : [...current, pos],
+                              }
+                            })
+                          }
+                          className={`rounded px-2 py-0.5 text-xs border transition-colors ${
+                            selected
+                              ? 'bg-fcda-navy text-white border-fcda-navy'
+                              : 'bg-background text-fcda-navy border-fcda-navy/40 hover:border-fcda-navy'
+                          }`}
+                        >
+                          {pos}
+                        </button>
+                      )
+                    })}
+                    <Button
+                      size="sm"
+                      className="bg-fcda-navy text-white hover:bg-fcda-navy/90 text-xs h-6 px-2"
+                      onClick={() => savePositions(player.id)}
+                      disabled={isLoading}
+                    >
+                      {loadingMap[player.id] === 'positions' ? '...' : t('admin.saveEdit')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs h-6 px-2"
+                      onClick={() => setEditingPositionsId(null)}
+                    >
+                      {t('admin.cancelEdit')}
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-fcda-navy cursor-pointer mt-0.5 text-left"
+                    onClick={() => {
+                      setEditingPositionsId(player.id)
+                      setPositionsInput((prev) => ({
+                        ...prev,
+                        [player.id]: [...player.preferred_positions],
+                      }))
+                    }}
+                  >
+                    {player.preferred_positions.length > 0
+                      ? `Positions: ${player.preferred_positions.join(', ')}`
+                      : 'Positions: –'}
                   </button>
                 )}
               </div>
