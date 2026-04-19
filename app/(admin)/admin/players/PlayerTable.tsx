@@ -339,7 +339,10 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
 
                 {/* Positions */}
                 {editingPositionsId === player.id ? (
-                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <div
+                    className="flex items-center gap-1.5 mt-1 flex-wrap"
+                    onKeyDown={(e) => { if (e.key === 'Escape') setEditingPositionsId(null) }}
+                  >
                     {POSITIONS.map((pos) => {
                       const selected = (positionsInput[player.id] ?? []).includes(pos)
                       return (

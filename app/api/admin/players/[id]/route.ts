@@ -76,9 +76,11 @@ export async function PATCH(
   const action =
     'current_rating' in parsed.data
       ? 'rating.override'
-      : 'profile_id' in parsed.data
-        ? parsed.data.profile_id != null ? 'player.linked' : 'player.unlinked'
-        : 'player.updated'
+      : 'preferred_positions' in parsed.data
+        ? 'player.positions_updated'
+        : 'profile_id' in parsed.data
+          ? parsed.data.profile_id != null ? 'player.linked' : 'player.unlinked'
+          : 'player.updated'
 
   const { error: auditErr } = await admin.from('audit_log').insert({
     action,
