@@ -349,9 +349,10 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                           onClick={() =>
                             setPositionsInput((prev) => {
                               const current = prev[player.id] ?? []
+                              const isSelected = current.includes(pos)
                               return {
                                 ...prev,
-                                [player.id]: selected
+                                [player.id]: isSelected
                                   ? current.filter((p) => p !== pos)
                                   : [...current, pos],
                               }
