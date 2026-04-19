@@ -31,16 +31,24 @@ export default async function AdminFeedbackPage() {
       error: unknown
     }
 
+  if (!rows || rows.length === 0) {
+    return (
+      <div className="space-y-6">
+        <FeedbackInbox items={[]} />
+      </div>
+    )
+  }
+
   const groups = new Map<string, Array<{ game_id: string; submitted_by: string; rated_player_id: string; feedback: string; created_at: string }>>()
-  for (const row of rows ?? []) {
+  for (const row of rows) {
     const key = `${row.game_id}:${row.submitted_by}`
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(row)
   }
 
-  const gameIds = [...new Set((rows ?? []).map((r) => r.game_id))]
-  const submitterIds = [...new Set((rows ?? []).map((r) => r.submitted_by))]
-  const playerIds = [...new Set((rows ?? []).map((r) => r.rated_player_id))]
+  const gameIds = [...new Set(rows.map((r) => r.game_id))]
+  const submitterIds = [...new Set(rows.map((r) => r.submitted_by))]
+  const playerIds = [...new Set(rows.map((r) => r.rated_player_id))]
 
   const [gamesRes, profilesRes, playersRes] = await Promise.all([
     admin.from('games').select('id, date, location').in('id', gameIds),

@@ -63,6 +63,13 @@ export async function POST(
   if (ratings[linkedPlayer.id] !== undefined) {
     return Response.json({ error: 'Cannot rate yourself' }, { status: 422 })
   }
+  if (feedbacks) {
+    for (const pid of Object.keys(feedbacks)) {
+      if (ratings[pid] === undefined) {
+        return Response.json({ error: 'Feedback without matching rating' }, { status: 422 })
+      }
+    }
+  }
 
   // 5. All rated players must be in the lineup
   const ratedPlayerIds = Object.keys(ratings)
