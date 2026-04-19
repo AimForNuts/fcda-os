@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import type { PlayerPublic } from '@/types'
@@ -9,23 +9,23 @@ type Props = {
   gameId: string
   teammates: PlayerPublic[]
   existingRatings: Record<string, number>
+  existingFeedbacks: Record<string, string>
   locked: boolean
-  existingFeedback?: string
 }
 
-export function RatingForm({ gameId, teammates, existingRatings, locked, existingFeedback }: Props) {
+export function RatingForm({ gameId, teammates, existingRatings, existingFeedbacks, locked }: Props) {
   const { t } = useTranslation()
   const [ratings, setRatings] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       teammates.map((p) => [p.id, existingRatings[p.id]?.toString() ?? ''])
     )
   )
-  const [feedback, setFeedback] = useState(existingFeedback ?? '')
+  const [feedbacks, setFeedbacks] = useState<Record<string, string>>(() =>
+    Object.fromEntries(teammates.map((p) => [p.id, existingFeedbacks[p.id] ?? '']))
+  )
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const hasAnyRating = Object.values(ratings).some((v) => !isNaN(parseFloat(v)))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -38,8 +38,13 @@ export function RatingForm({ gameId, teammates, existingRatings, locked, existin
       if (!isNaN(n)) payload[id] = n
     }
 
-    const body: { ratings: Record<string, number>; content?: string } = { ratings: payload }
-    if (feedback.trim()) body.content = feedback.trim()
+    const feedbackPayload: Record<string, string> = {}
+    for (const [id, text] of Object.entries(feedbacks)) {
+      if (text.trim()) feedbackPayload[id] = text.trim()
+    }
+
+    const body: { ratings: Record<string, number>; feedbacks?: Record<string, string> } = { ratings: payload }
+    if (Object.keys(feedbackPayload).length > 0) body.feedbacks = feedbackPayload
 
     const res = await fetch(`/api/matches/${gameId}/rate`, {
       method: 'POST',
@@ -66,21 +71,24 @@ export function RatingForm({ gameId, teammates, existingRatings, locked, existin
         <table className="w-full text-sm">
           <tbody>
             {teammates.map((p) => (
-              <tr key={p.id} className="border-b">
-                <td className="py-2">{p.display_name}</td>
-                <td className="py-2 text-right">
-                  {existingRatings[p.id] != null ? existingRatings[p.id].toFixed(2) : '—'}
-                </td>
-              </tr>
+              <React.Fragment key={p.id}>
+                <tr className="border-b">
+                  <td className="py-2">{p.display_name}</td>
+                  <td className="py-2 text-right">
+                    {existingRatings[p.id] != null ? existingRatings[p.id].toFixed(2) : '—'}
+                  </td>
+                </tr>
+                {existingFeedbacks[p.id] && (
+                  <tr>
+                    <td colSpan={2} className="pb-2 text-xs text-muted-foreground italic">
+                      {existingFeedbacks[p.id]}
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
-        {existingFeedback && (
-          <div className="space-y-1">
-            <p className="text-sm font-medium">{t('matches.feedbackLabel')}</p>
-            <p className="text-sm text-muted-foreground">{existingFeedback}</p>
-          </div>
-        )}
       </div>
     )
   }
@@ -90,38 +98,41 @@ export function RatingForm({ gameId, teammates, existingRatings, locked, existin
       <table className="w-full text-sm">
         <tbody>
           {teammates.map((p) => (
-            <tr key={p.id} className="border-b">
-              <td className="py-2">{p.display_name}</td>
-              <td className="py-2 text-right">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="10"
-                  value={ratings[p.id] ?? ''}
-                  onChange={(e) =>
-                    setRatings((prev) => ({ ...prev, [p.id]: e.target.value }))
-                  }
-                  className="w-20 text-right border rounded px-2 py-1"
-                  disabled={submitting}
-                />
-              </td>
-            </tr>
+            <React.Fragment key={p.id}>
+              <tr>
+                <td className="py-2 pt-3">{p.display_name}</td>
+                <td className="py-2 pt-3 text-right">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="10"
+                    value={ratings[p.id] ?? ''}
+                    onChange={(e) =>
+                      setRatings((prev) => ({ ...prev, [p.id]: e.target.value }))
+                    }
+                    className="w-20 text-right border rounded px-2 py-1"
+                    disabled={submitting}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td colSpan={2} className="pb-3">
+                  <textarea
+                    value={feedbacks[p.id] ?? ''}
+                    onChange={(e) => setFeedbacks((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                    placeholder="Comentário (opcional)"
+                    disabled={isNaN(parseFloat(ratings[p.id] ?? '')) || submitting}
+                    maxLength={300}
+                    rows={2}
+                    className="w-full border rounded px-2 py-1 text-xs resize-none disabled:opacity-40"
+                  />
+                </td>
+              </tr>
+            </React.Fragment>
           ))}
         </tbody>
       </table>
-      <div className="space-y-1">
-        <label className="text-sm font-medium">{t('matches.feedbackLabel')}</label>
-        <textarea
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-          placeholder={hasAnyRating ? t('matches.feedbackPlaceholder') : t('matches.feedbackHint')}
-          disabled={!hasAnyRating || submitting}
-          maxLength={1000}
-          rows={3}
-          className="w-full border rounded px-3 py-2 text-sm resize-none disabled:opacity-50"
-        />
-      </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit" disabled={submitting}>
         {submitting ? t('matches.ratingSubmitting') : t('matches.ratingSubmit')}

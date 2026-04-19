@@ -116,7 +116,6 @@ export default async function RatePage({
         teammates={teammates}
         existingRatings={existingRatings}
         locked={locked}
-        // @ts-expect-error Task 5 will add this prop
         existingFeedbacks={existingFeedbacks}
       />
     </div>
