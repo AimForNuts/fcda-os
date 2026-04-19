@@ -16,6 +16,7 @@ const schema = z.object({
 export async function PATCH(request: Request) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
+  if (!session.profile.approved) return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const admin = createServiceClient()
 
@@ -43,6 +44,7 @@ export async function PATCH(request: Request) {
     updates.preferred_positions = parsed.data.preferred_positions
   }
 
+  // as any: Supabase SDK can't infer the update chain return type with a typed payload
   const { error } = await (admin.from('players') as any)
     .update(updates)
     .eq('id', player.id)
