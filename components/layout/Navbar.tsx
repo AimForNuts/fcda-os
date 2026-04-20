@@ -50,9 +50,16 @@ export function Navbar({ profile, roles, pendingCount }: NavbarProps) {
     <header className="sticky top-0 z-50 w-full bg-fcda-navy text-white shadow-md">
       <div className="flex h-14 w-full items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-wide">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 font-bold text-lg tracking-wide"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/crest.png" alt="FCDA crest" className="h-8 w-8 object-contain" />
+          <img
+            src="/crest.png"
+            alt="FCDA crest"
+            className="h-8 w-8 object-contain"
+          />
           <span className="text-fcda-gold">FCDA</span>
         </Link>
 

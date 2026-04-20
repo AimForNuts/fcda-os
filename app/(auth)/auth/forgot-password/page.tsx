@@ -79,7 +79,9 @@ export default function ForgotPasswordPage() {
                 {...register('email')}
               />
               {errors.email && (
-                <p className="text-xs text-destructive">{errors.email.message}</p>
+                <p className="text-xs text-destructive">
+                  {errors.email.message}
+                </p>
               )}
             </div>
           </CardContent>

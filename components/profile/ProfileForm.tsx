@@ -11,9 +11,15 @@ type Props = {
   preferredPositions: string[]
 }
 
-export function ProfileForm({ sheetName, shirtNumber, preferredPositions }: Props) {
+export function ProfileForm({
+  sheetName,
+  shirtNumber,
+  preferredPositions,
+}: Props) {
   const [name, setName] = useState(sheetName)
-  const [shirt, setShirt] = useState<string>(shirtNumber != null ? String(shirtNumber) : '')
+  const [shirt, setShirt] = useState<string>(
+    shirtNumber != null ? String(shirtNumber) : '',
+  )
   const [positions, setPositions] = useState<string[]>(preferredPositions)
   const [submitting, setSubmitting] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -54,20 +60,22 @@ export function ProfileForm({ sheetName, shirtNumber, preferredPositions }: Prop
   }
 
   function togglePosition(pos: string) {
-    setPositions((prev) =>
-      prev.includes(pos) ? prev.filter((p) => p !== pos) : [...prev, pos]
+    setPositions(prev =>
+      prev.includes(pos) ? prev.filter(p => p !== pos) : [...prev, pos],
     )
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <label htmlFor="profile-name" className="text-sm font-medium">Nome</label>
+        <label htmlFor="profile-name" className="text-sm font-medium">
+          Nome
+        </label>
         <input
           id="profile-name"
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={e => setName(e.target.value)}
           maxLength={100}
           className="w-full rounded border border-input bg-background px-3 py-2 text-sm"
           disabled={submitting}
@@ -75,12 +83,14 @@ export function ProfileForm({ sheetName, shirtNumber, preferredPositions }: Prop
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="profile-shirt" className="text-sm font-medium">Número de camisola</label>
+        <label htmlFor="profile-shirt" className="text-sm font-medium">
+          Número de camisola
+        </label>
         <input
           id="profile-shirt"
           type="number"
           value={shirt}
-          onChange={(e) => setShirt(e.target.value)}
+          onChange={e => setShirt(e.target.value)}
           min={1}
           max={99}
           className="w-24 rounded border border-input bg-background px-3 py-2 text-sm"
@@ -91,7 +101,7 @@ export function ProfileForm({ sheetName, shirtNumber, preferredPositions }: Prop
       <div className="space-y-2">
         <label className="text-sm font-medium">Posições preferidas</label>
         <div className="flex gap-2 flex-wrap">
-          {POSITIONS.map((pos) => (
+          {POSITIONS.map(pos => (
             <button
               key={pos}
               type="button"

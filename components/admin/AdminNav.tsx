@@ -17,7 +17,7 @@ export function AdminNav() {
 
   return (
     <nav className="flex gap-0 border-b border-border">
-      {tabs.map((tab) => (
+      {tabs.map(tab => (
         <Link
           key={tab.href}
           href={tab.href}

@@ -11,11 +11,11 @@ export default async function EditGamePage({
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: game } = await supabase
+  const { data: game } = (await supabase
     .from('games')
     .select('*')
     .eq('id', id)
-    .single() as { data: Game | null; error: unknown }
+    .single()) as { data: Game | null; error: unknown }
 
   if (!game) notFound()
 

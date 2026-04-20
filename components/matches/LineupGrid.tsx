@@ -8,7 +8,13 @@ type Props = {
   isApproved?: boolean
 }
 
-function PlayerRow({ player, isApproved }: { player: PlayerPublic; isApproved?: boolean }) {
+function PlayerRow({
+  player,
+  isApproved,
+}: {
+  player: PlayerPublic
+  isApproved?: boolean
+}) {
   return (
     <div className="flex items-center gap-2 text-sm py-1.5 border-b border-border/50 last:border-0">
       {player.shirt_number != null && (
@@ -43,7 +49,7 @@ export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
           <h3 className="text-xs font-semibold uppercase tracking-wide text-fcda-navy mb-2">
             Equipa Branca
           </h3>
-          {teamA.map((p) => (
+          {teamA.map(p => (
             <PlayerRow key={p.id} player={p} isApproved={isApproved} />
           ))}
         </div>
@@ -51,7 +57,7 @@ export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
           <h3 className="text-xs font-semibold uppercase tracking-wide text-fcda-navy mb-2">
             Equipa Preta
           </h3>
-          {teamB.map((p) => (
+          {teamB.map(p => (
             <PlayerRow key={p.id} player={p} isApproved={isApproved} />
           ))}
         </div>
@@ -64,7 +70,7 @@ export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
       <h3 className="text-xs font-semibold uppercase tracking-wide text-fcda-navy mb-2">
         Convocados
       </h3>
-      {unassigned.map((p) => (
+      {unassigned.map(p => (
         <PlayerRow key={p.id} player={p} isApproved={isApproved} />
       ))}
     </div>

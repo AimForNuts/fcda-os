@@ -11,7 +11,9 @@ export default async function StatsPage() {
 
   const { data: players } = await supabase
     .from('player_stats')
-    .select('id, display_name, shirt_number, profile_id, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp')
+    .select(
+      'id, display_name, shirt_number, profile_id, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp',
+    )
 
   return (
     <div className="container max-w-screen-md mx-auto px-4 py-8">

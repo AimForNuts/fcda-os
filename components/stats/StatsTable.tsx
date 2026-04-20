@@ -18,7 +18,7 @@ export function StatsTable({ players, isAnonymised }: Props) {
 
   function handleSort(col: SortCol) {
     if (col === sortCol) {
-      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))
+      setSortDir(d => (d === 'desc' ? 'asc' : 'desc'))
     } else {
       setSortCol(col)
       setSortDir('desc')
@@ -27,7 +27,7 @@ export function StatsTable({ players, isAnonymised }: Props) {
 
   const rows = useMemo(() => {
     return [...players]
-      .map((p) => {
+      .map(p => {
         const total = mode === 'all' ? p.total_all : p.total_comp
         const wins = mode === 'all' ? p.wins_all : p.wins_comp
         const draws = mode === 'all' ? p.draws_all : p.draws_comp
@@ -100,12 +100,21 @@ export function StatsTable({ players, isAnonymised }: Props) {
                   <th
                     key={col}
                     onClick={() => handleSort(col)}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSort(col)}
+                    onKeyDown={e =>
+                      (e.key === 'Enter' || e.key === ' ') && handleSort(col)
+                    }
                     tabIndex={0}
-                    aria-sort={active ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'}
+                    aria-sort={
+                      active
+                        ? sortDir === 'desc'
+                          ? 'descending'
+                          : 'ascending'
+                        : 'none'
+                    }
                     className="px-4 py-2.5 text-right font-semibold cursor-pointer select-none whitespace-nowrap"
                   >
-                    {label}{active ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
+                    {label}
+                    {active ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
                   </th>
                 )
               })}
@@ -131,11 +140,21 @@ export function StatsTable({ players, isAnonymised }: Props) {
                     p.display_name
                   )}
                 </td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{p.total}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{p.wins}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{p.draws}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{p.losses}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums font-medium">{p.points}</td>
+                <td className="px-4 py-2.5 text-right tabular-nums">
+                  {p.total}
+                </td>
+                <td className="px-4 py-2.5 text-right tabular-nums">
+                  {p.wins}
+                </td>
+                <td className="px-4 py-2.5 text-right tabular-nums">
+                  {p.draws}
+                </td>
+                <td className="px-4 py-2.5 text-right tabular-nums">
+                  {p.losses}
+                </td>
+                <td className="px-4 py-2.5 text-right tabular-nums font-medium">
+                  {p.points}
+                </td>
               </tr>
             ))}
           </tbody>

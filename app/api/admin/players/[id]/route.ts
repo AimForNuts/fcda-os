@@ -14,18 +14,22 @@ const schema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
-  if (!canAccessAdmin(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (!canAccessAdmin(session.roles))
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id } = await params
 
   const body = await request.json().catch(() => null)
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
+    return Response.json(
+      { error: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    )
   }
 
   if (!Object.keys(parsed.data).length) {
@@ -35,25 +39,31 @@ export async function PATCH(
   const admin = createServiceClient()
 
   if (parsed.data.profile_id != null) {
-    const { data: existing } = await admin
+    const { data: existing } = (await admin
       .from('players')
       .select('id')
       .eq('profile_id', parsed.data.profile_id)
       .neq('id', id)
-      .maybeSingle() as { data: { id: string } | null; error: unknown }
+      .maybeSingle()) as { data: { id: string } | null; error: unknown }
 
     if (existing) {
-      return Response.json({ error: 'Profile already linked to another player' }, { status: 409 })
+      return Response.json(
+        { error: 'Profile already linked to another player' },
+        { status: 409 },
+      )
     }
   }
 
   let previousRating: number | null = null
   if ('current_rating' in parsed.data) {
-    const { data: player } = await admin
+    const { data: player } = (await admin
       .from('players')
       .select('current_rating')
       .eq('id', id)
-      .single() as { data: { current_rating: number | null } | null; error: unknown }
+      .single()) as {
+      data: { current_rating: number | null } | null
+      error: unknown
+    }
     previousRating = player?.current_rating ?? null
   }
 
@@ -61,7 +71,8 @@ export async function PATCH(
     .update({ ...parsed.data, updated_at: new Date().toISOString() })
     .eq('id', id)
 
-  if (error) return Response.json({ error: 'Failed to update player' }, { status: 500 })
+  if (error)
+    return Response.json({ error: 'Failed to update player' }, { status: 500 })
 
   if ('current_rating' in parsed.data) {
     await (admin.from('rating_history') as any).insert({
@@ -79,7 +90,9 @@ export async function PATCH(
       : 'preferred_positions' in parsed.data
         ? 'player.positions_updated'
         : 'profile_id' in parsed.data
-          ? parsed.data.profile_id != null ? 'player.linked' : 'player.unlinked'
+          ? parsed.data.profile_id != null
+            ? 'player.linked'
+            : 'player.unlinked'
           : 'player.updated'
 
   const { error: auditErr } = await admin.from('audit_log').insert({

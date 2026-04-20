@@ -8,13 +8,13 @@ export const metadata = { title: 'FCDA — Futebol Clube Dragões da Areosa' }
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const { data: nextGame } = await supabase
+  const { data: nextGame } = (await supabase
     .from('games')
     .select('*')
     .eq('status', 'scheduled')
     .order('date', { ascending: true })
     .limit(1)
-    .maybeSingle() as { data: Game | null; error: unknown }
+    .maybeSingle()) as { data: Game | null; error: unknown }
 
   return (
     <div className="flex flex-col">

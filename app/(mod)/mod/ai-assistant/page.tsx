@@ -4,14 +4,14 @@ import { AiAssistantClient } from './AiAssistantClient'
 export default async function AiAssistantPage() {
   const supabase = await createClient()
 
-  const { data: games } = await supabase
+  const { data: games } = (await supabase
     .from('games')
     .select('id, date, location')
     .eq('status', 'scheduled')
-    .order('date', { ascending: true }) as {
-      data: Array<{ id: string; date: string; location: string }> | null
-      error: unknown
-    }
+    .order('date', { ascending: true })) as {
+    data: Array<{ id: string; date: string; location: string }> | null
+    error: unknown
+  }
 
   return (
     <div className="space-y-6">

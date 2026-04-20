@@ -12,7 +12,8 @@ const createPlayerSchema = z.object({
 export async function GET(request: Request) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
-  if (!canAccessMod(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (!canAccessMod(session.roles))
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const { searchParams } = new URL(request.url)
   const q = searchParams.get('q')?.trim() ?? ''
@@ -20,12 +21,19 @@ export async function GET(request: Request) {
   if (!q) return Response.json([])
 
   const supabase = await createClient()
-  const { data, error } = await supabase
+  const { data, error } = (await supabase
     .from('players')
     .select('id, sheet_name, shirt_number')
     .ilike('sheet_name', `%${q}%`)
     .order('sheet_name')
-    .limit(20) as { data: Array<{ id: string; sheet_name: string; shirt_number: number | null }> | null; error: unknown }
+    .limit(20)) as {
+    data: Array<{
+      id: string
+      sheet_name: string
+      shirt_number: number | null
+    }> | null
+    error: unknown
+  }
 
   if (error) return Response.json({ error: 'Search failed' }, { status: 500 })
 
@@ -35,20 +43,29 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
-  if (!canAccessMod(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (!canAccessMod(session.roles))
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await request.json().catch(() => null)
   const parsed = createPlayerSchema.safeParse(body)
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
+    return Response.json(
+      { error: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    )
   }
 
   const supabase = await createClient()
 
-  const { data: player, error: playerErr } = await (supabase.from('players') as any)
+  const { data: player, error: playerErr } = (await (
+    supabase.from('players') as any
+  )
     .insert({ sheet_name: parsed.data.sheet_name })
     .select('id, sheet_name')
-    .single() as { data: { id: string; sheet_name: string } | null; error: unknown }
+    .single()) as {
+    data: { id: string; sheet_name: string } | null
+    error: unknown
+  }
 
   if (playerErr || !player) {
     return Response.json({ error: 'Failed to create player' }, { status: 500 })
@@ -72,5 +89,8 @@ export async function POST(request: Request) {
   } as any)
   if (auditErr) console.error('audit_log insert failed', auditErr)
 
-  return Response.json({ id: player.id, sheet_name: player.sheet_name }, { status: 201 })
+  return Response.json(
+    { id: player.id, sheet_name: player.sheet_name },
+    { status: 201 },
+  )
 }

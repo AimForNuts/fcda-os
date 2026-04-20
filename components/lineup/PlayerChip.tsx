@@ -25,7 +25,7 @@ export function PlayerChip({ name, status }: PlayerChipProps) {
       data-testid="player-chip"
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-medium',
-        STATUS_STYLES[status]
+        STATUS_STYLES[status],
       )}
     >
       <span

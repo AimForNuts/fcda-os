@@ -19,20 +19,20 @@ export default async function RatePage({
   const admin = createServiceClient()
 
   // Fetch game
-  const { data: game } = await supabase
+  const { data: game } = (await supabase
     .from('games')
     .select('id, status, counts_for_stats, date, location')
     .eq('id', gameId)
-    .single() as {
-      data: {
-        id: string
-        status: string
-        counts_for_stats: boolean
-        date: string
-        location: string
-      } | null
-      error: unknown
-    }
+    .single()) as {
+    data: {
+      id: string
+      status: string
+      counts_for_stats: boolean
+      date: string
+      location: string
+    } | null
+    error: unknown
+  }
 
   if (!game) notFound()
   if (game.status !== 'finished' || !game.counts_for_stats) {
@@ -40,48 +40,63 @@ export default async function RatePage({
   }
 
   // Find user's linked player
-  const { data: linkedPlayer } = await admin
+  const { data: linkedPlayer } = (await admin
     .from('players')
     .select('id')
     .eq('profile_id', session.userId)
-    .single() as { data: { id: string } | null; error: unknown }
+    .single()) as { data: { id: string } | null; error: unknown }
 
   if (!linkedPlayer) redirect(`/matches/${gameId}`)
 
   // Fetch all player IDs in the lineup (also used to verify user is in the game)
-  const { data: gamePlayersRows } = await supabase
+  const { data: gamePlayersRows } = (await supabase
     .from('game_players')
     .select('player_id, team')
-    .eq('game_id', gameId) as { data: Array<{ player_id: string; team: string | null }> | null; error: unknown }
+    .eq('game_id', gameId)) as {
+    data: Array<{ player_id: string; team: string | null }> | null
+    error: unknown
+  }
 
-  const allPlayerIds = (gamePlayersRows ?? []).map((gp) => gp.player_id)
+  const allPlayerIds = (gamePlayersRows ?? []).map(gp => gp.player_id)
   if (!allPlayerIds.includes(linkedPlayer.id)) redirect(`/matches/${gameId}`)
 
-  const submitterRow = (gamePlayersRows ?? []).find((gp) => gp.player_id === linkedPlayer.id)
+  const submitterRow = (gamePlayersRows ?? []).find(
+    gp => gp.player_id === linkedPlayer.id,
+  )
   const submitterTeam = submitterRow?.team ?? null
 
   const teammateIds = (gamePlayersRows ?? [])
-    .filter((gp) => gp.player_id !== linkedPlayer.id && gp.team != null && gp.team === submitterTeam)
-    .map((gp) => gp.player_id)
+    .filter(
+      gp =>
+        gp.player_id !== linkedPlayer.id &&
+        gp.team != null &&
+        gp.team === submitterTeam,
+    )
+    .map(gp => gp.player_id)
 
   let teammates: PlayerPublic[] = []
   if (teammateIds.length > 0) {
-    const { data } = await supabase
+    const { data } = (await supabase
       .from('players_public')
       .select('id, display_name, shirt_number, current_rating, profile_id')
-      .in('id', teammateIds) as { data: PlayerPublic[] | null; error: unknown }
+      .in('id', teammateIds)) as { data: PlayerPublic[] | null; error: unknown }
     teammates = data ?? []
   }
 
   // Fetch existing submissions for this (game, user) batch
-  const { data: existingSubmissions } = await supabase
+  const { data: existingSubmissions } = (await supabase
     .from('rating_submissions')
     .select('rated_player_id, rating, status, feedback')
     .eq('game_id', gameId)
-    .eq('submitted_by', session.userId) as {
-      data: Array<{ rated_player_id: string; rating: number; status: string; feedback: string | null }> | null
-      error: unknown
-    }
+    .eq('submitted_by', session.userId)) as {
+    data: Array<{
+      rated_player_id: string
+      rating: number
+      status: string
+      feedback: string | null
+    }> | null
+    error: unknown
+  }
 
   const existingRatings: Record<string, number> = {}
   for (const s of existingSubmissions ?? []) {

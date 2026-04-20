@@ -6,7 +6,9 @@ type Props = {
 
 export function FeedbackInbox({ items }: Props) {
   if (items.length === 0) {
-    return <p className="text-sm text-muted-foreground py-4">Sem comentários.</p>
+    return (
+      <p className="text-sm text-muted-foreground py-4">Sem comentários.</p>
+    )
   }
 
   return (
@@ -17,7 +19,9 @@ export function FeedbackInbox({ items }: Props) {
             {item.submitterName}
             {item.gameDate && (
               <span className="text-muted-foreground font-normal">
-                {' — '}{item.gameDate}{item.gameLocation ? ` · ${item.gameLocation}` : ''}
+                {' — '}
+                {item.gameDate}
+                {item.gameLocation ? ` · ${item.gameLocation}` : ''}
               </span>
             )}
           </div>
@@ -25,7 +29,9 @@ export function FeedbackInbox({ items }: Props) {
             {item.comments.map((c, j) => (
               <li key={j} className="text-sm">
                 <span className="font-medium">{c.playerName}:</span>{' '}
-                <span className="text-muted-foreground">&ldquo;{c.content}&rdquo;</span>
+                <span className="text-muted-foreground">
+                  &ldquo;{c.content}&rdquo;
+                </span>
               </li>
             ))}
           </ul>

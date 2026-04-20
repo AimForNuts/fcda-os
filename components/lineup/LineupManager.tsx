@@ -31,7 +31,11 @@ type Props = {
   currentLineup: CurrentPlayer[]
 }
 
-type SearchResult = { id: string; sheet_name: string; shirt_number: number | null }
+type SearchResult = {
+  id: string
+  sheet_name: string
+  shirt_number: number | null
+}
 
 const TEAM_OPTIONS: Array<'a' | 'b' | null> = ['a', 'b', null]
 
@@ -45,7 +49,9 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   const [isSaving, setIsSaving] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [searchResults, setSearchResults] = useState<Record<number, SearchResult[]>>({})
+  const [searchResults, setSearchResults] = useState<
+    Record<number, SearchResult[]>
+  >({})
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>({})
   const [addingGuest, setAddingGuest] = useState<Set<number>>(new Set())
   const [saveAliasMap, setSaveAliasMap] = useState<Record<number, boolean>>({})
@@ -58,13 +64,18 @@ export function LineupManager({ gameId, currentLineup }: Props) {
 
   // ── Current lineup team editing ────────────────────────────────────────
   function setCurrentTeam(playerId: string, team: 'a' | 'b' | null) {
-    setEditableLineup((prev) => prev.map((p) => p.player_id === playerId ? { ...p, team } : p))
+    setEditableLineup(prev =>
+      prev.map(p => (p.player_id === playerId ? { ...p, team } : p)),
+    )
   }
 
   async function saveTeams() {
     setIsSavingTeams(true)
     setTeamsError(null)
-    const players = editableLineup.map((p) => ({ player_id: p.player_id, team: p.team }))
+    const players = editableLineup.map(p => ({
+      player_id: p.player_id,
+      team: p.team,
+    }))
     const res = await fetch(`/api/games/${gameId}/lineup`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -79,59 +90,70 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   }
 
   // ── Parse ──────────────────────────────────────────────────────────────
-  const handleParse = useCallback(async (text: string) => {
-    setIsParsing(true)
-    setParseError(null)
-    try {
-      const res = await fetch('/api/lineup/parse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      })
-      if (!res.ok) throw new Error()
-      const parsed: ParsedEntry[] = await res.json()
-      const resolved: ResolvedEntry[] = parsed.map((e) => ({
-        ...e,
-        resolvedPlayerId: e.status === 'matched' ? e.matches[0].id : null,
-        resolvedName: e.status === 'matched' ? e.matches[0].sheet_name : null,
-        team: null,
-        originallyUnmatched: e.status === 'unmatched',
-      }))
-      setEntries(resolved)
-      setPhase('resolve')
-    } catch {
-      setParseError(t('mod.lineup.errorParse'))
-    } finally {
-      setIsParsing(false)
-    }
-  }, [t])
+  const handleParse = useCallback(
+    async (text: string) => {
+      setIsParsing(true)
+      setParseError(null)
+      try {
+        const res = await fetch('/api/lineup/parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        })
+        if (!res.ok) throw new Error()
+        const parsed: ParsedEntry[] = await res.json()
+        const resolved: ResolvedEntry[] = parsed.map(e => ({
+          ...e,
+          resolvedPlayerId: e.status === 'matched' ? e.matches[0].id : null,
+          resolvedName: e.status === 'matched' ? e.matches[0].sheet_name : null,
+          team: null,
+          originallyUnmatched: e.status === 'unmatched',
+        }))
+        setEntries(resolved)
+        setPhase('resolve')
+      } catch {
+        setParseError(t('mod.lineup.errorParse'))
+      } finally {
+        setIsParsing(false)
+      }
+    },
+    [t],
+  )
 
   // ── Resolve helpers ────────────────────────────────────────────────────
-  function resolveEntry(index: number, playerId: string, playerName: string, skipAlias = false) {
+  function resolveEntry(
+    index: number,
+    playerId: string,
+    playerName: string,
+    skipAlias = false,
+  ) {
     const entry = entries[index]
     if (entry?.originallyUnmatched && !skipAlias) {
-      setSaveAliasMap((m) => ({ ...m, [index]: true }))
+      setSaveAliasMap(m => ({ ...m, [index]: true }))
     }
-    setEntries((prev) =>
+    setEntries(prev =>
       prev.map((e, i) =>
         i === index
-          ? { ...e, resolvedPlayerId: playerId, resolvedName: playerName, status: 'matched' }
-          : e
-      )
+          ? {
+              ...e,
+              resolvedPlayerId: playerId,
+              resolvedName: playerName,
+              status: 'matched',
+            }
+          : e,
+      ),
     )
   }
 
   function setTeam(index: number, team: 'a' | 'b' | null) {
-    setEntries((prev) =>
-      prev.map((e, i) => (i === index ? { ...e, team } : e))
-    )
+    setEntries(prev => prev.map((e, i) => (i === index ? { ...e, team } : e)))
   }
 
   // ── Player search (for unmatched entries) ──────────────────────────────
   async function searchPlayers(index: number, q: string) {
-    setSearchQueries((prev) => ({ ...prev, [index]: q }))
+    setSearchQueries(prev => ({ ...prev, [index]: q }))
     if (!q.trim()) {
-      setSearchResults((prev) => ({ ...prev, [index]: [] }))
+      setSearchResults(prev => ({ ...prev, [index]: [] }))
       return
     }
     // Cancel in-flight request for this index
@@ -139,21 +161,23 @@ export function LineupManager({ gameId, currentLineup }: Props) {
     const controller = new AbortController()
     searchAbortRefs.current[index] = controller
     try {
-      const res = await fetch(`/api/players?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+      const res = await fetch(`/api/players?q=${encodeURIComponent(q)}`, {
+        signal: controller.signal,
+      })
       if (res.ok) {
         const data: SearchResult[] = await res.json()
-        setSearchResults((prev) => ({ ...prev, [index]: data }))
+        setSearchResults(prev => ({ ...prev, [index]: data }))
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
-      setSearchResults((prev) => ({ ...prev, [index]: [] }))
+      setSearchResults(prev => ({ ...prev, [index]: [] }))
     }
   }
 
   // ── Add guest ──────────────────────────────────────────────────────────
   async function addGuest(index: number) {
     if (addingGuest.has(index)) return
-    setAddingGuest((prev) => new Set(prev).add(index))
+    setAddingGuest(prev => new Set(prev).add(index))
     try {
       const entry = entries[index]
       // If the mod typed a custom name in the search box, use it as the player name.
@@ -174,7 +198,11 @@ export function LineupManager({ gameId, currentLineup }: Props) {
     } catch {
       setSaveError(t('mod.lineup.errorSave'))
     } finally {
-      setAddingGuest((prev) => { const s = new Set(prev); s.delete(index); return s })
+      setAddingGuest(prev => {
+        const s = new Set(prev)
+        s.delete(index)
+        return s
+      })
     }
   }
 
@@ -186,19 +214,27 @@ export function LineupManager({ gameId, currentLineup }: Props) {
     // Save aliases for resolved-from-unmatched entries where checkbox is checked
     await Promise.all(
       entries
-        .filter((e, i) => e.originallyUnmatched && e.resolvedPlayerId != null && saveAliasMap[i])
-        .map((e) =>
+        .filter(
+          (e, i) =>
+            e.originallyUnmatched &&
+            e.resolvedPlayerId != null &&
+            saveAliasMap[i],
+        )
+        .map(e =>
           fetch('/api/lineup/aliases', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ player_id: e.resolvedPlayerId, alias_display: e.raw }),
-          }).catch(() => {})
-        )
+            body: JSON.stringify({
+              player_id: e.resolvedPlayerId,
+              alias_display: e.raw,
+            }),
+          }).catch(() => {}),
+        ),
     )
 
     const players = entries
-      .filter((e) => e.resolvedPlayerId != null)
-      .map((e) => ({ player_id: e.resolvedPlayerId!, team: e.team ?? null }))
+      .filter(e => e.resolvedPlayerId != null)
+      .map(e => ({ player_id: e.resolvedPlayerId!, team: e.team ?? null }))
 
     const res = await fetch(`/api/games/${gameId}/lineup`, {
       method: 'PUT',
@@ -216,8 +252,8 @@ export function LineupManager({ gameId, currentLineup }: Props) {
     router.refresh()
   }
 
-  const resolvedCount = entries.filter((e) => e.resolvedPlayerId != null).length
-  const hasUnresolved = entries.some((e) => e.resolvedPlayerId == null)
+  const resolvedCount = entries.filter(e => e.resolvedPlayerId != null).length
+  const hasUnresolved = entries.some(e => e.resolvedPlayerId == null)
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
@@ -229,13 +265,17 @@ export function LineupManager({ gameId, currentLineup }: Props) {
             {t('mod.lineup.current')}
           </h2>
           <div className="space-y-2">
-            {editableLineup.map((p) => (
-              <div key={p.player_id} className="flex items-center justify-between gap-2">
+            {editableLineup.map(p => (
+              <div
+                key={p.player_id}
+                className="flex items-center justify-between gap-2"
+              >
                 <span className="text-sm font-medium truncate">
-                  {p.shirt_number != null ? `#${p.shirt_number} ` : ''}{p.sheet_name}
+                  {p.shirt_number != null ? `#${p.shirt_number} ` : ''}
+                  {p.sheet_name}
                 </span>
                 <div className="flex items-center gap-1 shrink-0">
-                  {TEAM_OPTIONS.map((tm) => (
+                  {TEAM_OPTIONS.map(tm => (
                     <button
                       key={String(tm)}
                       type="button"
@@ -253,7 +293,11 @@ export function LineupManager({ gameId, currentLineup }: Props) {
               </div>
             ))}
           </div>
-          {teamsError && <p role="alert" className="text-sm text-destructive">{teamsError}</p>}
+          {teamsError && (
+            <p role="alert" className="text-sm text-destructive">
+              {teamsError}
+            </p>
+          )}
           <Button
             type="button"
             size="sm"
@@ -272,7 +316,9 @@ export function LineupManager({ gameId, currentLineup }: Props) {
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
             {t('mod.lineup.whatsappPaste')}
           </h2>
-          {parseError && <p className="text-sm text-destructive mb-2">{parseError}</p>}
+          {parseError && (
+            <p className="text-sm text-destructive mb-2">{parseError}</p>
+          )}
           <WhatsAppPasteBox onParse={handleParse} isParsing={isParsing} />
         </div>
       )}
@@ -288,7 +334,10 @@ export function LineupManager({ gameId, currentLineup }: Props) {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => { setPhase('paste'); setEntries([]) }}
+              onClick={() => {
+                setPhase('paste')
+                setEntries([])
+              }}
             >
               ← Re-parse
             </Button>
@@ -305,7 +354,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                   {/* Team toggle */}
                   {entry.resolvedPlayerId && (
                     <div className="flex items-center gap-1 ml-auto">
-                      {TEAM_OPTIONS.map((tm) => (
+                      {TEAM_OPTIONS.map(tm => (
                         <button
                           key={String(tm)}
                           type="button"
@@ -328,14 +377,20 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                   <select
                     className="w-full rounded border border-input bg-background px-2 py-1 text-sm"
                     value={entry.resolvedPlayerId ?? ''}
-                    onChange={(e) => {
-                      const match = entry.matches.find((m) => m.id === e.target.value)
+                    onChange={e => {
+                      const match = entry.matches.find(
+                        m => m.id === e.target.value,
+                      )
                       if (match) resolveEntry(i, match.id, match.sheet_name)
                     }}
                   >
-                    <option value="" disabled>{t('mod.lineup.pickPlayer')}</option>
-                    {entry.matches.map((m) => (
-                      <option key={m.id} value={m.id}>{m.sheet_name}</option>
+                    <option value="" disabled>
+                      {t('mod.lineup.pickPlayer')}
+                    </option>
+                    {entry.matches.map(m => (
+                      <option key={m.id} value={m.id}>
+                        {m.sheet_name}
+                      </option>
                     ))}
                   </select>
                 )}
@@ -348,18 +403,23 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                       placeholder={t('mod.lineup.searchPlayer')}
                       className="w-full rounded border border-input bg-background px-2 py-1 text-sm"
                       value={searchQueries[i] ?? ''}
-                      onChange={(e) => searchPlayers(i, e.target.value)}
+                      onChange={e => searchPlayers(i, e.target.value)}
                     />
                     {(searchResults[i] ?? []).length > 0 && (
                       <ul className="rounded border border-input bg-background text-sm divide-y max-h-36 overflow-y-auto">
-                        {(searchResults[i] ?? []).map((p) => (
+                        {(searchResults[i] ?? []).map(p => (
                           <li key={p.id}>
                             <button
                               type="button"
                               className="w-full px-2 py-1.5 text-left hover:bg-muted"
-                              onClick={() => resolveEntry(i, p.id, p.sheet_name)}
+                              onClick={() =>
+                                resolveEntry(i, p.id, p.sheet_name)
+                              }
                             >
-                              {p.shirt_number != null ? `#${p.shirt_number} ` : ''}{p.sheet_name}
+                              {p.shirt_number != null
+                                ? `#${p.shirt_number} `
+                                : ''}
+                              {p.sheet_name}
                             </button>
                           </li>
                         ))}
@@ -372,25 +432,32 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                       onClick={() => addGuest(i)}
                       disabled={addingGuest.has(i)}
                     >
-                      {addingGuest.has(i) ? t('common.loading') : `${t('mod.lineup.addGuest')} "${searchQueries[i]?.trim() || entry.raw}"`}
+                      {addingGuest.has(i)
+                        ? t('common.loading')
+                        : `${t('mod.lineup.addGuest')} "${searchQueries[i]?.trim() || entry.raw}"`}
                     </Button>
                   </div>
                 )}
 
                 {/* Alias save checkbox — shown after resolving an originally-unmatched entry */}
-                {entry.resolvedPlayerId != null && entry.originallyUnmatched && (
-                  <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      className="h-3.5 w-3.5"
-                      checked={saveAliasMap[i] ?? false}
-                      onChange={(e) =>
-                        setSaveAliasMap((prev) => ({ ...prev, [i]: e.target.checked }))
-                      }
-                    />
-                    Remember &ldquo;{entry.raw}&rdquo; as alias for {entry.resolvedName}
-                  </label>
-                )}
+                {entry.resolvedPlayerId != null &&
+                  entry.originallyUnmatched && (
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5"
+                        checked={saveAliasMap[i] ?? false}
+                        onChange={e =>
+                          setSaveAliasMap(prev => ({
+                            ...prev,
+                            [i]: e.target.checked,
+                          }))
+                        }
+                      />
+                      Remember &ldquo;{entry.raw}&rdquo; as alias for{' '}
+                      {entry.resolvedName}
+                    </label>
+                  )}
               </div>
             ))}
           </div>
@@ -407,7 +474,9 @@ export function LineupManager({ gameId, currentLineup }: Props) {
             disabled={isSaving || resolvedCount === 0}
             className="w-full bg-fcda-navy text-white hover:bg-fcda-navy/90"
           >
-            {isSaving ? t('mod.lineup.saving') : `${t('mod.lineup.saveLineup')} (${resolvedCount})`}
+            {isSaving
+              ? t('mod.lineup.saving')
+              : `${t('mod.lineup.saveLineup')} (${resolvedCount})`}
           </Button>
         </div>
       )}

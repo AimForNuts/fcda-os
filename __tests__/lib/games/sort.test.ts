@@ -58,9 +58,9 @@ describe('sortGames', () => {
       makeGame({ id: 'c', status: 'finished', date: '2025-05-01T10:00:00' }),
     ]
     const sorted = sortGames(games)
-    expect(sorted[0].id).toBe('b')  // scheduled first
-    expect(sorted[1].id).toBe('a')  // cancelled, more recent
-    expect(sorted[2].id).toBe('c')  // finished, older
+    expect(sorted[0].id).toBe('b') // scheduled first
+    expect(sorted[1].id).toBe('a') // cancelled, more recent
+    expect(sorted[2].id).toBe('c') // finished, older
   })
 
   it('returns empty array unchanged', () => {

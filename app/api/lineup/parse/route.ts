@@ -11,12 +11,16 @@ const parseSchema = z.object({
 export async function POST(request: Request) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
-  if (!canAccessMod(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (!canAccessMod(session.roles))
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await request.json().catch(() => null)
   const parsed = parseSchema.safeParse(body)
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
+    return Response.json(
+      { error: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    )
   }
 
   const names = extractNames(parsed.data.text)
@@ -27,22 +31,28 @@ export async function POST(request: Request) {
   const supabase = await createClient()
 
   // Batch-fetch all matching aliases
-  const { data: aliasRows, error: aliasErr } = await supabase
+  const { data: aliasRows, error: aliasErr } = (await supabase
     .from('player_aliases')
     .select('alias, player_id')
-    .in('alias', normalisedNames) as { data: Array<{ alias: string; player_id: string }> | null; error: unknown }
+    .in('alias', normalisedNames)) as {
+    data: Array<{ alias: string; player_id: string }> | null
+    error: unknown
+  }
 
   if (aliasErr) return Response.json({ error: 'DB error' }, { status: 500 })
 
   // Fetch player details for all matched IDs
-  const matchedPlayerIds = [...new Set((aliasRows ?? []).map((r) => r.player_id))]
+  const matchedPlayerIds = [...new Set((aliasRows ?? []).map(r => r.player_id))]
   const playerMap = new Map<string, { id: string; sheet_name: string }>()
 
   if (matchedPlayerIds.length > 0) {
-    const { data: players } = await supabase
+    const { data: players } = (await supabase
       .from('players')
       .select('id, sheet_name')
-      .in('id', matchedPlayerIds) as { data: Array<{ id: string; sheet_name: string }> | null; error: unknown }
+      .in('id', matchedPlayerIds)) as {
+      data: Array<{ id: string; sheet_name: string }> | null
+      error: unknown
+    }
 
     for (const p of players ?? []) {
       playerMap.set(p.id, p)
@@ -63,7 +73,7 @@ export async function POST(request: Request) {
     const norm = normalisedNames[i]
     const playerIds = aliasToPlayerIds.get(norm) ?? []
     const matches = playerIds
-      .map((pid) => playerMap.get(pid))
+      .map(pid => playerMap.get(pid))
       .filter((p): p is { id: string; sheet_name: string } => p != null)
 
     let status: ParsedEntry['status']

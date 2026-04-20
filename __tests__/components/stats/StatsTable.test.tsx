@@ -77,13 +77,17 @@ describe('StatsTable', () => {
 
   it('does not render player name as a link when anonymised', () => {
     render(<StatsTable players={players} isAnonymised={true} />)
-    expect(screen.queryByRole('link', { name: 'Carlos Silva' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Carlos Silva' }),
+    ).not.toBeInTheDocument()
   })
 
   it('renders toggle buttons Todos and Competitivos', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
     expect(screen.getByRole('button', { name: 'Todos' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Competitivos' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Competitivos' }),
+    ).toBeInTheDocument()
   })
 
   it('displays all-mode totals by default', () => {

@@ -11,18 +11,18 @@ export default async function ProfilePage() {
   if (!session) redirect('/auth/login')
 
   const admin = createServiceClient()
-  const { data: player, error: playerError } = await admin
+  const { data: player, error: playerError } = (await admin
     .from('players')
     .select('sheet_name, shirt_number, preferred_positions')
     .eq('profile_id', session.userId)
-    .maybeSingle() as {
-      data: {
-        sheet_name: string
-        shirt_number: number | null
-        preferred_positions: string[]
-      } | null
-      error: Error | null
-    }
+    .maybeSingle()) as {
+    data: {
+      sheet_name: string
+      shirt_number: number | null
+      preferred_positions: string[]
+    } | null
+    error: Error | null
+  }
 
   if (playerError) throw playerError
 
@@ -37,7 +37,8 @@ export default async function ProfilePage() {
         />
       ) : (
         <p className="text-sm text-muted-foreground">
-          A tua conta ainda não está ligada a um jogador. Contacta um administrador.
+          A tua conta ainda não está ligada a um jogador. Contacta um
+          administrador.
         </p>
       )}
     </div>

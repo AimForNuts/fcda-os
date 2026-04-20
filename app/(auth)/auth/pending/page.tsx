@@ -24,7 +24,11 @@ export default function PendingPage() {
         <p className="text-muted-foreground text-xs">
           {t('auth.pending.publicNote')}
         </p>
-        <Button variant="outline" nativeButton={false} render={<Link href="/" />}>
+        <Button
+          variant="outline"
+          nativeButton={false}
+          render={<Link href="/" />}
+        >
           {t('nav.home')}
         </Button>
       </CardContent>

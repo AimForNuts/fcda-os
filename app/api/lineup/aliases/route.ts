@@ -11,12 +11,16 @@ const schema = z.object({
 export async function POST(request: Request) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
-  if (!canAccessMod(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (!canAccessMod(session.roles))
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await request.json().catch(() => null)
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
+    return Response.json(
+      { error: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    )
   }
 
   const admin = createServiceClient()
@@ -27,7 +31,8 @@ export async function POST(request: Request) {
     alias_display: parsed.data.alias_display,
   })
 
-  if (error) return Response.json({ error: 'Failed to save alias' }, { status: 500 })
+  if (error)
+    return Response.json({ error: 'Failed to save alias' }, { status: 500 })
 
   return Response.json({ ok: true }, { status: 201 })
 }

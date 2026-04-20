@@ -9,32 +9,40 @@ const schema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
-  if (!canAccessAdmin(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (!canAccessAdmin(session.roles))
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id } = await params
 
   const body = await request.json().catch(() => null)
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
+    return Response.json(
+      { error: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    )
   }
 
   const admin = createServiceClient()
 
-  const { data: alias, error } = await (admin.from('player_aliases') as any)
+  const { data: alias, error } = (await (admin.from('player_aliases') as any)
     .insert({
       player_id: id,
       alias: normaliseAlias(parsed.data.alias_display),
       alias_display: parsed.data.alias_display,
     })
     .select('id, alias_display')
-    .single() as { data: { id: string; alias_display: string } | null; error: unknown }
+    .single()) as {
+    data: { id: string; alias_display: string } | null
+    error: unknown
+  }
 
-  if (error || !alias) return Response.json({ error: 'Failed to add alias' }, { status: 500 })
+  if (error || !alias)
+    return Response.json({ error: 'Failed to add alias' }, { status: 500 })
 
   const { error: auditErr } = await admin.from('audit_log').insert({
     action: 'player.alias.added',

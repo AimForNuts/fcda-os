@@ -8,9 +8,10 @@ export const metadata = { title: 'Jogos — FCDA' }
 export default async function MatchesPage() {
   const supabase = await createClient()
 
-  const { data: games } = await supabase
-    .from('games')
-    .select('*') as { data: Game[] | null; error: unknown }
+  const { data: games } = (await supabase.from('games').select('*')) as {
+    data: Game[] | null
+    error: unknown
+  }
 
   const gameList = sortGames(games ?? [])
 
@@ -18,24 +19,33 @@ export default async function MatchesPage() {
   const lineupsByGame = new Map<string, LineupSummary>()
 
   if (gameList.length > 0) {
-    const gameIds = gameList.map((g) => g.id)
+    const gameIds = gameList.map(g => g.id)
 
-    const { data: allGamePlayers } = await supabase
+    const { data: allGamePlayers } = (await supabase
       .from('game_players')
       .select('game_id, player_id, team')
-      .in('game_id', gameIds) as {
-        data: Array<{ game_id: string; player_id: string; team: 'a' | 'b' | null }> | null
-        error: unknown
-      }
+      .in('game_id', gameIds)) as {
+      data: Array<{
+        game_id: string
+        player_id: string
+        team: 'a' | 'b' | null
+      }> | null
+      error: unknown
+    }
 
-    const playerIds = [...new Set((allGamePlayers ?? []).map((gp) => gp.player_id))]
+    const playerIds = [
+      ...new Set((allGamePlayers ?? []).map(gp => gp.player_id)),
+    ]
 
-    let playerNames: Map<string, string> = new Map()
+    const playerNames: Map<string, string> = new Map()
     if (playerIds.length > 0) {
-      const { data: players } = await supabase
+      const { data: players } = (await supabase
         .from('players_public')
         .select('id, display_name')
-        .in('id', playerIds) as { data: Array<{ id: string; display_name: string }> | null; error: unknown }
+        .in('id', playerIds)) as {
+        data: Array<{ id: string; display_name: string }> | null
+        error: unknown
+      }
       for (const p of players ?? []) {
         playerNames.set(p.id, p.display_name)
       }
@@ -63,7 +73,7 @@ export default async function MatchesPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-3">
-          {gameList.map((g) => (
+          {gameList.map(g => (
             <MatchCard key={g.id} game={g} lineup={lineupsByGame.get(g.id)} />
           ))}
         </div>

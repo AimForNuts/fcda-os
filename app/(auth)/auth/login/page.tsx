@@ -67,7 +67,9 @@ function LoginForm() {
     <Card>
       <CardHeader>
         <CardTitle>{t('auth.login')}</CardTitle>
-        <CardDescription>FCDA — Futebol Clube Dragões da Areosa</CardDescription>
+        <CardDescription>
+          FCDA — Futebol Clube Dragões da Areosa
+        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
@@ -92,7 +94,10 @@ function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">{t('auth.password')}</Label>
-              <Link href="/auth/forgot-password" className="text-xs text-muted-foreground underline">
+              <Link
+                href="/auth/forgot-password"
+                className="text-xs text-muted-foreground underline"
+              >
                 {t('auth.forgotPassword')}
               </Link>
             </div>
@@ -103,7 +108,9 @@ function LoginForm() {
               {...register('password')}
             />
             {errors.password && (
-              <p className="text-xs text-destructive">{errors.password.message}</p>
+              <p className="text-xs text-destructive">
+                {errors.password.message}
+              </p>
             )}
           </div>
         </CardContent>

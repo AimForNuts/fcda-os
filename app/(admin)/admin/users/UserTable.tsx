@@ -7,7 +7,11 @@ import { Badge } from '@/components/ui/badge'
 import type { UserRole } from '@/types'
 import type { UserRow } from './page'
 
-type SearchResult = { id: string; sheet_name: string; shirt_number: number | null }
+type SearchResult = {
+  id: string
+  sheet_name: string
+  shirt_number: number | null
+}
 
 export function UserTable({ users: initial }: { users: UserRow[] }) {
   const { t } = useTranslation()
@@ -20,7 +24,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
   const searchAbort = useRef<AbortController | null>(null)
 
   function setLoading(userId: string, key: string | null) {
-    setLoadingMap((prev) => {
+    setLoadingMap(prev => {
       const next = { ...prev }
       if (key) next[userId] = key
       else delete next[userId]
@@ -29,7 +33,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
   }
 
   function setError(userId: string, msg: string | null) {
-    setErrorMap((prev) => {
+    setErrorMap(prev => {
       const next = { ...prev }
       if (msg) next[userId] = msg
       else delete next[userId]
@@ -37,7 +41,11 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
     })
   }
 
-  async function patchUser(userId: string, loadingKey: string, body: object): Promise<boolean> {
+  async function patchUser(
+    userId: string,
+    loadingKey: string,
+    body: object,
+  ): Promise<boolean> {
     setLoading(userId, loadingKey)
     setError(userId, null)
     try {
@@ -60,7 +68,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
     playerId: string,
     userId: string,
     loadingKey: string,
-    body: object
+    body: object,
   ): Promise<boolean> {
     setLoading(userId, loadingKey)
     setError(userId, null)
@@ -83,16 +91,18 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
   async function handleApprove(userId: string) {
     const ok = await patchUser(userId, 'approve', { approved: true })
     if (ok) {
-      setRows((prev) =>
-        prev.map((r) =>
+      setRows(prev =>
+        prev.map(r =>
           r.id === userId
             ? {
                 ...r,
                 approved: true,
-                roles: r.roles.includes('player') ? r.roles : [...r.roles, 'player'],
+                roles: r.roles.includes('player')
+                  ? r.roles
+                  : [...r.roles, 'player'],
               }
-            : r
-        )
+            : r,
+        ),
       )
     }
   }
@@ -100,27 +110,33 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
   async function handleUnapprove(userId: string) {
     const ok = await patchUser(userId, 'unapprove', { approved: false })
     if (ok) {
-      setRows((prev) =>
-        prev.map((r) => (r.id === userId ? { ...r, approved: false, roles: [] } : r))
+      setRows(prev =>
+        prev.map(r =>
+          r.id === userId ? { ...r, approved: false, roles: [] } : r,
+        ),
       )
     }
   }
 
-  async function handleRoleToggle(userId: string, role: 'mod' | 'admin' | 'player', hasRole: boolean) {
+  async function handleRoleToggle(
+    userId: string,
+    role: 'mod' | 'admin' | 'player',
+    hasRole: boolean,
+  ) {
     const body = hasRole ? { removeRole: role } : { addRole: role }
     const ok = await patchUser(userId, role, body)
     if (ok) {
-      setRows((prev) =>
-        prev.map((r) =>
+      setRows(prev =>
+        prev.map(r =>
           r.id === userId
             ? {
                 ...r,
                 roles: hasRole
-                  ? (r.roles.filter((rr) => rr !== role) as UserRole[])
+                  ? (r.roles.filter(rr => rr !== role) as UserRole[])
                   : ([...r.roles, role] as UserRole[]),
               }
-            : r
-        )
+            : r,
+        ),
       )
     }
   }
@@ -145,18 +161,24 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
     }
   }
 
-  async function handleLinkPlayer(
-    userId: string,
-    player: SearchResult
-  ) {
-    const ok = await patchPlayer(player.id, userId, 'link', { profile_id: userId })
+  async function handleLinkPlayer(userId: string, player: SearchResult) {
+    const ok = await patchPlayer(player.id, userId, 'link', {
+      profile_id: userId,
+    })
     if (ok) {
-      setRows((prev) =>
-        prev.map((r) =>
+      setRows(prev =>
+        prev.map(r =>
           r.id === userId
-            ? { ...r, player: { id: player.id, sheet_name: player.sheet_name, aliases: [] } }
-            : r
-        )
+            ? {
+                ...r,
+                player: {
+                  id: player.id,
+                  sheet_name: player.sheet_name,
+                  aliases: [],
+                },
+              }
+            : r,
+        ),
       )
       setLinkingUserId(null)
       setSearchQuery('')
@@ -165,9 +187,13 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
   }
 
   async function handleUnlinkPlayer(userId: string, playerId: string) {
-    const ok = await patchPlayer(playerId, userId, 'unlink', { profile_id: null })
+    const ok = await patchPlayer(playerId, userId, 'unlink', {
+      profile_id: null,
+    })
     if (ok) {
-      setRows((prev) => prev.map((r) => (r.id === userId ? { ...r, player: null } : r)))
+      setRows(prev =>
+        prev.map(r => (r.id === userId ? { ...r, player: null } : r)),
+      )
     }
   }
 
@@ -179,12 +205,14 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
             <th className="px-4 py-3 text-left font-medium">Nome</th>
             <th className="px-4 py-3 text-left font-medium">Estado</th>
             <th className="px-4 py-3 text-left font-medium">Papéis</th>
-            <th className="px-4 py-3 text-left font-medium">Jogador / Aliases</th>
+            <th className="px-4 py-3 text-left font-medium">
+              Jogador / Aliases
+            </th>
             <th className="px-4 py-3 text-right font-medium">Ações</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {rows.map((user) => {
+          {rows.map(user => {
             const isLoading = !!loadingMap[user.id]
             const error = errorMap[user.id]
             const hasPlayer = user.roles.includes('player')
@@ -193,13 +221,20 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
             const isLinking = linkingUserId === user.id
 
             return (
-              <tr key={user.id} className="bg-background hover:bg-muted/30 transition-colors">
+              <tr
+                key={user.id}
+                className="bg-background hover:bg-muted/30 transition-colors"
+              >
                 <td className="px-4 py-3 font-medium">{user.display_name}</td>
 
                 <td className="px-4 py-3">
                   <Badge
                     variant={user.approved ? 'default' : 'secondary'}
-                    className={user.approved ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}
+                    className={
+                      user.approved
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }
                   >
                     {user.approved ? t('admin.approved') : t('admin.pending')}
                   </Badge>
@@ -208,9 +243,27 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                 <td className="px-4 py-3">
                   {user.approved && (
                     <div className="flex flex-wrap gap-1">
-                      {user.roles.includes('player') && <Badge variant="outline" className="text-xs">Player</Badge>}
-                      {hasMod && <Badge variant="outline" className="text-xs text-fcda-navy border-fcda-navy">Mod</Badge>}
-                      {hasAdmin && <Badge variant="outline" className="text-xs text-fcda-gold border-fcda-gold">Admin</Badge>}
+                      {user.roles.includes('player') && (
+                        <Badge variant="outline" className="text-xs">
+                          Player
+                        </Badge>
+                      )}
+                      {hasMod && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs text-fcda-navy border-fcda-navy"
+                        >
+                          Mod
+                        </Badge>
+                      )}
+                      {hasAdmin && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs text-fcda-gold border-fcda-gold"
+                        >
+                          Admin
+                        </Badge>
+                      )}
                     </div>
                   )}
                 </td>
@@ -218,10 +271,12 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                 <td className="px-4 py-3">
                   {user.player ? (
                     <div className="space-y-1">
-                      <span className="font-medium text-fcda-navy">{user.player.sheet_name}</span>
+                      <span className="font-medium text-fcda-navy">
+                        {user.player.sheet_name}
+                      </span>
                       {user.player.aliases.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {user.player.aliases.map((a) => (
+                          {user.player.aliases.map(a => (
                             <span
                               key={a.id}
                               className="inline-flex items-center rounded-full bg-fcda-ice border border-fcda-navy/20 px-2 py-0.5 text-xs text-fcda-navy"
@@ -233,7 +288,9 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                       )}
                     </div>
                   ) : (
-                    <span className="text-muted-foreground">{t('admin.noPlayer')}</span>
+                    <span className="text-muted-foreground">
+                      {t('admin.noPlayer')}
+                    </span>
                   )}
 
                   {isLinking && (
@@ -243,19 +300,21 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                         placeholder={t('admin.searchPlayer')}
                         className="w-full rounded border border-input bg-background px-2 py-1 text-sm"
                         value={searchQuery}
-                        onChange={(e) => handleSearchPlayers(e.target.value)}
+                        onChange={e => handleSearchPlayers(e.target.value)}
                         autoFocus
                       />
                       {searchResults.length > 0 && (
                         <ul className="rounded border border-input bg-background text-sm divide-y max-h-32 overflow-y-auto">
-                          {searchResults.map((p) => (
+                          {searchResults.map(p => (
                             <li key={p.id}>
                               <button
                                 type="button"
                                 className="w-full px-2 py-1.5 text-left hover:bg-muted"
                                 onClick={() => handleLinkPlayer(user.id, p)}
                               >
-                                {p.shirt_number != null ? `#${p.shirt_number} ` : ''}
+                                {p.shirt_number != null
+                                  ? `#${p.shirt_number} `
+                                  : ''}
                                 {p.sheet_name}
                               </button>
                             </li>
@@ -278,7 +337,9 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                   )}
 
                   {error && (
-                    <p role="alert" className="text-xs text-destructive mt-1">{error}</p>
+                    <p role="alert" className="text-xs text-destructive mt-1">
+                      {error}
+                    </p>
                   )}
                 </td>
 
@@ -291,7 +352,9 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                         onClick={() => handleApprove(user.id)}
                         disabled={isLoading}
                       >
-                        {loadingMap[user.id] === 'approve' ? '...' : t('admin.approve')}
+                        {loadingMap[user.id] === 'approve'
+                          ? '...'
+                          : t('admin.approve')}
                       </Button>
                     ) : (
                       <>
@@ -299,28 +362,46 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                           size="sm"
                           variant="outline"
                           className="text-xs"
-                          onClick={() => handleRoleToggle(user.id, 'player', hasPlayer)}
+                          onClick={() =>
+                            handleRoleToggle(user.id, 'player', hasPlayer)
+                          }
                           disabled={isLoading}
                         >
-                          {loadingMap[user.id] === 'player' ? '...' : hasPlayer ? '−Player' : '+Player'}
+                          {loadingMap[user.id] === 'player'
+                            ? '...'
+                            : hasPlayer
+                              ? '−Player'
+                              : '+Player'}
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           className="text-xs"
-                          onClick={() => handleRoleToggle(user.id, 'mod', hasMod)}
+                          onClick={() =>
+                            handleRoleToggle(user.id, 'mod', hasMod)
+                          }
                           disabled={isLoading}
                         >
-                          {loadingMap[user.id] === 'mod' ? '...' : hasMod ? '−Mod' : '+Mod'}
+                          {loadingMap[user.id] === 'mod'
+                            ? '...'
+                            : hasMod
+                              ? '−Mod'
+                              : '+Mod'}
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           className="text-xs"
-                          onClick={() => handleRoleToggle(user.id, 'admin', hasAdmin)}
+                          onClick={() =>
+                            handleRoleToggle(user.id, 'admin', hasAdmin)
+                          }
                           disabled={isLoading}
                         >
-                          {loadingMap[user.id] === 'admin' ? '...' : hasAdmin ? '−Admin' : '+Admin'}
+                          {loadingMap[user.id] === 'admin'
+                            ? '...'
+                            : hasAdmin
+                              ? '−Admin'
+                              : '+Admin'}
                         </Button>
                         <Button
                           size="sm"
@@ -329,18 +410,24 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                           onClick={() => handleUnapprove(user.id)}
                           disabled={isLoading}
                         >
-                          {loadingMap[user.id] === 'unapprove' ? '...' : t('admin.unapprove')}
+                          {loadingMap[user.id] === 'unapprove'
+                            ? '...'
+                            : t('admin.unapprove')}
                         </Button>
-                        {!isLinking && (
-                          user.player ? (
+                        {!isLinking &&
+                          (user.player ? (
                             <Button
                               size="sm"
                               variant="ghost"
                               className="text-xs text-muted-foreground"
-                              onClick={() => handleUnlinkPlayer(user.id, user.player!.id)}
+                              onClick={() =>
+                                handleUnlinkPlayer(user.id, user.player!.id)
+                              }
                               disabled={isLoading}
                             >
-                              {loadingMap[user.id] === 'unlink' ? '...' : t('admin.unlinkPlayer')}
+                              {loadingMap[user.id] === 'unlink'
+                                ? '...'
+                                : t('admin.unlinkPlayer')}
                             </Button>
                           ) : (
                             <Button
@@ -356,8 +443,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                             >
                               {t('admin.linkPlayer')}
                             </Button>
-                          )
-                        )}
+                          ))}
                       </>
                     )}
                   </div>

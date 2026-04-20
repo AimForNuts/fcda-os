@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { canAccessMod, canAccessAdmin, unionPermissions } from '@/lib/auth/permissions'
-import type { UserRole } from '@/types'
+import {
+  canAccessMod,
+  canAccessAdmin,
+  unionPermissions,
+} from '@/lib/auth/permissions'
 
 describe('canAccessMod', () => {
   it('returns true for mod role', () => {

@@ -13,10 +13,10 @@ type PendingRow = {
 export default async function AdminRatingsPage() {
   const admin = createServiceClient()
 
-  const { data: submissions } = await admin
+  const { data: submissions } = (await admin
     .from('rating_submissions')
     .select('id, game_id, submitted_by, rated_player_id, rating, feedback')
-    .eq('status', 'pending') as { data: PendingRow[] | null; error: unknown }
+    .eq('status', 'pending')) as { data: PendingRow[] | null; error: unknown }
 
   const rows = submissions ?? []
 
@@ -26,9 +26,9 @@ export default async function AdminRatingsPage() {
     )
   }
 
-  const gameIds = [...new Set(rows.map((r) => r.game_id))]
-  const submitterIds = [...new Set(rows.map((r) => r.submitted_by))]
-  const playerIds = [...new Set(rows.map((r) => r.rated_player_id))]
+  const gameIds = [...new Set(rows.map(r => r.game_id))]
+  const submitterIds = [...new Set(rows.map(r => r.submitted_by))]
+  const playerIds = [...new Set(rows.map(r => r.rated_player_id))]
 
   const [gamesRes, submittersRes, playersRes] = await Promise.all([
     admin.from('games').select('id, date, location').in('id', gameIds),
@@ -36,13 +36,25 @@ export default async function AdminRatingsPage() {
     admin.from('players').select('id, sheet_name').in('id', playerIds),
   ])
 
-  const games = gamesRes.data as Array<{ id: string; date: string; location: string }> | null
-  const submitters = submittersRes.data as Array<{ id: string; display_name: string }> | null
-  const players = playersRes.data as Array<{ id: string; sheet_name: string }> | null
+  const games = gamesRes.data as Array<{
+    id: string
+    date: string
+    location: string
+  }> | null
+  const submitters = submittersRes.data as Array<{
+    id: string
+    display_name: string
+  }> | null
+  const players = playersRes.data as Array<{
+    id: string
+    sheet_name: string
+  }> | null
 
-  const gameMap = new Map((games ?? []).map((g) => [g.id, g]))
-  const submitterMap = new Map((submitters ?? []).map((p) => [p.id, p.display_name]))
-  const playerMap = new Map((players ?? []).map((p) => [p.id, p.sheet_name]))
+  const gameMap = new Map((games ?? []).map(g => [g.id, g]))
+  const submitterMap = new Map(
+    (submitters ?? []).map(p => [p.id, p.display_name]),
+  )
+  const playerMap = new Map((players ?? []).map(p => [p.id, p.sheet_name]))
 
   const batchMap = new Map<string, Batch>()
   for (const row of rows) {
@@ -68,7 +80,8 @@ export default async function AdminRatingsPage() {
 
   // Sort: newest game first, then submitter name alphabetically
   const batches = Array.from(batchMap.values()).sort((a, b) => {
-    const dateDiff = new Date(b.gameDate).getTime() - new Date(a.gameDate).getTime()
+    const dateDiff =
+      new Date(b.gameDate).getTime() - new Date(a.gameDate).getTime()
     if (dateDiff !== 0) return dateDiff
     return a.submitterName.localeCompare(b.submitterName)
   })

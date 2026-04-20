@@ -9,35 +9,45 @@ const finishGameSchema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
-  if (!canAccessMod(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (!canAccessMod(session.roles))
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id } = await params
 
   const body = await request.json().catch(() => null)
   const parsed = finishGameSchema.safeParse(body)
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
+    return Response.json(
+      { error: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    )
   }
 
   const supabase = await createClient()
 
-  const { data: existing } = await supabase
+  const { data: existing } = (await supabase
     .from('games')
     .select('id, status')
     .eq('id', id)
-    .single() as { data: { id: string; status: string } | null; error: unknown }
+    .single()) as {
+    data: { id: string; status: string } | null
+    error: unknown
+  }
 
   if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
   if (existing.status !== 'scheduled') {
-    return Response.json({ error: 'Only scheduled games can be finished' }, { status: 409 })
+    return Response.json(
+      { error: 'Only scheduled games can be finished' },
+      { status: 409 },
+    )
   }
 
   const now = new Date().toISOString()
-  const { data: game, error } = await (supabase.from('games') as any)
+  const { data: game, error } = (await (supabase.from('games') as any)
     .update({
       status: 'finished',
       score_a: parsed.data.score_a,
@@ -48,7 +58,7 @@ export async function POST(
     })
     .eq('id', id)
     .select('id')
-    .single() as { data: { id: string } | null; error: unknown }
+    .single()) as { data: { id: string } | null; error: unknown }
 
   if (error || !game) {
     return Response.json({ error: 'Failed to finish game' }, { status: 500 })

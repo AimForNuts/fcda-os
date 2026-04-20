@@ -25,7 +25,12 @@ describe('MatchCard', () => {
   })
 
   it('shows score when game is finished', () => {
-    const finished: Game = { ...baseGame, status: 'finished', score_a: 3, score_b: 2 }
+    const finished: Game = {
+      ...baseGame,
+      status: 'finished',
+      score_a: 3,
+      score_b: 2,
+    }
     render(<MatchCard game={finished} />)
     expect(screen.getByText('3 – 2')).toBeInTheDocument()
   })
@@ -47,7 +52,12 @@ describe('MatchCard', () => {
   })
 
   it('shows Terminado badge for finished game', () => {
-    const finished: Game = { ...baseGame, status: 'finished', score_a: 1, score_b: 0 }
+    const finished: Game = {
+      ...baseGame,
+      status: 'finished',
+      score_a: 1,
+      score_b: 0,
+    }
     render(<MatchCard game={finished} />)
     expect(screen.getByText('Terminado')).toBeInTheDocument()
   })

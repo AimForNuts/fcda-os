@@ -18,7 +18,10 @@ export function ModSubNav() {
       <div className="container max-w-screen-xl mx-auto px-4 flex gap-6">
         <Link
           href="/mod/games/new"
-          className={linkClass(pathname.startsWith('/mod/games') || pathname.startsWith('/mod/game'))}
+          className={linkClass(
+            pathname.startsWith('/mod/games') ||
+              pathname.startsWith('/mod/game'),
+          )}
         >
           Games
         </Link>

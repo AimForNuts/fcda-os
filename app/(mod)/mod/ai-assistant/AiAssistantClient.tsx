@@ -20,8 +20,11 @@ function formatDate(iso: string) {
 }
 
 function buildPrompt(players: PlayerEntry[]): string {
-  const lines = players.map((p) => {
-    const pos = p.preferred_positions.length > 0 ? p.preferred_positions.join(', ') : 'no position'
+  const lines = players.map(p => {
+    const pos =
+      p.preferred_positions.length > 0
+        ? p.preferred_positions.join(', ')
+        : 'no position'
     const rating = p.current_rating != null ? p.current_rating.toFixed(2) : '1'
     return `- ${p.sheet_name} (${pos}) - Rating: ${rating}`
   })
@@ -29,31 +32,36 @@ function buildPrompt(players: PlayerEntry[]): string {
 }
 
 export function AiAssistantClient({ games }: { games: Game[] }) {
-  const [selectedGameId, setSelectedGameId] = useState<string>(games[0]?.id ?? '')
+  const [selectedGameId, setSelectedGameId] = useState<string>(
+    games[0]?.id ?? '',
+  )
   const [players, setPlayers] = useState<PlayerEntry[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(Boolean(games[0]?.id))
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!selectedGameId) return
     let cancelled = false
-    setLoading(true)
     const supabase = createClient()
-    ;(supabase
-      .from('game_players')
-      .select('players(sheet_name, current_rating, preferred_positions)')
-      .eq('game_id', selectedGameId) as unknown as Promise<{
+    ;(
+      supabase
+        .from('game_players')
+        .select('players(sheet_name, current_rating, preferred_positions)')
+        .eq('game_id', selectedGameId) as unknown as Promise<{
         data: Array<{ players: PlayerEntry | null }> | null
-      }>).then(({ data }) => {
+      }>
+    ).then(({ data }) => {
       if (cancelled) return
       setPlayers(
         (data ?? [])
-          .map((r) => r.players)
-          .filter((p): p is PlayerEntry => p != null)
+          .map(r => r.players)
+          .filter((p): p is PlayerEntry => p != null),
       )
       setLoading(false)
     })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [selectedGameId])
 
   const prompt = buildPrompt(players)
@@ -81,9 +89,12 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
           id="game-select"
           className="w-full rounded border border-input bg-background px-3 py-2 text-sm"
           value={selectedGameId}
-          onChange={(e) => setSelectedGameId(e.target.value)}
+          onChange={e => {
+            setLoading(true)
+            setSelectedGameId(e.target.value)
+          }}
         >
-          {games.map((g) => (
+          {games.map(g => (
             <option key={g.id} value={g.id}>
               {formatDate(g.date)} — {g.location}
             </option>
@@ -108,7 +119,9 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">No players in this game.</p>
+        <p className="text-sm text-muted-foreground">
+          No players in this game.
+        </p>
       )}
 
       {/* Generated prompt */}

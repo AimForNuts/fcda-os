@@ -3,8 +3,8 @@
  * Returned by the parse API route — not DB-dependent here.
  */
 export type ParsedEntry = {
-  raw: string         // original extracted name, e.g. "João Silva"
-  normalised: string  // lowercased + diacritics stripped, e.g. "joao silva"
+  raw: string // original extracted name, e.g. "João Silva"
+  normalised: string // lowercased + diacritics stripped, e.g. "joao silva"
   status: 'matched' | 'ambiguous' | 'unmatched'
   matches: Array<{ id: string; sheet_name: string }>
 }
@@ -31,8 +31,8 @@ export function normaliseAlias(raw: string): string {
 export function extractNames(text: string): string[] {
   return text
     .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.startsWith('@'))
-    .map((line) => line.slice(1).trim())
+    .map(line => line.trim())
+    .filter(line => line.startsWith('@'))
+    .map(line => line.slice(1).trim())
     .filter(Boolean)
 }

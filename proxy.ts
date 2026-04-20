@@ -15,15 +15,15 @@ export async function proxy(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
+            request.cookies.set(name, value),
           )
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           )
         },
       },
-    }
+    },
   )
 
   // IMPORTANT: always use getUser() not getSession() — getUser() validates
@@ -69,7 +69,7 @@ export async function proxy(request: NextRequest) {
         .select('role')
         .eq('user_id', user.id)
 
-      const userRoles = roles?.map((r) => r.role) ?? []
+      const userRoles = roles?.map(r => r.role) ?? []
       const hasAccess = isAdminRoute
         ? userRoles.includes('admin')
         : userRoles.includes('mod') || userRoles.includes('admin')

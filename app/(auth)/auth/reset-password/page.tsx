@@ -39,7 +39,9 @@ export default function ResetPasswordPage() {
   async function onSubmit(data: FormData) {
     setServerError(null)
     const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({ password: data.password })
+    const { error } = await supabase.auth.updateUser({
+      password: data.password,
+    })
 
     if (error) {
       setServerError(t('auth.errors.updateFailed'))
@@ -53,7 +55,9 @@ export default function ResetPasswordPage() {
     <Card>
       <CardHeader>
         <CardTitle>{t('auth.resetTitle')}</CardTitle>
-        <CardDescription>FCDA — Futebol Clube Dragões da Areosa</CardDescription>
+        <CardDescription>
+          FCDA — Futebol Clube Dragões da Areosa
+        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
@@ -70,7 +74,9 @@ export default function ResetPasswordPage() {
               {...register('password')}
             />
             {errors.password && (
-              <p className="text-xs text-destructive">{errors.password.message}</p>
+              <p className="text-xs text-destructive">
+                {errors.password.message}
+              </p>
             )}
           </div>
         </CardContent>

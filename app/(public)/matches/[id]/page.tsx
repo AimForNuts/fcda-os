@@ -15,16 +15,23 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   const supabase = await createClient()
-  const { data: game } = await supabase
+  const { data: game } = (await supabase
     .from('games')
     .select('date, location')
     .eq('id', id)
-    .single() as { data: { date: string; location: string } | null; error: unknown }
+    .single()) as {
+    data: { date: string; location: string } | null
+    error: unknown
+  }
 
   if (!game) return { title: 'Jogo — FCDA' }
 
   const d = new Date(game.date)
-  const dateStr = d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
+  const dateStr = d.toLocaleDateString('pt-PT', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
   return { title: `${dateStr} · ${game.location} — FCDA` }
 }
 
@@ -49,20 +56,23 @@ export default async function MatchDetailPage({
   const isMod = session ? canAccessMod(session.roles) : false
   const isApproved = session?.profile?.approved ?? false
 
-  const { data: game } = await supabase
+  const { data: game } = (await supabase
     .from('games')
     .select('*')
     .eq('id', id)
-    .single() as { data: Game | null; error: unknown }
+    .single()) as { data: Game | null; error: unknown }
 
   if (!game) notFound()
 
-  const { data: gamePlayers } = await supabase
+  const { data: gamePlayers } = (await supabase
     .from('game_players')
     .select('player_id, team')
-    .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team'>[] | null; error: unknown }
+    .eq('game_id', id)) as {
+    data: Pick<GamePlayer, 'player_id' | 'team'>[] | null
+    error: unknown
+  }
 
-  const playerIds = (gamePlayers ?? []).map((gp) => gp.player_id)
+  const playerIds = (gamePlayers ?? []).map(gp => gp.player_id)
   let players: PlayerPublic[] = []
 
   if (playerIds.length > 0) {
@@ -78,24 +88,24 @@ export default async function MatchDetailPage({
     game.counts_for_stats === true &&
     isApproved &&
     !!session &&
-    players.some((p) => p.profile_id === session.userId)
+    players.some(p => p.profile_id === session.userId)
 
-  const playerMap = new Map(players.map((p) => [p.id, p]))
+  const playerMap = new Map(players.map(p => [p.id, p]))
   const gpList = gamePlayers ?? []
 
   const teamA = gpList
-    .filter((gp) => gp.team === 'a')
-    .map((gp) => playerMap.get(gp.player_id))
+    .filter(gp => gp.team === 'a')
+    .map(gp => playerMap.get(gp.player_id))
     .filter((p): p is PlayerPublic => p != null)
 
   const teamB = gpList
-    .filter((gp) => gp.team === 'b')
-    .map((gp) => playerMap.get(gp.player_id))
+    .filter(gp => gp.team === 'b')
+    .map(gp => playerMap.get(gp.player_id))
     .filter((p): p is PlayerPublic => p != null)
 
   const unassigned = gpList
-    .filter((gp) => !gp.team)
-    .map((gp) => playerMap.get(gp.player_id))
+    .filter(gp => !gp.team)
+    .map(gp => playerMap.get(gp.player_id))
     .filter((p): p is PlayerPublic => p != null)
 
   const d = new Date(game.date)
@@ -209,7 +219,12 @@ export default async function MatchDetailPage({
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
           Convocatória
         </h2>
-        <LineupGrid teamA={teamA} teamB={teamB} unassigned={unassigned} isApproved={isApproved} />
+        <LineupGrid
+          teamA={teamA}
+          teamB={teamB}
+          unassigned={unassigned}
+          isApproved={isApproved}
+        />
       </div>
     </div>
   )

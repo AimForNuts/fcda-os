@@ -64,7 +64,9 @@ export function FinishGameForm({ gameId }: { gameId: string }) {
         </CardHeader>
         <CardContent className="space-y-4">
           {serverError && (
-            <p role="alert" className="text-sm text-destructive">{serverError}</p>
+            <p role="alert" className="text-sm text-destructive">
+              {serverError}
+            </p>
           )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -79,7 +81,13 @@ export function FinishGameForm({ gameId }: { gameId: string }) {
                 {...register('score_a', { valueAsNumber: true })}
               />
               {errors.score_a && (
-                <p id="score_a_error" role="alert" className="text-xs text-destructive">{errors.score_a.message}</p>
+                <p
+                  id="score_a_error"
+                  role="alert"
+                  className="text-xs text-destructive"
+                >
+                  {errors.score_a.message}
+                </p>
               )}
             </div>
             <div className="space-y-2">
@@ -94,11 +102,19 @@ export function FinishGameForm({ gameId }: { gameId: string }) {
                 {...register('score_b', { valueAsNumber: true })}
               />
               {errors.score_b && (
-                <p id="score_b_error" role="alert" className="text-xs text-destructive">{errors.score_b.message}</p>
+                <p
+                  id="score_b_error"
+                  role="alert"
+                  className="text-xs text-destructive"
+                >
+                  {errors.score_b.message}
+                </p>
               )}
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">{t('mod.finish.warning')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t('mod.finish.warning')}
+          </p>
         </CardContent>
         <CardFooter className="flex gap-2 justify-end">
           <Button

@@ -33,7 +33,7 @@ export function RatingBatches({ batches: initialBatches }: Props) {
   async function handleAction(
     gameId: string,
     submittedBy: string,
-    action: 'approve' | 'reject'
+    action: 'approve' | 'reject',
   ) {
     const key = `${gameId}::${submittedBy}`
     setLoading(key)
@@ -47,8 +47,10 @@ export function RatingBatches({ batches: initialBatches }: Props) {
 
     setLoading(null)
     if (res.ok) {
-      setBatches((prev) =>
-        prev.filter((b) => !(b.gameId === gameId && b.submittedBy === submittedBy))
+      setBatches(prev =>
+        prev.filter(
+          b => !(b.gameId === gameId && b.submittedBy === submittedBy),
+        ),
       )
     } else {
       setError(t('admin.errors.ratingFailed'))
@@ -56,13 +58,15 @@ export function RatingBatches({ batches: initialBatches }: Props) {
   }
 
   if (batches.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t('admin.noRatings')}</p>
+    return (
+      <p className="text-sm text-muted-foreground">{t('admin.noRatings')}</p>
+    )
   }
 
   return (
     <div className="space-y-8">
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {batches.map((batch) => {
+      {batches.map(batch => {
         const key = `${batch.gameId}::${batch.submittedBy}`
         const isLoading = loading === key
         const d = new Date(batch.gameDate)
@@ -78,19 +82,26 @@ export function RatingBatches({ batches: initialBatches }: Props) {
               <p className="font-medium">
                 {dateStr} · {batch.gameLocation}
               </p>
-              <p className="text-sm text-muted-foreground">{batch.submitterName}</p>
+              <p className="text-sm text-muted-foreground">
+                {batch.submitterName}
+              </p>
             </div>
             <table className="w-full text-sm">
               <tbody>
-                {batch.items.map((item) => (
+                {batch.items.map(item => (
                   <React.Fragment key={item.playerId}>
                     <tr className={item.feedback ? '' : 'border-b'}>
                       <td className="py-1">{item.playerName}</td>
-                      <td className="py-1 text-right">{item.rating.toFixed(2)}</td>
+                      <td className="py-1 text-right">
+                        {item.rating.toFixed(2)}
+                      </td>
                     </tr>
                     {item.feedback && (
                       <tr className="border-b">
-                        <td colSpan={2} className="pb-2 text-xs text-muted-foreground italic">
+                        <td
+                          colSpan={2}
+                          className="pb-2 text-xs text-muted-foreground italic"
+                        >
                           {item.feedback}
                         </td>
                       </tr>
@@ -103,7 +114,9 @@ export function RatingBatches({ batches: initialBatches }: Props) {
               <Button
                 size="sm"
                 disabled={isLoading}
-                onClick={() => handleAction(batch.gameId, batch.submittedBy, 'approve')}
+                onClick={() =>
+                  handleAction(batch.gameId, batch.submittedBy, 'approve')
+                }
               >
                 {t('admin.approveAll')}
               </Button>
@@ -111,7 +124,9 @@ export function RatingBatches({ batches: initialBatches }: Props) {
                 size="sm"
                 variant="outline"
                 disabled={isLoading}
-                onClick={() => handleAction(batch.gameId, batch.submittedBy, 'reject')}
+                onClick={() =>
+                  handleAction(batch.gameId, batch.submittedBy, 'reject')
+                }
               >
                 {t('admin.rejectAll')}
               </Button>

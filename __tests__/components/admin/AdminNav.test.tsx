@@ -13,8 +13,12 @@ vi.mock('react-i18next', () => ({
 describe('AdminNav', () => {
   it('renders both nav links', () => {
     render(<AdminNav />)
-    expect(screen.getByRole('link', { name: 'admin.users' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'admin.players' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'admin.users' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'admin.players' }),
+    ).toBeInTheDocument()
   })
 
   it('marks the active path with active styles', () => {
@@ -31,11 +35,15 @@ describe('AdminNav', () => {
 
   it('renders the ratings nav link', () => {
     render(<AdminNav />)
-    expect(screen.getByRole('link', { name: 'admin.ratings' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'admin.ratings' }),
+    ).toBeInTheDocument()
   })
 
   it('renders the feedback nav link', () => {
     render(<AdminNav />)
-    expect(screen.getByRole('link', { name: 'admin.feedback' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'admin.feedback' }),
+    ).toBeInTheDocument()
   })
 })

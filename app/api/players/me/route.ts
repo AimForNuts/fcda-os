@@ -16,22 +16,27 @@ const schema = z.object({
 export async function PATCH(request: Request) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
-  if (!session.profile.approved) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (!session.profile.approved)
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const admin = createServiceClient()
 
-  const { data: player } = await admin
+  const { data: player } = (await admin
     .from('players')
     .select('id')
     .eq('profile_id', session.userId)
-    .maybeSingle() as { data: { id: string } | null; error: unknown }
+    .maybeSingle()) as { data: { id: string } | null; error: unknown }
 
-  if (!player) return Response.json({ error: 'No linked player' }, { status: 404 })
+  if (!player)
+    return Response.json({ error: 'No linked player' }, { status: 404 })
 
   const body = await request.json().catch(() => null)
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 422 })
+    return Response.json(
+      { error: parsed.error.flatten().fieldErrors },
+      { status: 422 },
+    )
   }
 
   const updates: PlayerUpdate = {
@@ -49,7 +54,8 @@ export async function PATCH(request: Request) {
     .update(updates)
     .eq('id', player.id)
 
-  if (error) return Response.json({ error: 'Failed to update' }, { status: 500 })
+  if (error)
+    return Response.json({ error: 'Failed to update' }, { status: 500 })
 
   return Response.json({ ok: true })
 }

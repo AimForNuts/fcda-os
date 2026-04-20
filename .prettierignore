@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+build
+coverage
+.vercel
+.worktrees
+package-lock.json
+AGENTS.md
+docs/superpowers/specs

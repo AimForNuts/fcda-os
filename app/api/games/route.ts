@@ -11,16 +11,20 @@ const createGameSchema = z.object({
 export async function POST(request: Request) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
-  if (!canAccessMod(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (!canAccessMod(session.roles))
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await request.json().catch(() => null)
   const parsed = createGameSchema.safeParse(body)
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
+    return Response.json(
+      { error: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    )
   }
 
   const supabase = await createClient()
-  const { data: game, error } = await supabase
+  const { data: game, error } = (await supabase
     .from('games')
     .insert({
       date: parsed.data.date,
@@ -30,7 +34,10 @@ export async function POST(request: Request) {
       status: 'scheduled',
     } as any)
     .select('id, date, location')
-    .single() as { data: { id: string; date: string; location: string } | null; error: unknown }
+    .single()) as {
+    data: { id: string; date: string; location: string } | null
+    error: unknown
+  }
 
   if (error || !game) {
     return Response.json({ error: 'Failed to create game' }, { status: 500 })

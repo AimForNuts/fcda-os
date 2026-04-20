@@ -11,35 +11,52 @@ export default async function LineupPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: game } = await supabase
+  const { data: game } = (await supabase
     .from('games')
     .select('id, date, location, status')
     .eq('id', id)
-    .single() as { data: Pick<Game, 'id' | 'date' | 'location' | 'status'> | null; error: unknown }
+    .single()) as {
+    data: Pick<Game, 'id' | 'date' | 'location' | 'status'> | null
+    error: unknown
+  }
 
   if (!game) notFound()
 
   // Fetch current game_players
-  const { data: gamePlayers } = await supabase
+  const { data: gamePlayers } = (await supabase
     .from('game_players')
     .select('player_id, team')
-    .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team'>[] | null; error: unknown }
+    .eq('game_id', id)) as {
+    data: Pick<GamePlayer, 'player_id' | 'team'>[] | null
+    error: unknown
+  }
 
-  const playerIds = (gamePlayers ?? []).map((gp) => gp.player_id)
+  const playerIds = (gamePlayers ?? []).map(gp => gp.player_id)
 
   // Fetch player details (sheet_name, shirt_number)
-  let playerDetails: Array<{ id: string; sheet_name: string; shirt_number: number | null }> = []
+  let playerDetails: Array<{
+    id: string
+    sheet_name: string
+    shirt_number: number | null
+  }> = []
   if (playerIds.length > 0) {
-    const { data } = await supabase
+    const { data } = (await supabase
       .from('players')
       .select('id, sheet_name, shirt_number')
-      .in('id', playerIds) as { data: Array<{ id: string; sheet_name: string; shirt_number: number | null }> | null; error: unknown }
+      .in('id', playerIds)) as {
+      data: Array<{
+        id: string
+        sheet_name: string
+        shirt_number: number | null
+      }> | null
+      error: unknown
+    }
     playerDetails = data ?? []
   }
 
-  const playerMap = new Map(playerDetails.map((p) => [p.id, p]))
+  const playerMap = new Map(playerDetails.map(p => [p.id, p]))
 
-  const currentLineup = (gamePlayers ?? []).map((gp) => {
+  const currentLineup = (gamePlayers ?? []).map(gp => {
     const p = playerMap.get(gp.player_id)
     return {
       player_id: gp.player_id,
@@ -50,8 +67,15 @@ export default async function LineupPage({
   })
 
   const d = new Date(game.date)
-  const dateStr = d.toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' })
-  const timeStr = d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })
+  const dateStr = d.toLocaleDateString('pt-PT', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+  })
+  const timeStr = d.toLocaleTimeString('pt-PT', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 
   if (game.status !== 'scheduled') {
     return (

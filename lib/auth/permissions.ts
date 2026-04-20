@@ -20,7 +20,8 @@ export type Permissions = {
 
 /** Derives the union of all permissions for a given role list. */
 export function unionPermissions(roles: UserRole[]): Permissions {
-  const isPlayer = roles.includes('player') || roles.includes('mod') || roles.includes('admin')
+  const isPlayer =
+    roles.includes('player') || roles.includes('mod') || roles.includes('admin')
   const isMod = canAccessMod(roles)
   const isAdmin = canAccessAdmin(roles)
 
@@ -45,7 +46,7 @@ export async function fetchUserRoles(userId: string): Promise<UserRole[]> {
     .select('role')
     .eq('user_id', userId)
   const rows = data as Array<{ role: UserRole }> | null
-  return rows?.map((r) => r.role) ?? []
+  return rows?.map(r => r.role) ?? []
 }
 
 /**
@@ -72,5 +73,9 @@ export async function fetchSessionContext() {
 
   const roles = await fetchUserRoles(user.id)
 
-  return { userId: user.id, profile: profile as Profile, roles } satisfies SessionContext
+  return {
+    userId: user.id,
+    profile: profile as Profile,
+    roles,
+  } satisfies SessionContext
 }

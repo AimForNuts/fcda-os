@@ -30,7 +30,11 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar profile={session.profile} roles={session.roles} pendingCount={count ?? 0} />
+      <Navbar
+        profile={session.profile}
+        roles={session.roles}
+        pendingCount={count ?? 0}
+      />
       <main className="flex-1 container max-w-screen-xl mx-auto px-4 py-8">
         <AdminNav />
         {children}

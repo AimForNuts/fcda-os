@@ -19,7 +19,7 @@ export function WhatsAppPasteBox({ onParse, isParsing }: Props) {
         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono min-h-[160px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         placeholder={t('mod.lineup.placeholder')}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={e => setText(e.target.value)}
         aria-label={t('mod.lineup.whatsappPaste')}
       />
       <Button

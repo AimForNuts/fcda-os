@@ -67,7 +67,9 @@ export default function RegisterPage() {
     <Card>
       <CardHeader>
         <CardTitle>{t('auth.register')}</CardTitle>
-        <CardDescription>FCDA — Futebol Clube Dragões da Areosa</CardDescription>
+        <CardDescription>
+          FCDA — Futebol Clube Dragões da Areosa
+        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">

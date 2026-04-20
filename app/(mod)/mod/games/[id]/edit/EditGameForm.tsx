@@ -33,7 +33,12 @@ type Props = {
   defaultCountsForStats: boolean
 }
 
-export function EditGameForm({ gameId, defaultDate, defaultLocation, defaultCountsForStats }: Props) {
+export function EditGameForm({
+  gameId,
+  defaultDate,
+  defaultLocation,
+  defaultCountsForStats,
+}: Props) {
   const { t } = useTranslation()
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
@@ -88,14 +93,18 @@ export function EditGameForm({ gameId, defaultDate, defaultLocation, defaultCoun
               <Label htmlFor="date">{t('mod.date')}</Label>
               <Input id="date" type="datetime-local" {...register('date')} />
               {errors.date && (
-                <p className="text-xs text-destructive">{errors.date.message}</p>
+                <p className="text-xs text-destructive">
+                  {errors.date.message}
+                </p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">{t('mod.location')}</Label>
               <Input id="location" type="text" {...register('location')} />
               {errors.location && (
-                <p className="text-xs text-destructive">{errors.location.message}</p>
+                <p className="text-xs text-destructive">
+                  {errors.location.message}
+                </p>
               )}
             </div>
             <div className="flex items-center gap-2">
