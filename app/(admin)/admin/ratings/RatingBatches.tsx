@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 
@@ -8,6 +8,7 @@ type BatchItem = {
   playerId: string
   playerName: string
   rating: number
+  feedback: string | null
 }
 
 export type Batch = {
@@ -82,10 +83,19 @@ export function RatingBatches({ batches: initialBatches }: Props) {
             <table className="w-full text-sm">
               <tbody>
                 {batch.items.map((item) => (
-                  <tr key={item.playerId} className="border-b">
-                    <td className="py-1">{item.playerName}</td>
-                    <td className="py-1 text-right">{item.rating.toFixed(2)}</td>
-                  </tr>
+                  <React.Fragment key={item.playerId}>
+                    <tr className={item.feedback ? '' : 'border-b'}>
+                      <td className="py-1">{item.playerName}</td>
+                      <td className="py-1 text-right">{item.rating.toFixed(2)}</td>
+                    </tr>
+                    {item.feedback && (
+                      <tr className="border-b">
+                        <td colSpan={2} className="pb-2 text-xs text-muted-foreground italic">
+                          {item.feedback}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

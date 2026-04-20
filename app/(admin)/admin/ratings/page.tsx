@@ -7,6 +7,7 @@ type PendingRow = {
   submitted_by: string
   rated_player_id: string
   rating: number
+  feedback: string | null
 }
 
 export default async function AdminRatingsPage() {
@@ -14,7 +15,7 @@ export default async function AdminRatingsPage() {
 
   const { data: submissions } = await admin
     .from('rating_submissions')
-    .select('id, game_id, submitted_by, rated_player_id, rating')
+    .select('id, game_id, submitted_by, rated_player_id, rating, feedback')
     .eq('status', 'pending') as { data: PendingRow[] | null; error: unknown }
 
   const rows = submissions ?? []
@@ -61,6 +62,7 @@ export default async function AdminRatingsPage() {
       playerId: row.rated_player_id,
       playerName: playerMap.get(row.rated_player_id) ?? row.rated_player_id,
       rating: row.rating,
+      feedback: row.feedback,
     })
   }
 
