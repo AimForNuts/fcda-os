@@ -13,6 +13,7 @@ export function AdminNav() {
     { href: '/admin/players', label: t('admin.players') },
     { href: '/admin/ratings', label: t('admin.ratings') },
     { href: '/admin/feedback', label: t('admin.feedback') },
+    { href: '/admin/coach', label: t('admin.coach') },
   ]
 
   return (
