@@ -21,7 +21,7 @@ export async function GET(
   const { id } = await params
   const admin = createServiceClient()
 
-  const { data: rows } = await admin
+  const { data: rows, error: rowsError } = await admin
     .from('rating_submissions')
     .select('id, game_id, submitted_by, rating, feedback')
     .eq('rated_player_id', id)
@@ -36,6 +36,7 @@ export async function GET(
       error: unknown
     }
 
+  if (rowsError) return Response.json({ error: 'Failed to fetch submissions' }, { status: 500 })
   if (!rows || rows.length === 0) {
     return Response.json({ submissions: [] })
   }
@@ -47,6 +48,10 @@ export async function GET(
     admin.from('games').select('id, date, location').in('id', gameIds),
     admin.from('profiles').select('id, display_name').in('id', submitterIds),
   ])
+
+  if (gamesRes.error || profilesRes.error) {
+    return Response.json({ error: 'Failed to fetch related data' }, { status: 500 })
+  }
 
   const games = gamesRes.data as Array<{ id: string; date: string; location: string }> | null
   const profiles = profilesRes.data as Array<{ id: string; display_name: string }> | null
