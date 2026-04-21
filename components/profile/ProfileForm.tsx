@@ -1,11 +1,30 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { Camera, Check, Hash, Save, UserRound } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { PLAYER_AVATAR_MAX_BYTES } from '@/lib/players/avatar'
+import { cn } from '@/lib/utils'
 
-const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST']
+const POSITIONS = [
+  { value: 'GK', label: 'Guarda-redes' },
+  { value: 'CB', label: 'Defesa' },
+  { value: 'CM', label: 'Médio' },
+  { value: 'W', label: 'Extremo' },
+  { value: 'ST', label: 'Avançado' },
+]
 
 type Props = {
   playerName: string
@@ -39,6 +58,9 @@ export function ProfileForm({
   const [error, setError] = useState<string | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const displayName = name.trim() || playerName
+  const shirtLabel = shirt.trim() === '' ? 'Sem número' : `#${shirt.trim()}`
+  const positionSummary = positions.length > 0 ? positions.join(' · ') : 'Escolhe as tuas posições'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -131,106 +153,230 @@ export function ProfileForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="rounded-lg border border-border p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar size="lg" className="h-14 w-14">
-              {currentAvatarUrl ? <AvatarImage src={currentAvatarUrl} alt={playerName} /> : null}
-              <AvatarFallback className="bg-fcda-gold text-fcda-navy font-semibold">
-                {getInitials(playerName)}
-              </AvatarFallback>
-            </Avatar>
+    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
+      <Card className="border-border/70 shadow-sm">
+        <CardHeader className="gap-3">
+          <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
-              <p className="text-sm font-medium">Fotografia do jogador</p>
-              <p className="text-xs text-muted-foreground">
-                JPEG, PNG ou WebP até {Math.round(PLAYER_AVATAR_MAX_BYTES / (1024 * 1024))} MB.
-              </p>
+              <CardTitle className="flex items-center gap-2 text-fcda-navy">
+                <Camera className="size-4" />
+                Fotografia
+              </CardTitle>
+              <CardDescription>
+                Mantém a tua imagem atualizada para uma apresentação mais consistente.
+              </CardDescription>
+            </div>
+            <Badge
+              variant="outline"
+              className={cn(
+                'border-transparent',
+                currentAvatarUrl
+                  ? 'bg-fcda-ice text-fcda-navy'
+                  : 'bg-muted text-muted-foreground'
+              )}
+            >
+              {currentAvatarUrl ? 'Ativa' : 'Opcional'}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="rounded-[1.75rem] border border-border/70 bg-gradient-to-b from-fcda-ice/70 via-background to-background p-6">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <Avatar size="lg" className="h-24 w-24 shadow-sm ring-4 ring-background">
+                {currentAvatarUrl ? <AvatarImage src={currentAvatarUrl} alt={displayName} /> : null}
+                <AvatarFallback className="bg-fcda-gold text-lg font-semibold text-fcda-navy">
+                  {getInitials(displayName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-1">
+                <p className="text-lg font-semibold text-fcda-navy">{displayName}</p>
+                <p className="text-sm text-muted-foreground">{shirtLabel}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                  {positionSummary}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handlePhotoChange}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              disabled={photoBusy != null}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {photoBusy === 'upload' ? 'A enviar...' : currentAvatarUrl ? 'Substituir foto' : 'Carregar foto'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={photoBusy != null || currentAvatarUrl == null}
-              onClick={handlePhotoDelete}
-            >
-              {photoBusy === 'delete' ? 'A remover...' : 'Remover'}
-            </Button>
+
+          <div className="rounded-2xl border border-dashed border-border/80 bg-muted/20 p-4 text-xs leading-5 text-muted-foreground">
+            Usa JPEG, PNG ou WebP até {Math.round(PLAYER_AVATAR_MAX_BYTES / (1024 * 1024))} MB.
+            Uma foto simples, centrada e bem iluminada funciona melhor.
           </div>
-        </div>
-        {photoError && <p className="mt-3 text-sm text-destructive">{photoError}</p>}
-      </div>
 
-      <div className="space-y-2">
-        <label htmlFor="profile-name" className="text-sm font-medium">Nome</label>
-        <input
-          id="profile-name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={100}
-          className="w-full rounded border border-input bg-background px-3 py-2 text-sm"
-          disabled={submitting}
-        />
-      </div>
+          {photoError ? (
+            <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              {photoError}
+            </div>
+          ) : null}
+        </CardContent>
+        <CardFooter className="flex flex-wrap gap-2 border-t bg-transparent p-4">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handlePhotoChange}
+          />
+          <Button
+            type="button"
+            disabled={photoBusy != null}
+            onClick={() => fileInputRef.current?.click()}
+            className="h-10 px-4"
+          >
+            {photoBusy === 'upload'
+              ? 'A enviar...'
+              : currentAvatarUrl
+                ? 'Substituir foto'
+                : 'Carregar foto'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={photoBusy != null || currentAvatarUrl == null}
+            onClick={handlePhotoDelete}
+            className="h-10 px-4"
+          >
+            {photoBusy === 'delete' ? 'A remover...' : 'Remover'}
+          </Button>
+        </CardFooter>
+      </Card>
 
-      <div className="space-y-2">
-        <label htmlFor="profile-shirt" className="text-sm font-medium">Número de camisola</label>
-        <input
-          id="profile-shirt"
-          type="number"
-          value={shirt}
-          onChange={(e) => setShirt(e.target.value)}
-          min={1}
-          max={99}
-          className="w-24 rounded border border-input bg-background px-3 py-2 text-sm"
-          disabled={submitting}
-        />
-      </div>
+      <Card className="border-border/70 shadow-sm">
+        <CardHeader className="gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <CardTitle className="text-fcda-navy">Detalhes do jogador</CardTitle>
+              <CardDescription>
+                Estes dados ajudam a identificar o teu perfil e a manter a equipa organizada.
+              </CardDescription>
+            </div>
+            <Badge variant="outline" className="border-fcda-navy/15 bg-fcda-ice text-fcda-navy">
+              Editável
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_10rem]">
+            <div className="space-y-2">
+              <Label htmlFor="profile-name">Nome</Label>
+              <div className="relative">
+                <UserRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="profile-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={100}
+                  className="h-10 pl-9"
+                  disabled={submitting}
+                />
+              </div>
+            </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Posições preferidas</label>
-        <div className="flex gap-2 flex-wrap">
-          {POSITIONS.map((pos) => (
-            <button
-              key={pos}
-              type="button"
-              onClick={() => togglePosition(pos)}
-              disabled={submitting}
-              className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors ${
-                positions.includes(pos)
-                  ? 'bg-fcda-navy text-white border-fcda-navy'
-                  : 'border-input text-muted-foreground hover:bg-muted'
-              }`}
-            >
-              {pos}
-            </button>
-          ))}
-        </div>
-      </div>
+            <div className="space-y-2">
+              <Label htmlFor="profile-shirt">Número</Label>
+              <div className="relative">
+                <Hash className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="profile-shirt"
+                  type="number"
+                  value={shirt}
+                  onChange={(e) => setShirt(e.target.value)}
+                  min={1}
+                  max={99}
+                  className="h-10 pl-9 [appearance:textfield]"
+                  disabled={submitting}
+                />
+              </div>
+            </div>
+          </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      {saved && <p className="text-sm text-green-600">Guardado.</p>}
+          <div className="space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-1">
+                <Label>Posições preferidas</Label>
+                <p className="text-sm text-muted-foreground">
+                  Escolhe uma ou mais posições em que preferes jogar.
+                </p>
+              </div>
+              <Badge variant="outline" className="border-border/80 bg-background text-muted-foreground">
+                {positions.length} {positions.length === 1 ? 'seleção' : 'seleções'}
+              </Badge>
+            </div>
 
-      <Button type="submit" disabled={submitting || name.trim() === ''}>
-        {submitting ? 'A guardar...' : 'Guardar'}
-      </Button>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {POSITIONS.map((pos) => {
+                const isSelected = positions.includes(pos.value)
+
+                return (
+                  <button
+                    key={pos.value}
+                    type="button"
+                    onClick={() => togglePosition(pos.value)}
+                    disabled={submitting}
+                    className={cn(
+                      'group rounded-2xl border p-4 text-left transition-all',
+                      isSelected
+                        ? 'border-fcda-navy bg-fcda-navy text-white shadow-sm'
+                        : 'border-border bg-background hover:border-fcda-navy/25 hover:bg-fcda-ice/30'
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={cn(
+                          'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border',
+                          isSelected
+                            ? 'border-white/40 bg-white/15 text-white'
+                            : 'border-border bg-muted/50 text-transparent'
+                        )}
+                      >
+                        <Check className="size-3.5" />
+                      </span>
+                      <span className="space-y-1">
+                        <span className="block text-sm font-semibold">{pos.value}</span>
+                        <span
+                          className={cn(
+                            'block text-xs',
+                            isSelected ? 'text-white/75' : 'text-muted-foreground'
+                          )}
+                        >
+                          {pos.label}
+                        </span>
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {error ? (
+            <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          ) : null}
+          {saved ? (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
+              Perfil guardado com sucesso.
+            </div>
+          ) : null}
+        </CardContent>
+        <CardFooter className="flex flex-col items-start justify-between gap-3 border-t md:flex-row md:items-center">
+          <p className="text-xs leading-5 text-muted-foreground">
+            As alterações ficam associadas ao teu jogador e podem ser usadas noutras áreas
+            da aplicação.
+          </p>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={submitting || name.trim() === ''}
+            className="min-w-40"
+          >
+            <Save className="size-4" />
+            {submitting ? 'A guardar...' : 'Guardar alterações'}
+          </Button>
+        </CardFooter>
+      </Card>
     </form>
   )
 }
