@@ -1,45 +1,52 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useDeferredValue } from 'react'
 import type { PlayerStats } from '@/types'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
-
-type SortCol = 'total' | 'wins' | 'draws' | 'losses' | 'points'
+import { PlayerTableFilters } from '@/components/player/PlayerTableFilters'
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
+import { cn } from '@/lib/utils'
 
 type Props = {
   players: Array<PlayerStats & { avatar_url?: string | null }>
   isAnonymised: boolean
+  highlightedPlayerId?: string | null
 }
 
-export function StatsTable({ players, isAnonymised }: Props) {
-  const [mode, setMode] = useState<'all' | 'competitive'>('all')
-  const [sortCol, setSortCol] = useState<SortCol>('total')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+type StatsRow = (PlayerStats & { avatar_url?: string | null }) & {
+  total: number
+  wins: number
+  draws: number
+  losses: number
+  points: number
+}
 
-  function handleSort(col: SortCol) {
-    if (col === sortCol) {
-      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))
-    } else {
-      setSortCol(col)
-      setSortDir('desc')
-    }
-  }
+export function StatsTable({
+  players,
+  isAnonymised,
+  highlightedPlayerId = null,
+}: Props) {
+  const [mode, setMode] = useState<'all' | 'competitive'>('all')
+  const [searchValue, setSearchValue] = useState('')
+  const deferredSearchValue = useDeferredValue(searchValue)
 
   const rows = useMemo(() => {
-    return [...players]
-      .map((p) => {
-        const total = mode === 'all' ? p.total_all : p.total_comp
-        const wins = mode === 'all' ? p.wins_all : p.wins_comp
-        const draws = mode === 'all' ? p.draws_all : p.draws_comp
-        const losses = mode === 'all' ? p.losses_all : p.losses_comp
+    const query = deferredSearchValue.trim().toLocaleLowerCase('pt-PT')
+
+    return players
+      .map((player) => {
+        const total = mode === 'all' ? player.total_all : player.total_comp
+        const wins = mode === 'all' ? player.wins_all : player.wins_comp
+        const draws = mode === 'all' ? player.draws_all : player.draws_comp
+        const losses = mode === 'all' ? player.losses_all : player.losses_comp
         const points = 3 * wins + draws
-        return { ...p, total, wins, draws, losses, points }
+
+        return { ...player, total, wins, draws, losses, points }
       })
-      .sort((a, b) => {
-        const diff = a[sortCol] - b[sortCol]
-        return sortDir === 'desc' ? -diff : diff
+      .filter((player) => {
+        return !query || player.display_name.toLocaleLowerCase('pt-PT').includes(query)
       })
-  }, [players, mode, sortCol, sortDir])
+  }, [deferredSearchValue, mode, players])
 
   if (players.length === 0) {
     return (
@@ -49,16 +56,81 @@ export function StatsTable({ players, isAnonymised }: Props) {
     )
   }
 
-  const cols: { col: SortCol; label: string }[] = [
-    { col: 'total', label: 'Total' },
-    { col: 'wins', label: 'V' },
-    { col: 'draws', label: 'E' },
-    { col: 'losses', label: 'D' },
-    { col: 'points', label: 'Pts' },
+  const columns: Array<DataTableColumn<StatsRow>> = [
+    {
+      id: 'shirt_number',
+      header: '#',
+      sortable: true,
+      sortValue: (player) => player.shirt_number,
+      cell: (player) => (
+        <span className="text-muted-foreground tabular-nums">
+          {player.shirt_number ?? '—'}
+        </span>
+      ),
+    },
+    {
+      id: 'player',
+      header: 'Jogador',
+      sortable: true,
+      sortValue: (player) => player.display_name,
+      cell: (player) => (
+        <PlayerIdentity
+          name={player.display_name}
+          href={!isAnonymised ? `/players/${player.id}` : undefined}
+          avatarUrl={player.avatar_url ?? null}
+          showAvatar={!isAnonymised}
+          avatarSize="sm"
+        />
+      ),
+    },
+    {
+      id: 'games',
+      header: 'Jogos',
+      sortable: true,
+      sortValue: (player) => player.total,
+      align: 'right',
+      cell: (player) => <span className="tabular-nums">{player.total}</span>,
+    },
+    {
+      id: 'wins',
+      header: 'Vitórias',
+      sortable: true,
+      sortValue: (player) => player.wins,
+      align: 'right',
+      cell: (player) => <span className="tabular-nums">{player.wins}</span>,
+    },
+    {
+      id: 'draws',
+      header: 'Empates',
+      sortable: true,
+      sortValue: (player) => player.draws,
+      align: 'right',
+      cell: (player) => <span className="tabular-nums">{player.draws}</span>,
+    },
+    {
+      id: 'losses',
+      header: 'Derrotas',
+      sortable: true,
+      sortValue: (player) => player.losses,
+      align: 'right',
+      cell: (player) => <span className="tabular-nums">{player.losses}</span>,
+    },
+    {
+      id: 'points',
+      header: 'Pontos',
+      sortable: true,
+      sortValue: (player) => player.points,
+      align: 'right',
+      cell: (player) => <span className="tabular-nums font-medium">{player.points}</span>,
+    },
   ]
 
   return (
     <div>
+      <PlayerTableFilters
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
+      />
       <div className="flex gap-2 mb-4">
         <button
           type="button"
@@ -84,59 +156,28 @@ export function StatsTable({ players, isAnonymised }: Props) {
         </button>
       </div>
 
-      <div className="rounded-lg border border-border overflow-hidden">
-        {isAnonymised && (
-          <div className="bg-fcda-ice px-4 py-2 text-xs text-fcda-navy/70 border-b border-border">
-            Inicia sessão para ver os nomes dos jogadores.
-          </div>
-        )}
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-fcda-navy text-white text-xs uppercase tracking-wide">
-              <th className="px-4 py-2.5 text-left font-semibold">Jogador</th>
-              {cols.map(({ col, label }) => {
-                const active = sortCol === col
-                return (
-                  <th
-                    key={col}
-                    onClick={() => handleSort(col)}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSort(col)}
-                    tabIndex={0}
-                    aria-sort={active ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'}
-                    className="px-4 py-2.5 text-right font-semibold cursor-pointer select-none whitespace-nowrap"
-                  >
-                    {label}{active ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
-                  </th>
-                )
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((p, i) => (
-              <tr
-                key={p.id}
-                className={i % 2 === 0 ? 'bg-background' : 'bg-muted/30'}
-              >
-                <td className="px-4 py-2.5">
-                  <PlayerIdentity
-                    name={p.display_name}
-                    shirtNumber={p.shirt_number}
-                    href={!isAnonymised ? `/players/${p.id}` : undefined}
-                    avatarUrl={p.avatar_url ?? null}
-                    showAvatar={!isAnonymised}
-                    avatarSize="sm"
-                  />
-                </td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{p.total}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{p.wins}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{p.draws}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{p.losses}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums font-medium">{p.points}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        data={rows}
+        columns={columns}
+        getRowKey={(player) => player.id}
+        rowClassName={(player, index) =>
+          cn(
+            index % 2 === 0 ? 'bg-background' : 'bg-muted/30',
+            player.id === highlightedPlayerId && 'bg-fcda-gold/10 font-semibold'
+          )
+        }
+        emptyState={
+          <p className="text-sm text-muted-foreground py-4">
+            Sem dados de jogadores.
+          </p>
+        }
+        banner={
+          isAnonymised
+            ? 'Inicia sessão para ver os nomes dos jogadores.'
+            : undefined
+        }
+        defaultSort={{ columnId: 'games', direction: 'desc' }}
+      />
     </div>
   )
 }
