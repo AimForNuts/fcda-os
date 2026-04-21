@@ -31,7 +31,9 @@ function toTitleCase(name: string): string {
 type Props = { game: Game; lineup?: LineupSummary; showAvatars?: boolean }
 
 export function MatchCard({ game, lineup, showAvatars = false }: Props) {
-  const [collapsed, setCollapsed] = useState(game.status === 'finished')
+  const [collapsed, setCollapsed] = useState(
+    game.status === 'finished' || game.status === 'cancelled'
+  )
 
   const d = new Date(game.date)
   const dateStr = d.toLocaleDateString('pt-PT', {
@@ -80,6 +82,7 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
               </Badge>
               {hasPlayers && (
                 <button
+                  type="button"
                   aria-label="toggle players"
                   onClick={(e) => {
                     e.preventDefault()

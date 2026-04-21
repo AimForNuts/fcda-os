@@ -103,4 +103,15 @@ describe('MatchCard', () => {
     render(<MatchCard game={baseGame} lineup={lineup} />)
     expect(screen.getByText('#7')).toBeInTheDocument()
   })
+
+  it('cancelled game starts collapsed — player names are not visible', () => {
+    const cancelled: Game = { ...baseGame, status: 'cancelled' }
+    render(<MatchCard game={cancelled} lineup={lineup} />)
+    expect(screen.queryByText('Selas')).not.toBeInTheDocument()
+  })
+
+  it('toggle button is not rendered when there is no lineup', () => {
+    render(<MatchCard game={baseGame} />)
+    expect(screen.queryByRole('button', { name: /toggle players/i })).not.toBeInTheDocument()
+  })
 })
