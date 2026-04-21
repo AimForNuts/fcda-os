@@ -3,10 +3,12 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 
 type BatchItem = {
   playerId: string
   playerName: string
+  playerAvatarUrl: string | null
   rating: number
   feedback: string | null
 }
@@ -85,7 +87,13 @@ export function RatingBatches({ batches: initialBatches }: Props) {
                 {batch.items.map((item) => (
                   <React.Fragment key={item.playerId}>
                     <tr className={item.feedback ? '' : 'border-b'}>
-                      <td className="py-1">{item.playerName}</td>
+                      <td className="py-1">
+                        <PlayerIdentity
+                          name={item.playerName}
+                          avatarUrl={item.playerAvatarUrl}
+                          avatarSize="sm"
+                        />
+                      </td>
                       <td className="py-1 text-right">{item.rating.toFixed(2)}</td>
                     </tr>
                     {item.feedback && (

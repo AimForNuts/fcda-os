@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupManager } from '@/components/lineup/LineupManager'
 import type { Game, GamePlayer } from '@/types'
 
@@ -28,13 +29,26 @@ export default async function LineupPage({
   const playerIds = (gamePlayers ?? []).map((gp) => gp.player_id)
 
   // Fetch player details (sheet_name, shirt_number)
-  let playerDetails: Array<{ id: string; sheet_name: string; shirt_number: number | null }> = []
+  let playerDetails: Array<{
+    id: string
+    sheet_name: string
+    shirt_number: number | null
+    avatar_url: string | null
+  }> = []
   if (playerIds.length > 0) {
     const { data } = await supabase
       .from('players')
-      .select('id, sheet_name, shirt_number')
-      .in('id', playerIds) as { data: Array<{ id: string; sheet_name: string; shirt_number: number | null }> | null; error: unknown }
-    playerDetails = data ?? []
+      .select('id, sheet_name, shirt_number, avatar_path')
+      .in('id', playerIds) as {
+        data: Array<{
+          id: string
+          sheet_name: string
+          shirt_number: number | null
+          avatar_path: string | null
+        }> | null
+        error: unknown
+      }
+    playerDetails = await signPlayerAvatarRecords(data ?? [], true)
   }
 
   const playerMap = new Map(playerDetails.map((p) => [p.id, p]))
@@ -45,6 +59,7 @@ export default async function LineupPage({
       player_id: gp.player_id,
       sheet_name: p?.sheet_name ?? '?',
       shirt_number: p?.shirt_number ?? null,
+      avatar_url: p?.avatar_url ?? null,
       team: gp.team,
     }
   })

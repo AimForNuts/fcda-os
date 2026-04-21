@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { PlayerTable } from './PlayerTable'
 
 export type PlayerRow = {
@@ -9,6 +10,7 @@ export type PlayerRow = {
   preferred_positions: string[]
   profile_id: string | null
   profile_name: string | null
+  avatar_url: string | null
   aliases: Array<{ id: string; alias_display: string }>
 }
 
@@ -18,7 +20,7 @@ export default async function PlayersPage() {
   // 1. All players sorted alphabetically
   const { data: players } = await admin
     .from('players')
-    .select('id, sheet_name, shirt_number, current_rating, preferred_positions, profile_id')
+    .select('id, sheet_name, shirt_number, current_rating, preferred_positions, profile_id, avatar_path')
     .order('sheet_name') as {
       data: Array<{
         id: string
@@ -27,11 +29,12 @@ export default async function PlayersPage() {
         current_rating: number | null
         preferred_positions: string[]
         profile_id: string | null
+        avatar_path: string | null
       }> | null
       error: unknown
     }
 
-  const playerList = players ?? []
+  const playerList = await signPlayerAvatarRecords(players ?? [], true)
   const playerIds = playerList.map((p) => p.id)
 
   // 2. All aliases
@@ -52,7 +55,7 @@ export default async function PlayersPage() {
     .map((p) => p.profile_id)
     .filter((id): id is string => id != null)
 
-  let profileNames: Map<string, string> = new Map()
+  const profileNames: Map<string, string> = new Map()
   if (linkedProfileIds.length > 0) {
     const { data } = await admin
       .from('profiles')
@@ -79,6 +82,7 @@ export default async function PlayersPage() {
     preferred_positions: p.preferred_positions ?? [],
     profile_id: p.profile_id,
     profile_name: p.profile_id ? (profileNames.get(p.profile_id) ?? null) : null,
+    avatar_url: p.avatar_url,
     aliases: aliasesByPlayer.get(p.id) ?? [],
   }))
 

@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { RatingForm } from '@/components/ratings/RatingForm'
 import type { PlayerPublic } from '@/types'
 
@@ -64,13 +65,13 @@ export default async function RatePage({
     .filter((gp) => gp.player_id !== linkedPlayer.id && gp.team != null && gp.team === submitterTeam)
     .map((gp) => gp.player_id)
 
-  let teammates: PlayerPublic[] = []
+  let teammates: Array<PlayerPublic & { avatar_url: string | null }> = []
   if (teammateIds.length > 0) {
     const { data } = await supabase
       .from('players_public')
-      .select('id, display_name, shirt_number, current_rating, profile_id')
+      .select('id, display_name, shirt_number, current_rating, profile_id, avatar_path')
       .in('id', teammateIds) as { data: PlayerPublic[] | null; error: unknown }
-    teammates = data ?? []
+    teammates = await signPlayerAvatarRecords(data ?? [], true)
   }
 
   // Fetch existing submissions for this (game, user) batch
