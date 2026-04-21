@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MatchCard } from '@/components/matches/MatchCard'
 import type { Game } from '@/types'
+import type { LineupSummary } from '@/components/matches/MatchCard'
 
 const baseGame: Game = {
   id: 'game-1',
@@ -19,6 +20,12 @@ const baseGame: Game = {
 }
 
 describe('MatchCard', () => {
+  const lineup: LineupSummary = {
+    teamA: [{ id: '1', name: 'Carlos', avatar_url: null }],
+    teamB: [{ id: '2', name: 'João', avatar_url: null }],
+    unassigned: [],
+  }
+
   it('renders the game location', () => {
     render(<MatchCard game={baseGame} />)
     expect(screen.getByText('Arca de Água')).toBeInTheDocument()
@@ -56,5 +63,14 @@ describe('MatchCard', () => {
     const cancelled: Game = { ...baseGame, status: 'cancelled' }
     render(<MatchCard game={cancelled} />)
     expect(screen.getByText('Cancelado')).toBeInTheDocument()
+  })
+
+  it('renders team headers with kit images when lineup teams are present', () => {
+    render(<MatchCard game={baseGame} lineup={lineup} />)
+
+    expect(screen.getByText('Equipa Branca')).toBeInTheDocument()
+    expect(screen.getByText('Equipa Preta')).toBeInTheDocument()
+    expect(screen.getByAltText('Kit da Equipa Branca')).toBeInTheDocument()
+    expect(screen.getByAltText('Kit da Equipa Preta')).toBeInTheDocument()
   })
 })

@@ -124,6 +124,7 @@
       "teamA": "A",
       "teamB": "B",
       "noTeam": "—",
+      "noTeamLabel": "No team",
       "current": "Current lineup",
       "noLineup": "No lineup set yet.",
       "errorParse": "Failed to parse lineup.",

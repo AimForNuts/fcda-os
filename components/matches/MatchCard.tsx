@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
+import { TeamHeader } from '@/components/matches/TeamHeader'
 import type { Game } from '@/types'
 
 const STATUS_LABEL: Record<Game['status'], string> = {
@@ -67,9 +68,9 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
           </div>
 
           {hasTeams && (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 pt-1 border-t border-border/50">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">Brancos</p>
+            <div className="grid gap-3 border-t border-border/50 pt-2 sm:grid-cols-2">
+              <div className="space-y-2">
+                <TeamHeader team="a" count={lineup!.teamA.length} />
                 <div className="space-y-1">
                   {lineup!.teamA.map((player) => (
                     <PlayerIdentity
@@ -84,8 +85,8 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
                   ))}
                 </div>
               </div>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">Pretos</p>
+              <div className="space-y-2">
+                <TeamHeader team="b" count={lineup!.teamB.length} />
                 <div className="space-y-1">
                   {lineup!.teamB.map((player) => (
                     <PlayerIdentity

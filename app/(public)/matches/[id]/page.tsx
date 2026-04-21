@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupGrid } from '@/components/matches/LineupGrid'
+import { MatchScoreHero } from '@/components/matches/MatchScoreHero'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { PlayerPublic, GamePlayer, Game } from '@/types'
@@ -168,25 +169,7 @@ export default async function MatchDetailPage({
 
       {/* Score */}
       {game.status !== 'cancelled' && (
-        <div className="flex items-center justify-center gap-8 rounded-lg bg-fcda-navy py-8 text-white">
-          <div className="text-center">
-            <p className="mb-1 text-xs uppercase tracking-widest text-white/60">
-              Equipa Branca
-            </p>
-            <span className="text-5xl font-extrabold tabular-nums">
-              {game.score_a ?? '-'}
-            </span>
-          </div>
-          <span className="text-xl font-bold text-fcda-gold">VS</span>
-          <div className="text-center">
-            <p className="mb-1 text-xs uppercase tracking-widest text-white/60">
-              Equipa Preta
-            </p>
-            <span className="text-5xl font-extrabold tabular-nums">
-              {game.score_b ?? '-'}
-            </span>
-          </div>
-        </div>
+        <MatchScoreHero scoreA={game.score_a} scoreB={game.score_b} />
       )}
 
       {/* Rate button */}

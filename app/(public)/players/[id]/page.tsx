@@ -335,10 +335,6 @@ export default async function PlayerProfilePage({
         ))}
       </section>
 
-      <section className="rounded-3xl border border-border bg-muted/30 px-5 py-4 text-sm text-muted-foreground">
-        Histórico disponível para utilizadores autenticados. Abre um jogo para ver mais detalhe.
-      </section>
-
       <section className="space-y-4">
         <div className="space-y-1">
           <h2 className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
