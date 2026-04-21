@@ -24,6 +24,8 @@ describe('LineupGrid', () => {
     render(<LineupGrid teamA={a} teamB={b} unassigned={[]} />)
     expect(screen.getByText('Equipa Branca')).toBeInTheDocument()
     expect(screen.getByText('Equipa Preta')).toBeInTheDocument()
+    expect(screen.getByAltText('Kit da Equipa Branca')).toBeInTheDocument()
+    expect(screen.getByAltText('Kit da Equipa Preta')).toBeInTheDocument()
     expect(screen.getByText('Carlos')).toBeInTheDocument()
     expect(screen.getByText('João')).toBeInTheDocument()
   })
@@ -45,7 +47,7 @@ describe('LineupGrid', () => {
   it('does not render shirt number when absent', () => {
     const a = [makePlayer('1', 'Rui')]  // makePlayer without shirt arg → shirt_number: null
     render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
-    expect(screen.queryByText(/^\d+$/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^#\d+$/)).not.toBeInTheDocument()
   })
 
   it('renders player name as a link when isApproved is true', () => {

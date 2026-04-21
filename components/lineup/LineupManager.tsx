@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { WhatsAppPasteBox } from './WhatsAppPasteBox'
 import { PlayerChip } from './PlayerChip'
+import { TeamAssignmentToggle } from './TeamAssignmentToggle'
 import { Button } from '@/components/ui/button'
 import type { ParsedEntry } from '@/lib/whatsapp/parser'
 
@@ -45,8 +46,6 @@ type SearchResult = {
   shirt_number: number | null
   avatar_url: string | null
 }
-
-const TEAM_OPTIONS: Array<'a' | 'b' | null> = ['a', 'b', null]
 
 export function LineupManager({ gameId, currentLineup }: Props) {
   const { t } = useTranslation()
@@ -264,22 +263,12 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                   avatarUrl={p.avatar_url}
                   status="matched"
                 />
-                <div className="flex items-center gap-1 shrink-0">
-                  {TEAM_OPTIONS.map((tm) => (
-                    <button
-                      key={String(tm)}
-                      type="button"
-                      onClick={() => setCurrentTeam(p.player_id, tm)}
-                      className={`px-2 py-0.5 rounded text-xs font-semibold border transition-colors ${
-                        p.team === tm
-                          ? 'bg-fcda-navy text-white border-fcda-navy'
-                          : 'bg-white text-fcda-navy border-fcda-navy/30 hover:border-fcda-navy'
-                      }`}
-                    >
-                      {tm === null ? '—' : tm.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
+                <TeamAssignmentToggle
+                  value={p.team}
+                  onChange={(team) => setCurrentTeam(p.player_id, team)}
+                  noTeamLabel={t('mod.lineup.noTeamLabel')}
+                  className="shrink-0"
+                />
               </div>
             ))}
           </div>
@@ -336,22 +325,12 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                   />
                   {/* Team toggle */}
                   {entry.resolvedPlayerId && (
-                    <div className="flex items-center gap-1 ml-auto">
-                      {TEAM_OPTIONS.map((tm) => (
-                        <button
-                          key={String(tm)}
-                          type="button"
-                          onClick={() => setTeam(i, tm)}
-                          className={`px-2 py-0.5 rounded text-xs font-semibold border transition-colors ${
-                            entry.team === tm
-                              ? 'bg-fcda-navy text-white border-fcda-navy'
-                              : 'bg-white text-fcda-navy border-fcda-navy/30 hover:border-fcda-navy'
-                          }`}
-                        >
-                          {tm === null ? '—' : tm.toUpperCase()}
-                        </button>
-                      ))}
-                    </div>
+                    <TeamAssignmentToggle
+                      value={entry.team}
+                      onChange={(team) => setTeam(i, team)}
+                      noTeamLabel={t('mod.lineup.noTeamLabel')}
+                      className="ml-auto"
+                    />
                   )}
                 </div>
 

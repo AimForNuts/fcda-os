@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MatchCard } from '@/components/matches/MatchCard'
 import type { Game } from '@/types'
+import type { LineupSummary } from '@/components/matches/MatchCard'
 
 const baseGame: Game = {
   id: 'game-1',
@@ -18,7 +19,7 @@ const baseGame: Game = {
   updated_at: '2026-04-01T00:00:00Z',
 }
 
-const lineup = {
+const lineup: LineupSummary = {
   teamA: [{ id: 'p1', name: 'SELAS', avatar_url: null, shirt_number: 7 }],
   teamB: [{ id: 'p2', name: 'andre monforte', avatar_url: null, shirt_number: null }],
   unassigned: [],
@@ -113,5 +114,14 @@ describe('MatchCard', () => {
   it('toggle button is not rendered when there is no lineup', () => {
     render(<MatchCard game={baseGame} />)
     expect(screen.queryByRole('button', { name: /toggle players/i })).not.toBeInTheDocument()
+  })
+
+  it('renders team headers with kit images when lineup teams are present', () => {
+    render(<MatchCard game={baseGame} lineup={lineup} />)
+
+    expect(screen.getByText('Equipa Branca')).toBeInTheDocument()
+    expect(screen.getByText('Equipa Preta')).toBeInTheDocument()
+    expect(screen.getByAltText('Kit da Equipa Branca')).toBeInTheDocument()
+    expect(screen.getByAltText('Kit da Equipa Preta')).toBeInTheDocument()
   })
 })

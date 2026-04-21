@@ -1,5 +1,6 @@
 import type { PlayerPublic } from '@/types'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
+import { TeamHeader } from '@/components/matches/TeamHeader'
 
 type LineupPlayer = PlayerPublic & { avatar_url?: string | null }
 
@@ -36,19 +37,15 @@ export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
 
   if (teamA.length > 0 || teamB.length > 0) {
     return (
-      <div className="grid grid-cols-2 gap-6">
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-fcda-navy mb-2">
-            Equipa Branca
-          </h3>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div className="space-y-3">
+          <TeamHeader team="a" />
           {teamA.map((p) => (
             <PlayerRow key={p.id} player={p} isApproved={isApproved} />
           ))}
         </div>
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-fcda-navy mb-2">
-            Equipa Preta
-          </h3>
+        <div className="space-y-3">
+          <TeamHeader team="b" />
           {teamB.map((p) => (
             <PlayerRow key={p.id} player={p} isApproved={isApproved} />
           ))}
