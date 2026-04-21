@@ -1,4 +1,8 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
@@ -16,9 +20,19 @@ export type LineupSummary = {
   unassigned: Array<{ id: string; name: string; avatar_url: string | null; shirt_number: number | null }>
 }
 
+function toTitleCase(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
 type Props = { game: Game; lineup?: LineupSummary; showAvatars?: boolean }
 
 export function MatchCard({ game, lineup, showAvatars = false }: Props) {
+  const [collapsed, setCollapsed] = useState(game.status === 'finished')
+
   const d = new Date(game.date)
   const dateStr = d.toLocaleDateString('pt-PT', {
     day: '2-digit',
@@ -32,6 +46,7 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
 
   const hasTeams = lineup && (lineup.teamA.length > 0 || lineup.teamB.length > 0)
   const hasUnassigned = lineup && lineup.unassigned.length > 0 && !hasTeams
+  const hasPlayers = hasTeams || hasUnassigned
 
   return (
     <Link href={`/matches/${game.id}`} className="block" aria-label={`${game.location} — ${dateStr}`}>
@@ -63,10 +78,23 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
               >
                 {STATUS_LABEL[game.status]}
               </Badge>
+              {hasPlayers && (
+                <button
+                  aria-label="toggle players"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setCollapsed((c) => !c)
+                  }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {collapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                </button>
+              )}
             </div>
           </div>
 
-          {hasTeams && (
+          {!collapsed && hasTeams && (
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 pt-1 border-t border-border/50">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">Brancos</p>
@@ -74,7 +102,8 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
                   {lineup!.teamA.map((player) => (
                     <PlayerIdentity
                       key={player.id}
-                      name={player.name}
+                      name={toTitleCase(player.name)}
+                      shirtNumber={player.shirt_number}
                       avatarUrl={player.avatar_url}
                       showAvatar={showAvatars}
                       avatarSize="sm"
@@ -90,7 +119,8 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
                   {lineup!.teamB.map((player) => (
                     <PlayerIdentity
                       key={player.id}
-                      name={player.name}
+                      name={toTitleCase(player.name)}
+                      shirtNumber={player.shirt_number}
                       avatarUrl={player.avatar_url}
                       showAvatar={showAvatars}
                       avatarSize="sm"
@@ -103,12 +133,13 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
             </div>
           )}
 
-          {hasUnassigned && (
+          {!collapsed && hasUnassigned && (
             <div className="space-y-1 border-t border-border/50 pt-1">
               {lineup!.unassigned.map((player) => (
                 <PlayerIdentity
                   key={player.id}
-                  name={player.name}
+                  name={toTitleCase(player.name)}
+                  shirtNumber={player.shirt_number}
                   avatarUrl={player.avatar_url}
                   showAvatar={showAvatars}
                   avatarSize="sm"

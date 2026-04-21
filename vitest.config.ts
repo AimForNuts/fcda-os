@@ -8,10 +8,13 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    exclude: ['node_modules', '.worktrees/**'],
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
+      react: path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     },
   },
 })
