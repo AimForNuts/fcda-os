@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { Camera, Hash, ShieldAlert, Sparkles } from 'lucide-react'
+import { Hash, ShieldAlert, Sparkles } from 'lucide-react'
 import { signPlayerAvatarPath } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
@@ -48,11 +48,6 @@ export default async function ProfilePage() {
             : 'Sem seleção',
           icon: Sparkles,
         },
-        {
-          label: 'Fotografia',
-          value: avatarUrl ? 'Configurada' : 'Em falta',
-          icon: Camera,
-        },
       ]
     : []
 
@@ -71,18 +66,13 @@ export default async function ProfilePage() {
               Área pessoal
             </Badge>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl space-y-3">
+              <div className="max-w-2xl">
                 <h1 className="text-3xl font-semibold tracking-tight text-fcda-navy md:text-4xl">
                   O meu perfil
                 </h1>
-                <p className="max-w-xl text-sm leading-6 text-muted-foreground md:text-base">
-                  Atualiza o teu nome, número, posições preferidas e fotografia num só
-                  lugar. Mantivemos a edição simples, mas com uma apresentação mais limpa
-                  e clara.
-                </p>
               </div>
               {player ? (
-                <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[32rem]">
+                <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[28rem]">
                   {profileStats.map((item) => {
                     const Icon = item.icon
                     return (
