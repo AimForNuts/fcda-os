@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { ShieldCheck, Star, Swords, Target, Trophy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
@@ -121,7 +122,7 @@ export default async function PlayerProfilePage({
 
   let matchHistory: MatchRow[] = []
 
-  if (isOwnProfile && gameIds.length > 0) {
+  if (gameIds.length > 0) {
     const teamByGame = new Map((gps ?? []).map((gp) => [gp.game_id, gp.team]))
 
     const { data: games } = await supabase
@@ -334,79 +335,74 @@ export default async function PlayerProfilePage({
         ))}
       </section>
 
-      {isOwnProfile ? (
-        <section className="rounded-3xl border border-fcda-gold/30 bg-fcda-gold/10 px-5 py-4 text-sm text-fcda-navy">
-          O histórico detalhado abaixo é visível apenas no teu próprio perfil.
-        </section>
-      ) : (
-        <section className="rounded-3xl border border-border bg-muted/30 px-5 py-4 text-sm text-muted-foreground">
-          O histórico jogo a jogo é reservado ao próprio jogador.
-        </section>
-      )}
+      <section className="rounded-3xl border border-border bg-muted/30 px-5 py-4 text-sm text-muted-foreground">
+        Histórico disponível para utilizadores autenticados. Abre um jogo para ver mais detalhe.
+      </section>
 
-      {isOwnProfile && (
-        <section className="space-y-4">
-          <div className="space-y-1">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-              Histórico recente
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Resultados e notas aprovadas dos jogos concluídos.
-            </p>
-          </div>
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+            Histórico recente
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Resultados e notas aprovadas dos jogos concluídos.
+          </p>
+        </div>
 
-          {matchHistory.length === 0 ? (
-            <Card className="rounded-3xl border-dashed border-fcda-navy/15 bg-muted/20">
-              <CardContent className="p-6">
-                <p className="text-sm text-muted-foreground">Sem jogos registados.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-3">
-              {matchHistory.map((match) => (
-                <Card
-                  key={match.game_id}
-                  className="rounded-3xl border-fcda-navy/10 bg-white/95 shadow-sm shadow-fcda-navy/5"
-                >
-                  <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+        {matchHistory.length === 0 ? (
+          <Card className="rounded-3xl border-dashed border-fcda-navy/15 bg-muted/20">
+            <CardContent className="p-6">
+              <p className="text-sm text-muted-foreground">Sem jogos registados.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-3">
+            {matchHistory.map((match) => (
+              <Link
+                key={match.game_id}
+                href={`/matches/${match.game_id}`}
+                className="block focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-3xl"
+              >
+                <Card className="rounded-3xl border-fcda-navy/10 bg-white/95 shadow-sm shadow-fcda-navy/5 transition-all hover:-translate-y-0.5 hover:border-fcda-navy/25 hover:shadow-md">
+                  <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold text-fcda-navy">{dateStr(match.date)}</p>
-                      <p className="text-sm text-muted-foreground">{match.location}</p>
+                      <p className="text-xs text-muted-foreground sm:text-sm">{match.location}</p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 sm:min-w-[22rem]">
-                      <div className="rounded-2xl bg-muted/40 px-3 py-2 text-center">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <div className="grid grid-cols-3 gap-2 sm:min-w-[18rem]">
+                      <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                           Equipa
                         </p>
-                        <p className="mt-1 font-semibold text-fcda-navy">{teamLabel(match.team)}</p>
+                        <p className="mt-1 text-sm font-semibold text-fcda-navy">{teamLabel(match.team)}</p>
                       </div>
-                      <div className="rounded-2xl bg-muted/40 px-3 py-2 text-center">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                           Resultado
                         </p>
-                        <p className="mt-1 font-semibold text-fcda-navy">
+                        <p className="mt-1 text-sm font-semibold text-fcda-navy">
                           {match.score_a != null && match.score_b != null
                             ? `${match.score_a}–${match.score_b}`
                             : '—'}
                         </p>
                       </div>
-                      <div className="rounded-2xl bg-muted/40 px-3 py-2 text-center">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                           Nota
                         </p>
-                        <p className="mt-1 font-semibold text-fcda-navy">
+                        <p className="mt-1 text-sm font-semibold text-fcda-navy">
                           {match.rating != null ? match.rating.toFixed(1) : '—'}
                         </p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }
