@@ -39,13 +39,13 @@ export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
     return (
       <div className="grid gap-6 sm:grid-cols-2">
         <div className="space-y-3">
-          <TeamHeader team="a" count={teamA.length} />
+          <TeamHeader team="a" />
           {teamA.map((p) => (
             <PlayerRow key={p.id} player={p} isApproved={isApproved} />
           ))}
         </div>
         <div className="space-y-3">
-          <TeamHeader team="b" count={teamB.length} />
+          <TeamHeader team="b" />
           {teamB.map((p) => (
             <PlayerRow key={p.id} player={p} isApproved={isApproved} />
           ))}

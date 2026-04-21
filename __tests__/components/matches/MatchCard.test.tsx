@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MatchCard } from '@/components/matches/MatchCard'
 import type { Game } from '@/types'
 import type { LineupSummary } from '@/components/matches/MatchCard'
@@ -19,13 +19,13 @@ const baseGame: Game = {
   updated_at: '2026-04-01T00:00:00Z',
 }
 
-describe('MatchCard', () => {
-  const lineup: LineupSummary = {
-    teamA: [{ id: '1', name: 'Carlos', avatar_url: null }],
-    teamB: [{ id: '2', name: 'João', avatar_url: null }],
-    unassigned: [],
-  }
+const lineup: LineupSummary = {
+  teamA: [{ id: 'p1', name: 'SELAS', avatar_url: null, shirt_number: 7 }],
+  teamB: [{ id: 'p2', name: 'andre monforte', avatar_url: null, shirt_number: null }],
+  unassigned: [],
+}
 
+describe('MatchCard', () => {
   it('renders the game location', () => {
     render(<MatchCard game={baseGame} />)
     expect(screen.getByText('Arca de Água')).toBeInTheDocument()
@@ -63,6 +63,57 @@ describe('MatchCard', () => {
     const cancelled: Game = { ...baseGame, status: 'cancelled' }
     render(<MatchCard game={cancelled} />)
     expect(screen.getByText('Cancelado')).toBeInTheDocument()
+  })
+
+  it('scheduled game starts expanded — player names are visible', () => {
+    render(<MatchCard game={baseGame} lineup={lineup} />)
+    expect(screen.getByText('Selas')).toBeInTheDocument()
+  })
+
+  it('finished game starts collapsed — player names are not visible', () => {
+    const finished: Game = { ...baseGame, status: 'finished', score_a: 2, score_b: 1 }
+    render(<MatchCard game={finished} lineup={lineup} />)
+    expect(screen.queryByText('Selas')).not.toBeInTheDocument()
+  })
+
+  it('clicking the toggle on a finished game expands the player list', () => {
+    const finished: Game = { ...baseGame, status: 'finished', score_a: 2, score_b: 1 }
+    render(<MatchCard game={finished} lineup={lineup} />)
+    fireEvent.click(screen.getByRole('button', { name: /toggle players/i }))
+    expect(screen.getByText('Selas')).toBeInTheDocument()
+  })
+
+  it('clicking the toggle on an expanded card collapses the player list', () => {
+    render(<MatchCard game={baseGame} lineup={lineup} />)
+    fireEvent.click(screen.getByRole('button', { name: /toggle players/i }))
+    expect(screen.queryByText('Selas')).not.toBeInTheDocument()
+  })
+
+  it('title-cases ALL-CAPS names', () => {
+    render(<MatchCard game={baseGame} lineup={lineup} />)
+    expect(screen.getByText('Selas')).toBeInTheDocument()
+    expect(screen.queryByText('SELAS')).not.toBeInTheDocument()
+  })
+
+  it('title-cases all-lowercase names', () => {
+    render(<MatchCard game={baseGame} lineup={lineup} />)
+    expect(screen.getByText('Andre Monforte')).toBeInTheDocument()
+  })
+
+  it('shows shirt number when provided', () => {
+    render(<MatchCard game={baseGame} lineup={lineup} />)
+    expect(screen.getByText('#7')).toBeInTheDocument()
+  })
+
+  it('cancelled game starts collapsed — player names are not visible', () => {
+    const cancelled: Game = { ...baseGame, status: 'cancelled' }
+    render(<MatchCard game={cancelled} lineup={lineup} />)
+    expect(screen.queryByText('Selas')).not.toBeInTheDocument()
+  })
+
+  it('toggle button is not rendered when there is no lineup', () => {
+    render(<MatchCard game={baseGame} />)
+    expect(screen.queryByRole('button', { name: /toggle players/i })).not.toBeInTheDocument()
   })
 
   it('renders team headers with kit images when lineup teams are present', () => {
