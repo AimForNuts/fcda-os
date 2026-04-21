@@ -53,7 +53,7 @@ export async function POST(
     return Response.json({ error: validationError }, { status: 422 })
   }
 
-  const { avatarPath, error: uploadError } = await uploadPlayerAvatar(player.id, file)
+  const { avatarPath, error: uploadError } = await uploadPlayerAvatar(player.id, file!)
   if (uploadError || !avatarPath) {
     return Response.json({ error: 'Failed to upload photo' }, { status: 500 })
   }
