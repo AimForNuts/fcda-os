@@ -262,6 +262,7 @@ export type Database = {
           profile_id: string | null
           avatar_path: string | null
         }
+        Relationships: []
       }
       player_stats: {
         Row: {
@@ -279,6 +280,7 @@ export type Database = {
           draws_comp: number
           losses_comp: number
         }
+        Relationships: []
       }
     }
     Functions: {
