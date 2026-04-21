@@ -9,6 +9,7 @@ const makePlayer = (id: string, name: string, shirt?: number): PlayerPublic => (
   shirt_number: shirt ?? null,
   current_rating: null,
   profile_id: null,
+  avatar_path: null,
 })
 
 describe('LineupGrid', () => {

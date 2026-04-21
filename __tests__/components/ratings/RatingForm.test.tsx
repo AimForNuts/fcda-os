@@ -11,8 +11,8 @@ const mockFetch = vi.fn()
 global.fetch = mockFetch
 
 const teammates: PlayerPublic[] = [
-  { id: 'player-1', display_name: 'Alice', shirt_number: 1, current_rating: null, profile_id: null },
-  { id: 'player-2', display_name: 'Bob', shirt_number: 2, current_rating: null, profile_id: null },
+  { id: 'player-1', display_name: 'Alice', shirt_number: 1, current_rating: null, profile_id: null, avatar_path: null },
+  { id: 'player-2', display_name: 'Bob', shirt_number: 2, current_rating: null, profile_id: null, avatar_path: null },
 ]
 
 describe('RatingForm', () => {
