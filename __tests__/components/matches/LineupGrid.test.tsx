@@ -38,7 +38,7 @@ describe('LineupGrid', () => {
   it('renders shirt number when present', () => {
     const a = [makePlayer('1', 'Nuno', 7)]
     render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
-    expect(screen.getByText('7')).toBeInTheDocument()
+    expect(screen.getByText('#7')).toBeInTheDocument()
   })
 
   it('does not render shirt number when absent', () => {

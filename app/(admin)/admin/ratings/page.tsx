@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { RatingBatches, type Batch } from './RatingBatches'
 
 type PendingRow = {
@@ -33,16 +34,19 @@ export default async function AdminRatingsPage() {
   const [gamesRes, submittersRes, playersRes] = await Promise.all([
     admin.from('games').select('id, date, location').in('id', gameIds),
     admin.from('profiles').select('id, display_name').in('id', submitterIds),
-    admin.from('players').select('id, sheet_name').in('id', playerIds),
+    admin.from('players').select('id, sheet_name, avatar_path').in('id', playerIds),
   ])
 
   const games = gamesRes.data as Array<{ id: string; date: string; location: string }> | null
   const submitters = submittersRes.data as Array<{ id: string; display_name: string }> | null
-  const players = playersRes.data as Array<{ id: string; sheet_name: string }> | null
+  const players = await signPlayerAvatarRecords(
+    (playersRes.data as Array<{ id: string; sheet_name: string; avatar_path: string | null }> | null) ?? [],
+    true
+  )
 
   const gameMap = new Map((games ?? []).map((g) => [g.id, g]))
   const submitterMap = new Map((submitters ?? []).map((p) => [p.id, p.display_name]))
-  const playerMap = new Map((players ?? []).map((p) => [p.id, p.sheet_name]))
+  const playerMap = new Map(players.map((p) => [p.id, p]))
 
   const batchMap = new Map<string, Batch>()
   for (const row of rows) {
@@ -60,7 +64,8 @@ export default async function AdminRatingsPage() {
     }
     batchMap.get(key)!.items.push({
       playerId: row.rated_player_id,
-      playerName: playerMap.get(row.rated_player_id) ?? row.rated_player_id,
+      playerName: playerMap.get(row.rated_player_id)?.sheet_name ?? row.rated_player_id,
+      playerAvatarUrl: playerMap.get(row.rated_player_id)?.avatar_url ?? null,
       rating: row.rating,
       feedback: row.feedback,
     })

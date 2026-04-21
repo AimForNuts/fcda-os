@@ -6,7 +6,12 @@ export type ParsedEntry = {
   raw: string         // original extracted name, e.g. "João Silva"
   normalised: string  // lowercased + diacritics stripped, e.g. "joao silva"
   status: 'matched' | 'ambiguous' | 'unmatched'
-  matches: Array<{ id: string; sheet_name: string }>
+  matches: Array<{
+    id: string
+    sheet_name: string
+    shirt_number: number | null
+    avatar_url: string | null
+  }>
 }
 
 /**

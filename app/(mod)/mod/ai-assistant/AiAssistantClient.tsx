@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 
 type Game = { id: string; date: string; location: string }
 type PlayerEntry = {
+  id: string
   sheet_name: string
   current_rating: number | null
   preferred_positions: string[]
+  avatar_url: string | null
 }
 
 function formatDate(iso: string) {
@@ -30,33 +32,31 @@ function buildPrompt(players: PlayerEntry[]): string {
 
 export function AiAssistantClient({ games }: { games: Game[] }) {
   const [selectedGameId, setSelectedGameId] = useState<string>(games[0]?.id ?? '')
-  const [players, setPlayers] = useState<PlayerEntry[]>([])
-  const [loading, setLoading] = useState(false)
+  const [players, setPlayers] = useState<PlayerEntry[] | null>(games[0]?.id ? null : [])
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!selectedGameId) return
     let cancelled = false
-    setLoading(true)
-    const supabase = createClient()
-    ;(supabase
-      .from('game_players')
-      .select('players(sheet_name, current_rating, preferred_positions)')
-      .eq('game_id', selectedGameId) as unknown as Promise<{
-        data: Array<{ players: PlayerEntry | null }> | null
-      }>).then(({ data }) => {
-      if (cancelled) return
-      setPlayers(
-        (data ?? [])
-          .map((r) => r.players)
-          .filter((p): p is PlayerEntry => p != null)
-      )
-      setLoading(false)
-    })
+    fetch(`/api/games/${selectedGameId}/players`)
+      .then(async (res) => {
+        if (!res.ok) {
+          return []
+        }
+        return res.json() as Promise<PlayerEntry[]>
+      })
+      .then((data) => {
+        if (cancelled) return
+        setPlayers(data)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setPlayers([])
+      })
     return () => { cancelled = true }
   }, [selectedGameId])
 
-  const prompt = buildPrompt(players)
+  const prompt = buildPrompt(players ?? [])
 
   async function handleCopy() {
     await navigator.clipboard.writeText(prompt)
@@ -81,7 +81,10 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
           id="game-select"
           className="w-full rounded border border-input bg-background px-3 py-2 text-sm"
           value={selectedGameId}
-          onChange={(e) => setSelectedGameId(e.target.value)}
+          onChange={(e) => {
+            setSelectedGameId(e.target.value)
+            setPlayers(null)
+          }}
         >
           {games.map((g) => (
             <option key={g.id} value={g.id}>
@@ -92,19 +95,26 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
       </div>
 
       {/* Player list */}
-      {loading ? (
+      {players == null ? (
         <p className="text-sm text-muted-foreground">Loading players…</p>
       ) : players.length > 0 ? (
         <div className="space-y-1">
           <p className="text-sm font-medium">{players.length} players</p>
           {players.map((p, i) => (
-            <p key={i} className="text-sm text-muted-foreground">
-              {p.sheet_name} (
-              {p.preferred_positions.length > 0
-                ? p.preferred_positions.join(', ')
-                : 'no position'}
-              ) — {p.current_rating != null ? p.current_rating.toFixed(2) : '1'}
-            </p>
+            <div key={p.id ?? i} className="flex items-center justify-between gap-3 text-sm">
+              <PlayerIdentity
+                name={p.sheet_name}
+                avatarUrl={p.avatar_url}
+                avatarSize="sm"
+              />
+              <span className="text-muted-foreground">
+                {p.preferred_positions.length > 0
+                  ? p.preferred_positions.join(', ')
+                  : 'no position'}
+                {' — '}
+                {p.current_rating != null ? p.current_rating.toFixed(2) : '1'}
+              </span>
+            </div>
           ))}
         </div>
       ) : (

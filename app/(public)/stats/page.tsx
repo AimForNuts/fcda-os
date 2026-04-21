@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { StatsTable } from '@/components/stats/StatsTable'
 
 export const metadata = { title: 'Estatísticas — FCDA' }
@@ -11,12 +12,13 @@ export default async function StatsPage() {
 
   const { data: players } = await supabase
     .from('player_stats')
-    .select('id, display_name, shirt_number, profile_id, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp')
+    .select('id, display_name, shirt_number, profile_id, avatar_path, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp')
+  const rows = await signPlayerAvatarRecords(players ?? [], isApproved)
 
   return (
     <div className="container max-w-screen-md mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-fcda-navy mb-6">Estatísticas</h1>
-      <StatsTable players={players ?? []} isAnonymised={!isApproved} />
+      <StatsTable players={rows} isAnonymised={!isApproved} />
     </div>
   )
 }

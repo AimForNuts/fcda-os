@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import { CoachPlayerPanel } from './CoachPlayerPanel'
 
 type PlayerRow = {
@@ -8,6 +9,7 @@ type PlayerRow = {
   sheet_name: string
   shirt_number: number | null
   current_rating: number | null
+  avatar_url: string | null
 }
 
 type SubmissionRow = {
@@ -64,10 +66,13 @@ export function CoachPlayerList({ players }: Props) {
               className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/50 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <span className="font-medium">{player.sheet_name}</span>
-                {player.shirt_number != null && (
-                  <span className="text-sm text-muted-foreground">#{player.shirt_number}</span>
-                )}
+                <PlayerIdentity
+                  name={player.sheet_name}
+                  shirtNumber={player.shirt_number}
+                  avatarUrl={player.avatar_url}
+                  avatarSize="sm"
+                  nameClassName="font-medium"
+                />
               </div>
               <div className="flex items-center gap-3">
                 {player.current_rating != null && (

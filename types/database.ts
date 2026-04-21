@@ -47,6 +47,8 @@ export type Database = {
           current_rating: number | null
           preferred_positions: string[]
           profile_id: string | null
+          avatar_path: string | null
+          avatar_updated_at: string | null
           created_at: string
           updated_at: string
         }
@@ -57,6 +59,8 @@ export type Database = {
           current_rating?: number | null
           preferred_positions?: string[]
           profile_id?: string | null
+          avatar_path?: string | null
+          avatar_updated_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -66,6 +70,8 @@ export type Database = {
           current_rating?: number | null
           preferred_positions?: string[]
           profile_id?: string | null
+          avatar_path?: string | null
+          avatar_updated_at?: string | null
           updated_at?: string
         }
       }
@@ -254,6 +260,7 @@ export type Database = {
           display_name: string
           current_rating: number | null
           profile_id: string | null
+          avatar_path: string | null
         }
       }
       player_stats: {
@@ -262,6 +269,7 @@ export type Database = {
           display_name: string
           shirt_number: number | null
           profile_id: string | null
+          avatar_path: string | null
           total_all: number
           total_comp: number
           wins_all: number

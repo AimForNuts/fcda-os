@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import type { PlayerRow } from './page'
 
 const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST'] as const
@@ -26,6 +27,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   const [editingPositionsId, setEditingPositionsId] = useState<string | null>(null)
   const [positionsInput, setPositionsInput] = useState<Record<string, string[]>>({})
   const userSearchAbort = useRef<AbortController | null>(null)
+  const photoInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   function setLoading(playerId: string, key: string | null) {
     setLoadingMap((prev) => {
@@ -216,6 +218,61 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
     }
   }
 
+  async function handlePhotoUpload(playerId: string, file: File | null) {
+    if (!file) return
+
+    setLoading(playerId, 'photo-upload')
+    setError(playerId, null)
+
+    try {
+      const body = new FormData()
+      body.set('file', file)
+      const res = await fetch(`/api/admin/players/${playerId}/photo`, {
+        method: 'POST',
+        body,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Failed to upload photo')
+      }
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === playerId
+            ? { ...row, avatar_url: typeof data.avatar_url === 'string' ? data.avatar_url : null }
+            : row
+        )
+      )
+    } catch (err) {
+      setError(playerId, err instanceof Error ? err.message : t('admin.errors.playerUpdateFailed'))
+    } finally {
+      setLoading(playerId, null)
+      const input = photoInputRefs.current[playerId]
+      if (input) input.value = ''
+    }
+  }
+
+  async function handlePhotoDelete(playerId: string) {
+    setLoading(playerId, 'photo-delete')
+    setError(playerId, null)
+
+    try {
+      const res = await fetch(`/api/admin/players/${playerId}/photo`, {
+        method: 'DELETE',
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Failed to delete photo')
+      }
+      setRows((prev) =>
+        prev.map((row) => (row.id === playerId ? { ...row, avatar_url: null } : row))
+      )
+    } catch (err) {
+      setError(playerId, err instanceof Error ? err.message : t('admin.errors.playerUpdateFailed'))
+    } finally {
+      setLoading(playerId, null)
+    }
+  }
+
   return (
     <div className="space-y-2">
       {rows.map((player) => {
@@ -273,10 +330,13 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     </Button>
                   </div>
                 ) : (
-                  <p className="font-medium text-fcda-navy">
-                    {player.shirt_number != null ? `#${player.shirt_number} ` : ''}
-                    {player.sheet_name}
-                  </p>
+                  <PlayerIdentity
+                    name={player.sheet_name}
+                    shirtNumber={player.shirt_number}
+                    avatarUrl={player.avatar_url}
+                    avatarSize="sm"
+                    nameClassName="font-medium text-fcda-navy"
+                  />
                 )}
 
                 {/* Linked profile */}
@@ -410,8 +470,35 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
               {/* Actions */}
               {!isEditing && (
                 <div className="flex flex-wrap gap-1 shrink-0">
+                  <input
+                    ref={(node) => {
+                      photoInputRefs.current[player.id] = node
+                    }}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => handlePhotoUpload(player.id, e.target.files?.[0] ?? null)}
+                  />
                   <Button size="sm" variant="outline" className="text-xs" onClick={() => startEdit(player)} disabled={isLoading}>
                     {t('admin.edit')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => photoInputRefs.current[player.id]?.click()}
+                    disabled={isLoading}
+                  >
+                    {loadingMap[player.id] === 'photo-upload' ? '...' : player.avatar_url ? 'Substituir foto' : 'Adicionar foto'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs text-muted-foreground"
+                    onClick={() => handlePhotoDelete(player.id)}
+                    disabled={isLoading || player.avatar_url == null}
+                  >
+                    {loadingMap[player.id] === 'photo-delete' ? '...' : 'Remover foto'}
                   </Button>
                   <Button
                     size="sm"

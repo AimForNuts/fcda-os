@@ -1,10 +1,13 @@
 import { cn } from '@/lib/utils'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 
 export type ChipStatus = 'matched' | 'ambiguous' | 'unmatched'
 
 type PlayerChipProps = {
   name: string
   status: ChipStatus
+  shirtNumber?: number | null
+  avatarUrl?: string | null
 }
 
 const STATUS_STYLES: Record<ChipStatus, string> = {
@@ -19,7 +22,7 @@ const DOT_STYLES: Record<ChipStatus, string> = {
   unmatched: 'bg-red-500',
 }
 
-export function PlayerChip({ name, status }: PlayerChipProps) {
+export function PlayerChip({ name, status, shirtNumber = null, avatarUrl = null }: PlayerChipProps) {
   return (
     <span
       data-testid="player-chip"
@@ -32,7 +35,14 @@ export function PlayerChip({ name, status }: PlayerChipProps) {
         className={cn('h-2 w-2 flex-shrink-0 rounded-full', DOT_STYLES[status])}
         aria-hidden="true"
       />
-      {name}
+      <PlayerIdentity
+        name={name}
+        shirtNumber={shirtNumber}
+        avatarUrl={avatarUrl}
+        avatarSize="sm"
+        className="min-w-0 gap-1.5"
+        nameClassName="hover:no-underline"
+      />
     </span>
   )
 }
