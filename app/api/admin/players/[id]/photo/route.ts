@@ -67,7 +67,8 @@ export async function POST(
     return Response.json({ error: 'Failed to save photo' }, { status: 500 })
   }
 
-  const { error: auditErr } = await admin.from('audit_log').insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: auditErr } = await (admin as any).from('audit_log').insert({
     action: 'player.photo.uploaded',
     performed_by: session.userId,
     target_id: player.id,
@@ -124,7 +125,8 @@ export async function DELETE(
     return Response.json({ error: 'Failed to clear photo' }, { status: 500 })
   }
 
-  const { error: auditErr } = await admin.from('audit_log').insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: auditErr } = await (admin as any).from('audit_log').insert({
     action: 'player.photo.deleted',
     performed_by: session.userId,
     target_id: player.id,
