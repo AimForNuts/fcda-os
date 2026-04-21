@@ -59,12 +59,9 @@ export async function POST(
   }
 
   const avatarUpdatedAt = new Date().toISOString()
-  const playerUpdate: Database['public']['Tables']['players']['Update'] = {
-    avatar_path: avatarPath,
-    avatar_updated_at: avatarUpdatedAt,
-  }
   const { error: updateError } = await admin.from('players')
-    .update(playerUpdate)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update({ avatar_path: avatarPath, avatar_updated_at: avatarUpdatedAt } as any)
     .eq('id', player.id)
 
   if (updateError) {
@@ -120,12 +117,9 @@ export async function DELETE(
     return Response.json({ error: 'Failed to delete photo' }, { status: 500 })
   }
 
-  const playerUpdate: Database['public']['Tables']['players']['Update'] = {
-    avatar_path: null,
-    avatar_updated_at: null,
-  }
   const { error: updateError } = await admin.from('players')
-    .update(playerUpdate)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .update({ avatar_path: null, avatar_updated_at: null } as any)
     .eq('id', player.id)
 
   if (updateError) {
