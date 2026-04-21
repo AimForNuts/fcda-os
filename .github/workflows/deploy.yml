@@ -23,7 +23,7 @@ jobs:
       - name: Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel deploy ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --yes --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel deploy ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --yes --token=${{ secrets.VERCEL_TOKEN }} --meta gitCommitAuthorLogin=${{ github.actor }})
           echo "url=$URL" >> $GITHUB_OUTPUT
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
