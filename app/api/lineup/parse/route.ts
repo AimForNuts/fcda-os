@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { normaliseAlias, extractNames } from '@/lib/whatsapp/parser'
 import type { ParsedEntry } from '@/lib/whatsapp/parser'
 
@@ -36,15 +37,31 @@ export async function POST(request: Request) {
 
   // Fetch player details for all matched IDs
   const matchedPlayerIds = [...new Set((aliasRows ?? []).map((r) => r.player_id))]
-  const playerMap = new Map<string, { id: string; sheet_name: string }>()
+  const playerMap = new Map<
+    string,
+    {
+      id: string
+      sheet_name: string
+      shirt_number: number | null
+      avatar_url: string | null
+    }
+  >()
 
   if (matchedPlayerIds.length > 0) {
     const { data: players } = await supabase
       .from('players')
-      .select('id, sheet_name')
-      .in('id', matchedPlayerIds) as { data: Array<{ id: string; sheet_name: string }> | null; error: unknown }
+      .select('id, sheet_name, shirt_number, avatar_path')
+      .in('id', matchedPlayerIds) as {
+        data: Array<{
+          id: string
+          sheet_name: string
+          shirt_number: number | null
+          avatar_path: string | null
+        }> | null
+        error: unknown
+      }
 
-    for (const p of players ?? []) {
+    for (const p of await signPlayerAvatarRecords(players ?? [], session.profile.approved)) {
       playerMap.set(p.id, p)
     }
   }
@@ -64,7 +81,12 @@ export async function POST(request: Request) {
     const playerIds = aliasToPlayerIds.get(norm) ?? []
     const matches = playerIds
       .map((pid) => playerMap.get(pid))
-      .filter((p): p is { id: string; sheet_name: string } => p != null)
+      .filter((p): p is {
+        id: string
+        sheet_name: string
+        shirt_number: number | null
+        avatar_url: string | null
+      } => p != null)
 
     let status: ParsedEntry['status']
     if (matches.length === 0) status = 'unmatched'

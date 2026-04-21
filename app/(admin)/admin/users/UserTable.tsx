@@ -4,10 +4,16 @@ import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import type { UserRole } from '@/types'
 import type { UserRow } from './page'
 
-type SearchResult = { id: string; sheet_name: string; shirt_number: number | null }
+type SearchResult = {
+  id: string
+  sheet_name: string
+  shirt_number: number | null
+  avatar_url: string | null
+}
 
 export function UserTable({ users: initial }: { users: UserRow[] }) {
   const { t } = useTranslation()
@@ -154,7 +160,16 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
       setRows((prev) =>
         prev.map((r) =>
           r.id === userId
-            ? { ...r, player: { id: player.id, sheet_name: player.sheet_name, aliases: [] } }
+            ? {
+                ...r,
+                player: {
+                  id: player.id,
+                  sheet_name: player.sheet_name,
+                  shirt_number: player.shirt_number,
+                  avatar_url: player.avatar_url,
+                  aliases: [],
+                },
+              }
             : r
         )
       )
@@ -218,7 +233,13 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                 <td className="px-4 py-3">
                   {user.player ? (
                     <div className="space-y-1">
-                      <span className="font-medium text-fcda-navy">{user.player.sheet_name}</span>
+                      <PlayerIdentity
+                        name={user.player.sheet_name}
+                        shirtNumber={user.player.shirt_number}
+                        avatarUrl={user.player.avatar_url}
+                        avatarSize="sm"
+                        nameClassName="font-medium text-fcda-navy"
+                      />
                       {user.player.aliases.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {user.player.aliases.map((a) => (
@@ -255,8 +276,12 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                                 className="w-full px-2 py-1.5 text-left hover:bg-muted"
                                 onClick={() => handleLinkPlayer(user.id, p)}
                               >
-                                {p.shirt_number != null ? `#${p.shirt_number} ` : ''}
-                                {p.sheet_name}
+                                <PlayerIdentity
+                                  name={p.sheet_name}
+                                  shirtNumber={p.shirt_number}
+                                  avatarUrl={p.avatar_url}
+                                  avatarSize="sm"
+                                />
                               </button>
                             </li>
                           ))}

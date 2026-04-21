@@ -4,10 +4,13 @@ import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import type { PlayerPublic } from '@/types'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
+
+type RatedPlayer = PlayerPublic & { avatar_url?: string | null }
 
 type Props = {
   gameId: string
-  teammates: PlayerPublic[]
+  teammates: RatedPlayer[]
   existingRatings: Record<string, number>
   existingFeedbacks: Record<string, string>
   locked: boolean
@@ -73,7 +76,15 @@ export function RatingForm({ gameId, teammates, existingRatings, existingFeedbac
             {teammates.map((p) => (
               <React.Fragment key={p.id}>
                 <tr className="border-b">
-                  <td className="py-2">{p.display_name}</td>
+                  <td className="py-2">
+                    <PlayerIdentity
+                      name={p.display_name}
+                      shirtNumber={p.shirt_number}
+                      href={`/players/${p.id}`}
+                      avatarUrl={p.avatar_url ?? null}
+                      avatarSize="sm"
+                    />
+                  </td>
                   <td className="py-2 text-right">
                     {existingRatings[p.id] != null ? existingRatings[p.id].toFixed(2) : '—'}
                   </td>
@@ -106,7 +117,15 @@ export function RatingForm({ gameId, teammates, existingRatings, existingFeedbac
           {teammates.map((p) => (
             <React.Fragment key={p.id}>
               <tr>
-                <td className="py-2 pt-3">{p.display_name}</td>
+                <td className="py-2 pt-3">
+                  <PlayerIdentity
+                    name={p.display_name}
+                    shirtNumber={p.shirt_number}
+                    href={`/players/${p.id}`}
+                    avatarUrl={p.avatar_url ?? null}
+                    avatarSize="sm"
+                  />
+                </td>
                 <td className="py-2 pt-3 text-right">
                   <input
                     type="number"

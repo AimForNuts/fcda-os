@@ -9,6 +9,7 @@ const makePlayer = (id: string, name: string, shirt?: number): PlayerPublic => (
   shirt_number: shirt ?? null,
   current_rating: null,
   profile_id: null,
+  avatar_path: null,
 })
 
 describe('LineupGrid', () => {
@@ -38,7 +39,7 @@ describe('LineupGrid', () => {
   it('renders shirt number when present', () => {
     const a = [makePlayer('1', 'Nuno', 7)]
     render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
-    expect(screen.getByText('7')).toBeInTheDocument()
+    expect(screen.getByText('#7')).toBeInTheDocument()
   })
 
   it('does not render shirt number when absent', () => {

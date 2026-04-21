@@ -12,9 +12,16 @@ type ResolvedEntry = {
   raw: string
   normalised: string
   status: 'matched' | 'ambiguous' | 'unmatched'
-  matches: Array<{ id: string; sheet_name: string }>
+  matches: Array<{
+    id: string
+    sheet_name: string
+    shirt_number: number | null
+    avatar_url: string | null
+  }>
   resolvedPlayerId: string | null
   resolvedName: string | null
+  resolvedShirtNumber: number | null
+  resolvedAvatarUrl: string | null
   team: 'a' | 'b' | null
   originallyUnmatched: boolean
 }
@@ -23,6 +30,7 @@ type CurrentPlayer = {
   player_id: string
   sheet_name: string
   shirt_number: number | null
+  avatar_url: string | null
   team: 'a' | 'b' | null
 }
 
@@ -31,7 +39,12 @@ type Props = {
   currentLineup: CurrentPlayer[]
 }
 
-type SearchResult = { id: string; sheet_name: string; shirt_number: number | null }
+type SearchResult = {
+  id: string
+  sheet_name: string
+  shirt_number: number | null
+  avatar_url: string | null
+}
 
 const TEAM_OPTIONS: Array<'a' | 'b' | null> = ['a', 'b', null]
 
@@ -94,6 +107,8 @@ export function LineupManager({ gameId, currentLineup }: Props) {
         ...e,
         resolvedPlayerId: e.status === 'matched' ? e.matches[0].id : null,
         resolvedName: e.status === 'matched' ? e.matches[0].sheet_name : null,
+        resolvedShirtNumber: e.status === 'matched' ? e.matches[0].shirt_number : null,
+        resolvedAvatarUrl: e.status === 'matched' ? e.matches[0].avatar_url : null,
         team: null,
         originallyUnmatched: e.status === 'unmatched',
       }))
@@ -107,7 +122,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   }, [t])
 
   // ── Resolve helpers ────────────────────────────────────────────────────
-  function resolveEntry(index: number, playerId: string, playerName: string, skipAlias = false) {
+  function resolveEntry(index: number, player: SearchResult, skipAlias = false) {
     const entry = entries[index]
     if (entry?.originallyUnmatched && !skipAlias) {
       setSaveAliasMap((m) => ({ ...m, [index]: true }))
@@ -115,7 +130,14 @@ export function LineupManager({ gameId, currentLineup }: Props) {
     setEntries((prev) =>
       prev.map((e, i) =>
         i === index
-          ? { ...e, resolvedPlayerId: playerId, resolvedName: playerName, status: 'matched' }
+          ? {
+              ...e,
+              resolvedPlayerId: player.id,
+              resolvedName: player.sheet_name,
+              resolvedShirtNumber: player.shirt_number,
+              resolvedAvatarUrl: player.avatar_url,
+              status: 'matched',
+            }
           : e
       )
     )
@@ -167,7 +189,12 @@ export function LineupManager({ gameId, currentLineup }: Props) {
       })
       if (res.ok) {
         const { id, sheet_name } = await res.json()
-        resolveEntry(index, id, sheet_name, true)
+        resolveEntry(index, {
+          id,
+          sheet_name,
+          shirt_number: null,
+          avatar_url: null,
+        }, true)
       } else {
         setSaveError(t('mod.lineup.errorSave'))
       }
@@ -231,9 +258,12 @@ export function LineupManager({ gameId, currentLineup }: Props) {
           <div className="space-y-2">
             {editableLineup.map((p) => (
               <div key={p.player_id} className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium truncate">
-                  {p.shirt_number != null ? `#${p.shirt_number} ` : ''}{p.sheet_name}
-                </span>
+                <PlayerChip
+                  name={p.sheet_name}
+                  shirtNumber={p.shirt_number}
+                  avatarUrl={p.avatar_url}
+                  status="matched"
+                />
                 <div className="flex items-center gap-1 shrink-0">
                   {TEAM_OPTIONS.map((tm) => (
                     <button
@@ -300,6 +330,8 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                 <div className="flex items-center gap-2 flex-wrap">
                   <PlayerChip
                     name={entry.resolvedName ?? entry.raw}
+                    shirtNumber={entry.resolvedShirtNumber}
+                    avatarUrl={entry.resolvedAvatarUrl}
                     status={entry.resolvedPlayerId ? 'matched' : entry.status}
                   />
                   {/* Team toggle */}
@@ -330,12 +362,15 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                     value={entry.resolvedPlayerId ?? ''}
                     onChange={(e) => {
                       const match = entry.matches.find((m) => m.id === e.target.value)
-                      if (match) resolveEntry(i, match.id, match.sheet_name)
+                      if (match) resolveEntry(i, match)
                     }}
                   >
                     <option value="" disabled>{t('mod.lineup.pickPlayer')}</option>
                     {entry.matches.map((m) => (
-                      <option key={m.id} value={m.id}>{m.sheet_name}</option>
+                      <option key={m.id} value={m.id}>
+                        {m.shirt_number != null ? `#${m.shirt_number} ` : ''}
+                        {m.sheet_name}
+                      </option>
                     ))}
                   </select>
                 )}
@@ -357,9 +392,14 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                             <button
                               type="button"
                               className="w-full px-2 py-1.5 text-left hover:bg-muted"
-                              onClick={() => resolveEntry(i, p.id, p.sheet_name)}
+                              onClick={() => resolveEntry(i, p)}
                             >
-                              {p.shirt_number != null ? `#${p.shirt_number} ` : ''}{p.sheet_name}
+                              <PlayerChip
+                                name={p.sheet_name}
+                                shirtNumber={p.shirt_number}
+                                avatarUrl={p.avatar_url}
+                                status="matched"
+                              />
                             </button>
                           </li>
                         ))}

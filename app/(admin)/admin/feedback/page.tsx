@@ -1,8 +1,10 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { FeedbackInbox } from './FeedbackInbox'
 
 export type PlayerComment = {
   playerName: string
+  playerAvatarUrl: string | null
   content: string
 }
 
@@ -53,16 +55,19 @@ export default async function AdminFeedbackPage() {
   const [gamesRes, profilesRes, playersRes] = await Promise.all([
     admin.from('games').select('id, date, location').in('id', gameIds),
     admin.from('profiles').select('id, display_name').in('id', submitterIds),
-    admin.from('players').select('id, sheet_name').in('id', playerIds),
+    admin.from('players').select('id, sheet_name, avatar_path').in('id', playerIds),
   ])
 
   const games = gamesRes.data as Array<{ id: string; date: string; location: string }> | null
   const profiles = profilesRes.data as Array<{ id: string; display_name: string }> | null
-  const players = playersRes.data as Array<{ id: string; sheet_name: string }> | null
+  const players = await signPlayerAvatarRecords(
+    (playersRes.data as Array<{ id: string; sheet_name: string; avatar_path: string | null }> | null) ?? [],
+    true
+  )
 
   const gameMap = new Map((games ?? []).map((g) => [g.id, { date: g.date, location: g.location }]))
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p.display_name]))
-  const playerMap = new Map((players ?? []).map((p) => [p.id, p.sheet_name]))
+  const playerMap = new Map(players.map((p) => [p.id, p]))
 
   const items: FeedbackItem[] = [...groups.values()].map((group) => {
     const first = group[0]
@@ -72,7 +77,8 @@ export default async function AdminFeedbackPage() {
       gameLocation: game?.location ?? '',
       submitterName: profileMap.get(first.submitted_by) ?? first.submitted_by,
       comments: group.map((r) => ({
-        playerName: playerMap.get(r.rated_player_id) ?? r.rated_player_id,
+        playerName: playerMap.get(r.rated_player_id)?.sheet_name ?? r.rated_player_id,
+        playerAvatarUrl: playerMap.get(r.rated_player_id)?.avatar_url ?? null,
         content: r.feedback,
       })),
     }
