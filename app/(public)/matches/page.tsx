@@ -1,13 +1,21 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { MatchCard, type LineupSummary } from '@/components/matches/MatchCard'
+import { MatchesDateFilter } from '@/components/matches/MatchesDateFilter'
+import { filterGamesByDateRange } from '@/lib/games/filter-by-date-range'
 import { sortGames } from '@/lib/games/sort'
 import type { Game } from '@/types'
 
 export const metadata = { title: 'Jogos — FCDA' }
 
-export default async function MatchesPage() {
+export default async function MatchesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>
+}) {
+  const { from, to } = await searchParams
   const supabase = await createClient()
   const session = await fetchSessionContext()
   const isApproved = session?.profile.approved ?? false
@@ -16,7 +24,9 @@ export default async function MatchesPage() {
     .from('games')
     .select('*') as { data: Game[] | null; error: unknown }
 
-  const gameList = sortGames(games ?? [])
+  const sorted = sortGames(games ?? [])
+  const gameList = filterGamesByDateRange(sorted, from, to)
+  const hasDateFilter = Boolean(from || to)
 
   // Batch-fetch all game_players and player names for the listed games
   const lineupsByGame = new Map<string, LineupSummary>()
@@ -67,12 +77,26 @@ export default async function MatchesPage() {
     }
   }
 
+  const noGamesInDb = sorted.length === 0
+  const emptyAfterFilter = !noGamesInDb && gameList.length === 0 && hasDateFilter
+
   return (
-    <div className="container max-w-screen-md mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-fcda-navy mb-6">Jogos</h1>
-      {!gameList.length ? (
+    <div className="container mx-auto max-w-screen-md px-4 py-8">
+      <div className="mb-6 flex min-w-0 flex-nowrap items-center justify-between gap-3 sm:mb-8">
+        <h1 className="min-w-0 shrink truncate text-2xl font-bold text-fcda-navy">Jogos</h1>
+        <Suspense
+          fallback={
+            <div className="h-8 w-40 shrink-0 animate-pulse rounded-md bg-muted/50" aria-hidden />
+          }
+        >
+          <MatchesDateFilter />
+        </Suspense>
+      </div>
+      {noGamesInDb ? (
+        <p className="text-sm text-muted-foreground">Ainda não há jogos registados.</p>
+      ) : emptyAfterFilter ? (
         <p className="text-sm text-muted-foreground">
-          Ainda não há jogos registados.
+          Nenhum jogo neste intervalo de datas. Ajusta as datas ou limpa o filtro.
         </p>
       ) : (
         <div className="flex flex-col gap-3">

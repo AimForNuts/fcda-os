@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import { TeamHeader } from '@/components/matches/TeamHeader'
+import { getTeamPresentation } from '@/lib/games/team-presentation'
 import type { Game } from '@/types'
 
 const STATUS_LABEL: Record<Game['status'], string> = {
@@ -51,6 +53,9 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
   const hasUnassigned = lineup && lineup.unassigned.length > 0 && !hasTeams
   const hasPlayers = hasTeams || hasUnassigned
 
+  const kitA = getTeamPresentation('a')
+  const kitB = getTeamPresentation('b')
+
   return (
     <Link href={`/matches/${game.id}`} className="block" aria-label={`${game.location} — ${dateStr}`}>
       <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
@@ -66,8 +71,26 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
               {game.status === 'finished' &&
                 game.score_a != null &&
                 game.score_b != null && (
-                  <span className="text-lg font-bold tabular-nums">
-                    {game.score_a} – {game.score_b}
+                  <span className="flex items-center gap-1.5">
+                    <Image
+                      src={kitA.imageSrc}
+                      alt=""
+                      width={40}
+                      height={55}
+                      className="h-7 w-auto shrink-0 object-contain opacity-90"
+                      aria-hidden
+                    />
+                    <span className="text-lg font-bold tabular-nums">
+                      {game.score_a} – {game.score_b}
+                    </span>
+                    <Image
+                      src={kitB.imageSrc}
+                      alt=""
+                      width={40}
+                      height={55}
+                      className="h-7 w-auto shrink-0 object-contain opacity-90"
+                      aria-hidden
+                    />
                   </span>
                 )}
               <Badge
