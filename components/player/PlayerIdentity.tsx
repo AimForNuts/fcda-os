@@ -1,0 +1,67 @@
+'use client'
+
+import Link from 'next/link'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { cn } from '@/lib/utils'
+
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) {
+    return '?'
+  }
+
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase()
+  }
+
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase()
+}
+
+type PlayerIdentityProps = {
+  name: string
+  shirtNumber?: number | null
+  href?: string
+  avatarUrl?: string | null
+  showAvatar?: boolean
+  avatarSize?: 'sm' | 'default' | 'lg'
+  className?: string
+  nameClassName?: string
+}
+
+export function PlayerIdentity({
+  name,
+  shirtNumber = null,
+  href,
+  avatarUrl = null,
+  showAvatar = true,
+  avatarSize = 'default',
+  className,
+  nameClassName,
+}: PlayerIdentityProps) {
+  const nameNode = href ? (
+    <Link href={href} className={cn('truncate hover:underline', nameClassName)}>
+      {name}
+    </Link>
+  ) : (
+    <span className={cn('truncate', nameClassName)}>{name}</span>
+  )
+
+  return (
+    <div className={cn('flex min-w-0 items-center gap-2', className)}>
+      {showAvatar && (
+        <Avatar size={avatarSize} className="shrink-0">
+          {avatarUrl ? <AvatarImage src={avatarUrl} alt={name} /> : null}
+          <AvatarFallback className="bg-fcda-gold text-fcda-navy font-semibold">
+            {getInitials(name)}
+          </AvatarFallback>
+        </Avatar>
+      )}
+      {shirtNumber != null && (
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+          #{shirtNumber}
+        </span>
+      )}
+      {nameNode}
+    </div>
+  )
+}

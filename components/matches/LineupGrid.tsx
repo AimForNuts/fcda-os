@@ -1,28 +1,26 @@
-import Link from 'next/link'
 import type { PlayerPublic } from '@/types'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
+
+type LineupPlayer = PlayerPublic & { avatar_url?: string | null }
 
 type Props = {
-  teamA: PlayerPublic[]
-  teamB: PlayerPublic[]
-  unassigned: PlayerPublic[]
+  teamA: LineupPlayer[]
+  teamB: LineupPlayer[]
+  unassigned: LineupPlayer[]
   isApproved?: boolean
 }
 
-function PlayerRow({ player, isApproved }: { player: PlayerPublic; isApproved?: boolean }) {
+function PlayerRow({ player, isApproved }: { player: LineupPlayer; isApproved?: boolean }) {
   return (
     <div className="flex items-center gap-2 text-sm py-1.5 border-b border-border/50 last:border-0">
-      {player.shirt_number != null && (
-        <span className="w-5 text-right text-muted-foreground text-xs tabular-nums shrink-0">
-          {player.shirt_number}
-        </span>
-      )}
-      {isApproved ? (
-        <Link href={`/players/${player.id}`} className="hover:underline">
-          {player.display_name}
-        </Link>
-      ) : (
-        <span>{player.display_name}</span>
-      )}
+      <PlayerIdentity
+        name={player.display_name}
+        shirtNumber={player.shirt_number}
+        href={isApproved ? `/players/${player.id}` : undefined}
+        avatarUrl={player.avatar_url ?? null}
+        showAvatar={!!isApproved}
+        avatarSize="sm"
+      />
     </div>
   )
 }

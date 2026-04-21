@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import type { PlayerPublic } from '@/types'
 
 export const metadata = { title: 'Jogadores — FCDA' }
@@ -14,19 +15,19 @@ export default async function PlayersPage() {
   }
 
   const supabase = await createClient()
+  const isApproved = session.profile.approved
 
   const { data: players } = await supabase
     .from('players_public')
-    .select('id, display_name, shirt_number, current_rating')
+    .select('id, display_name, shirt_number, current_rating, avatar_path')
     .order('shirt_number', { ascending: true, nullsFirst: false })
     .order('display_name', { ascending: true }) as { data: PlayerPublic[] | null; error: unknown }
-
-  const isApproved = session.profile.approved
+  const rows = await signPlayerAvatarRecords(players ?? [], isApproved)
 
   return (
     <div className="container max-w-screen-md mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-fcda-navy mb-6">Jogadores</h1>
-      {(players ?? []).length === 0 ? (
+      {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground py-4">Sem jogadores registados.</p>
       ) : (
         <div className="rounded-lg border border-border overflow-hidden">
@@ -39,7 +40,7 @@ export default async function PlayersPage() {
               </tr>
             </thead>
             <tbody>
-              {(players ?? []).map((p, i) => (
+              {rows.map((p, i) => (
                 <tr
                   key={p.id}
                   className={i % 2 === 0 ? 'bg-background' : 'bg-muted/30'}
@@ -48,13 +49,13 @@ export default async function PlayersPage() {
                     {p.shirt_number ?? '—'}
                   </td>
                   <td className="px-4 py-2.5">
-                    {isApproved ? (
-                      <Link href={`/players/${p.id}`} className="hover:underline">
-                        {p.display_name}
-                      </Link>
-                    ) : (
-                      p.display_name
-                    )}
+                    <PlayerIdentity
+                      name={p.display_name}
+                      href={isApproved ? `/players/${p.id}` : undefined}
+                      avatarUrl={p.avatar_url}
+                      showAvatar={isApproved}
+                      avatarSize="sm"
+                    />
                   </td>
                   <td className="px-4 py-2.5 text-right tabular-nums font-medium">
                     {p.current_rating != null ? p.current_rating.toFixed(1) : '—'}

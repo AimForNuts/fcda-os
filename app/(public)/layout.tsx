@@ -1,5 +1,6 @@
 import { Navbar } from '@/components/layout/Navbar'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { resolveLinkedPlayerIdentity } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export default async function PublicLayout({
@@ -16,6 +17,9 @@ export default async function PublicLayout({
         .select('*', { count: 'exact', head: true })
         .eq('approved', false)
     : { count: 0 }
+  const linkedPlayer = session
+    ? await resolveLinkedPlayerIdentity(session.userId, session.profile.approved)
+    : null
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -23,6 +27,7 @@ export default async function PublicLayout({
         profile={session?.profile ?? null}
         roles={session?.roles ?? []}
         pendingCount={count ?? 0}
+        linkedPlayer={linkedPlayer}
       />
       <main className="flex-1">{children}</main>
     </div>

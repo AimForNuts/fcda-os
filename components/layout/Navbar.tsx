@@ -12,19 +12,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Globe, ShieldCheck, Settings } from 'lucide-react'
 import type { Profile, UserRole } from '@/types'
 import i18n from '@/i18n/config'
 import { ThemeToggle } from './ThemeToggle'
 
+type LinkedPlayer = {
+  id: string
+  name: string
+  avatar_url: string | null
+}
+
 type NavbarProps = {
   profile: Profile | null
   roles: UserRole[]
   pendingCount: number
+  linkedPlayer?: LinkedPlayer | null
 }
 
-export function Navbar({ profile, roles, pendingCount }: NavbarProps) {
+export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: NavbarProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const isMod = roles.includes('mod') || roles.includes('admin')
@@ -42,8 +49,10 @@ export function Navbar({ profile, roles, pendingCount }: NavbarProps) {
     i18n.changeLanguage(next)
   }
 
-  const initials = profile?.display_name
-    ? profile.display_name.slice(0, 2).toUpperCase()
+  const avatarLabel = linkedPlayer?.name ?? profile?.display_name ?? '?'
+
+  const initials = avatarLabel
+    ? avatarLabel.slice(0, 2).toUpperCase()
     : '?'
 
   return (
@@ -123,6 +132,9 @@ export function Navbar({ profile, roles, pendingCount }: NavbarProps) {
                 aria-label="User menu"
               >
                 <Avatar className="h-8 w-8">
+                  {linkedPlayer?.avatar_url ? (
+                    <AvatarImage src={linkedPlayer.avatar_url} alt={avatarLabel} />
+                  ) : null}
                   <AvatarFallback className="bg-fcda-gold text-fcda-navy text-xs font-bold">
                     {initials}
                   </AvatarFallback>

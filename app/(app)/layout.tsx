@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { Navbar } from '@/components/layout/Navbar'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { resolveLinkedPlayerIdentity } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export default async function AppLayout({
@@ -25,10 +26,16 @@ export default async function AppLayout({
         .select('*', { count: 'exact', head: true })
         .eq('approved', false)
     : { count: 0 }
+  const linkedPlayer = await resolveLinkedPlayerIdentity(session.userId, true)
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar profile={session.profile} roles={session.roles} pendingCount={count ?? 0} />
+      <Navbar
+        profile={session.profile}
+        roles={session.roles}
+        pendingCount={count ?? 0}
+        linkedPlayer={linkedPlayer}
+      />
       <main className="flex-1 container max-w-screen-xl mx-auto px-4 py-8">
         {children}
       </main>
