@@ -42,13 +42,13 @@ describe('StatsTable', () => {
     expect(screen.getByText('Carlos Silva')).toBeInTheDocument()
   })
 
-  it('renders stat columns Total, V, E, D, Pts', () => {
+  it('renders stat columns Jogos, Vitórias, Empates, Derrotas, Pontos', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    expect(screen.getByText(/Total/i)).toBeInTheDocument()
-    expect(screen.getByText('V')).toBeInTheDocument()
-    expect(screen.getByText('E')).toBeInTheDocument()
-    expect(screen.getByText('D')).toBeInTheDocument()
-    expect(screen.getByText('Pts')).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /Jogos/i })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /Vitórias/i })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /Empates/i })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /Derrotas/i })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /Pontos/i })).toBeInTheDocument()
   })
 
   it('shows anonymised note when isAnonymised is true', () => {
@@ -66,9 +66,9 @@ describe('StatsTable', () => {
     expect(screen.getByText(/Sem dados/)).toBeInTheDocument()
   })
 
-  it('renders shirt number with hash prefix when present', () => {
+  it('renders shirt number in the number column when present', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    expect(screen.getByText('#10')).toBeInTheDocument()
+    expect(screen.getAllByText('10').length).toBeGreaterThan(0)
   })
 
   it('renders player name as a link when not anonymised', () => {
@@ -97,14 +97,33 @@ describe('StatsTable', () => {
   it('switches to competitive totals when Competitivos is clicked', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
     fireEvent.click(screen.getByRole('button', { name: 'Competitivos' }))
-    // Carlos has total_comp=10
-    expect(screen.getByText('10')).toBeInTheDocument()
+    expect(screen.queryByText('20')).not.toBeInTheDocument()
+    expect(screen.getAllByText('10').length).toBeGreaterThan(0)
   })
 
   it('shows sort indicator on active column', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    // default sort is total desc — header should contain ↓
-    const totalHeader = screen.getByText(/Total.*↓/)
-    expect(totalHeader).toBeInTheDocument()
+    const gamesHeader = screen.getByRole('columnheader', { name: /Jogos/i })
+    expect(gamesHeader).toHaveAttribute('aria-sort', 'descending')
+  })
+
+  it('filters players by name', () => {
+    render(<StatsTable players={players} isAnonymised={false} />)
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Carlos' } })
+    expect(screen.getByText('Carlos Silva')).toBeInTheDocument()
+    expect(screen.queryByText('Jogador 2')).not.toBeInTheDocument()
+  })
+
+  it('highlights the linked player row', () => {
+    render(
+      <StatsTable
+        players={players}
+        isAnonymised={false}
+        highlightedPlayerId="1"
+      />
+    )
+
+    expect(screen.getByText('Carlos Silva').closest('tr')).toHaveClass('bg-fcda-gold/10')
+    expect(screen.getByText('Carlos Silva').closest('tr')).toHaveClass('font-semibold')
   })
 })
