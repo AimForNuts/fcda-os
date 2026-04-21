@@ -11,9 +11,9 @@ const STATUS_LABEL: Record<Game['status'], string> = {
 }
 
 export type LineupSummary = {
-  teamA: Array<{ id: string; name: string; avatar_url: string | null }>
-  teamB: Array<{ id: string; name: string; avatar_url: string | null }>
-  unassigned: Array<{ id: string; name: string; avatar_url: string | null }>
+  teamA: Array<{ id: string; name: string; avatar_url: string | null; shirt_number: number | null }>
+  teamB: Array<{ id: string; name: string; avatar_url: string | null; shirt_number: number | null }>
+  unassigned: Array<{ id: string; name: string; avatar_url: string | null; shirt_number: number | null }>
 }
 
 type Props = { game: Game; lineup?: LineupSummary; showAvatars?: boolean }
