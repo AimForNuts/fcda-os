@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { UserTable } from './UserTable'
 import type { UserRole } from '@/types'
 
@@ -10,6 +11,8 @@ export type UserRow = {
   player: {
     id: string
     sheet_name: string
+    shirt_number: number | null
+    avatar_url: string | null
     aliases: Array<{ id: string; alias_display: string }>
   } | null
 }
@@ -39,16 +42,28 @@ export default async function UsersPage() {
     }
 
   // 3. Players linked to these profiles
-  let linkedPlayers: Array<{ id: string; sheet_name: string; profile_id: string }> = []
+  let linkedPlayers: Array<{
+    id: string
+    sheet_name: string
+    shirt_number: number | null
+    profile_id: string
+    avatar_url: string | null
+  }> = []
   if (profileIds.length > 0) {
     const { data } = await admin
       .from('players')
-      .select('id, sheet_name, profile_id')
+      .select('id, sheet_name, shirt_number, profile_id, avatar_path')
       .in('profile_id', profileIds) as {
-        data: Array<{ id: string; sheet_name: string; profile_id: string }> | null
+        data: Array<{
+          id: string
+          sheet_name: string
+          shirt_number: number | null
+          profile_id: string
+          avatar_path: string | null
+        }> | null
         error: unknown
       }
-    linkedPlayers = data ?? []
+    linkedPlayers = await signPlayerAvatarRecords(data ?? [], true)
   }
 
   // 4. Aliases for those players
@@ -91,6 +106,8 @@ export default async function UsersPage() {
         ? {
             id: player.id,
             sheet_name: player.sheet_name,
+            shirt_number: player.shirt_number,
+            avatar_url: player.avatar_url,
             aliases: aliasesByPlayer.get(player.id) ?? [],
           }
         : null,

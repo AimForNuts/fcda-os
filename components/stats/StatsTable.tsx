@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import Link from 'next/link'
 import type { PlayerStats } from '@/types'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 
 type SortCol = 'total' | 'wins' | 'draws' | 'losses' | 'points'
 
 type Props = {
-  players: PlayerStats[]
+  players: Array<PlayerStats & { avatar_url?: string | null }>
   isAnonymised: boolean
 }
 
@@ -118,18 +118,14 @@ export function StatsTable({ players, isAnonymised }: Props) {
                 className={i % 2 === 0 ? 'bg-background' : 'bg-muted/30'}
               >
                 <td className="px-4 py-2.5">
-                  {p.shirt_number != null && (
-                    <span className="text-muted-foreground text-xs mr-2 tabular-nums">
-                      #{p.shirt_number}
-                    </span>
-                  )}
-                  {!isAnonymised ? (
-                    <Link href={`/players/${p.id}`} className="hover:underline">
-                      {p.display_name}
-                    </Link>
-                  ) : (
-                    p.display_name
-                  )}
+                  <PlayerIdentity
+                    name={p.display_name}
+                    shirtNumber={p.shirt_number}
+                    href={!isAnonymised ? `/players/${p.id}` : undefined}
+                    avatarUrl={p.avatar_url ?? null}
+                    showAvatar={!isAnonymised}
+                    avatarSize="sm"
+                  />
                 </td>
                 <td className="px-4 py-2.5 text-right tabular-nums">{p.total}</td>
                 <td className="px-4 py-2.5 text-right tabular-nums">{p.wins}</td>

@@ -2,6 +2,8 @@ import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import type { Game, PlayerAlias, PlayerPublic } from '@/types'
 
 type MatchRow = {
@@ -46,11 +48,13 @@ export default async function PlayerProfilePage({
 
   const { data: player } = await supabase
     .from('players_public')
-    .select('id, display_name, shirt_number, current_rating, profile_id')
+    .select('id, display_name, shirt_number, current_rating, profile_id, avatar_path')
     .eq('id', id)
     .single() as { data: PlayerPublic | null; error: unknown }
 
   if (!player) notFound()
+  const isApproved = session.profile.approved
+  const [resolvedPlayer] = await signPlayerAvatarRecords([player], isApproved)
 
   const { data: aliases } = await supabase
     .from('player_aliases')
@@ -76,7 +80,7 @@ export default async function PlayerProfilePage({
     matchesPlayed = count ?? 0
   }
 
-  const isOwnProfile = !!player.profile_id && player.profile_id === session.userId
+  const isOwnProfile = !!resolvedPlayer.profile_id && resolvedPlayer.profile_id === session.userId
   let matchHistory: MatchRow[] = []
 
   if (isOwnProfile && gameIds.length > 0) {
@@ -128,12 +132,15 @@ export default async function PlayerProfilePage({
       {/* Basic info */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
-          {player.shirt_number != null && (
-            <span className="text-3xl font-bold text-muted-foreground tabular-nums">
-              #{player.shirt_number}
-            </span>
-          )}
-          <h1 className="text-2xl font-bold text-fcda-navy">{player.display_name}</h1>
+          <PlayerIdentity
+            name={resolvedPlayer.display_name}
+            shirtNumber={resolvedPlayer.shirt_number}
+            avatarUrl={resolvedPlayer.avatar_url}
+            showAvatar={isApproved}
+            avatarSize="lg"
+            className="text-2xl font-bold text-fcda-navy"
+            nameClassName="text-2xl font-bold text-fcda-navy"
+          />
         </div>
         {(aliases ?? []).length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-1">
@@ -154,7 +161,7 @@ export default async function PlayerProfilePage({
         <div className="rounded-lg border border-border p-4 text-center">
           <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Nota</p>
           <p className="text-2xl font-bold text-fcda-navy">
-            {player.current_rating != null ? player.current_rating.toFixed(1) : '—'}
+            {resolvedPlayer.current_rating != null ? resolvedPlayer.current_rating.toFixed(1) : '—'}
           </p>
         </div>
         <div className="rounded-lg border border-border p-4 text-center">
