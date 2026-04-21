@@ -166,30 +166,28 @@ export default async function MatchDetailPage({
         </div>
       )}
 
-      {/* Score — only shown for finished games */}
-      {game.status === 'finished' &&
-        game.score_a != null &&
-        game.score_b != null && (
-          <div className="flex items-center justify-center gap-8 py-8 rounded-lg bg-fcda-navy text-white">
-            <div className="text-center">
-              <p className="text-xs uppercase tracking-widest text-white/60 mb-1">
-                Equipa Branca
-              </p>
-              <span className="text-5xl font-extrabold tabular-nums">
-                {game.score_a}
-              </span>
-            </div>
-            <span className="text-xl font-bold text-fcda-gold">VS</span>
-            <div className="text-center">
-              <p className="text-xs uppercase tracking-widest text-white/60 mb-1">
-                Equipa Preta
-              </p>
-              <span className="text-5xl font-extrabold tabular-nums">
-                {game.score_b}
-              </span>
-            </div>
+      {/* Score */}
+      {game.status !== 'cancelled' && (
+        <div className="flex items-center justify-center gap-8 rounded-lg bg-fcda-navy py-8 text-white">
+          <div className="text-center">
+            <p className="mb-1 text-xs uppercase tracking-widest text-white/60">
+              Equipa Branca
+            </p>
+            <span className="text-5xl font-extrabold tabular-nums">
+              {game.score_a ?? '-'}
+            </span>
           </div>
-        )}
+          <span className="text-xl font-bold text-fcda-gold">VS</span>
+          <div className="text-center">
+            <p className="mb-1 text-xs uppercase tracking-widest text-white/60">
+              Equipa Preta
+            </p>
+            <span className="text-5xl font-extrabold tabular-nums">
+              {game.score_b ?? '-'}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Rate button */}
       {showRateButton && (
