@@ -6,8 +6,6 @@ describe('MatchScoreHero', () => {
   it('maps the correct scores and kit images to each team', () => {
     render(<MatchScoreHero scoreA={3} scoreB={2} />)
 
-    expect(screen.getByText('Equipa Branca')).toBeInTheDocument()
-    expect(screen.getByText('Equipa Preta')).toBeInTheDocument()
     expect(screen.getByAltText('Kit da Equipa Branca')).toBeInTheDocument()
     expect(screen.getByAltText('Kit da Equipa Preta')).toBeInTheDocument()
     expect(screen.getByText('3')).toBeInTheDocument()

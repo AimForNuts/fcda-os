@@ -4,17 +4,16 @@ import { cn } from '@/lib/utils'
 
 type Props = {
   team: MatchTeam
-  count?: number
   className?: string
 }
 
-export function TeamHeader({ team, count, className }: Props) {
+export function TeamHeader({ team, className }: Props) {
   const presentation = getTeamPresentation(team)
 
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 rounded-2xl border px-3 py-2.5',
+        'flex items-center gap-3 rounded-2xl border px-3 py-2.5',
         presentation.headerSurfaceClassName,
         className,
       )}
@@ -33,18 +32,6 @@ export function TeamHeader({ team, count, className }: Props) {
           </p>
         </div>
       </div>
-
-      {typeof count === 'number' && (
-        <span
-          aria-label={`${count} ${count === 1 ? 'jogador' : 'jogadores'}`}
-          className={cn(
-            'inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full border px-2 text-xs font-semibold tabular-nums',
-            presentation.countClassName,
-          )}
-        >
-          {count}
-        </span>
-      )}
     </div>
   )
 }
