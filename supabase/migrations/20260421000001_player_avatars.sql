@@ -34,7 +34,6 @@ SELECT
   pp.display_name,
   pp.shirt_number,
   pp.profile_id,
-  pp.avatar_path,
   COALESCE(COUNT(gp.game_id) FILTER (
     WHERE g.status = 'finished' AND gp.team IS NOT NULL
       AND g.score_a IS NOT NULL AND g.score_b IS NOT NULL
@@ -72,7 +71,8 @@ SELECT
     WHERE g.status = 'finished' AND g.counts_for_stats AND gp.team IS NOT NULL
       AND g.score_a IS NOT NULL AND g.score_b IS NOT NULL
       AND ((gp.team = 'a' AND g.score_a < g.score_b) OR (gp.team = 'b' AND g.score_b < g.score_a))
-  ), 0) AS losses_comp
+  ), 0) AS losses_comp,
+  pp.avatar_path
 FROM public.players_public pp
 LEFT JOIN public.game_players gp ON gp.player_id = pp.id
 LEFT JOIN public.games g ON g.id = gp.game_id
