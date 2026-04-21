@@ -24,15 +24,27 @@ export default async function PlayersPage() {
   const [playersRes, statsRes] = await Promise.all([
     supabase
       .from('players_public')
-      .select('id, display_name, shirt_number, current_rating, avatar_path')
+      .select('id, display_name, shirt_number, current_rating, profile_id, avatar_path')
       .order('shirt_number', { ascending: true, nullsFirst: false })
-      .order('display_name', { ascending: true }) as Promise<{ data: PlayerPublic[] | null; error: unknown }>,
+      .order('display_name', { ascending: true })
+      .overrideTypes<
+        Array<
+          Pick<
+            PlayerPublic,
+            | 'id'
+            | 'display_name'
+            | 'shirt_number'
+            | 'current_rating'
+            | 'profile_id'
+            | 'avatar_path'
+          >
+        >,
+        { merge: false }
+      >(),
     supabase
       .from('player_stats')
-      .select('id, total_all') as Promise<{
-        data: Pick<PlayerStats, 'id' | 'total_all'>[] | null
-        error: unknown
-      }>,
+      .select('id, total_all')
+      .overrideTypes<Array<Pick<PlayerStats, 'id' | 'total_all'>>, { merge: false }>(),
   ])
 
   const totalsByPlayerId = new Map((statsRes.data ?? []).map((row) => [row.id, row.total_all]))
