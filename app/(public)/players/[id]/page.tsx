@@ -1,10 +1,14 @@
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
+import { ShieldCheck, Star, Swords, Target, Trophy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
-import { PlayerIdentity } from '@/components/player/PlayerIdentity'
-import type { Game, PlayerAlias, PlayerPublic } from '@/types'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import type { Game, PlayerPublic, PlayerStats } from '@/types'
+import { cn } from '@/lib/utils'
 
 type MatchRow = {
   game_id: string
@@ -14,6 +18,33 @@ type MatchRow = {
   score_a: number | null
   score_b: number | null
   rating: number | null
+}
+
+type PublicPlayerStats = Pick<
+  PlayerStats,
+  | 'total_all'
+  | 'total_comp'
+  | 'wins_all'
+  | 'draws_all'
+  | 'losses_all'
+  | 'wins_comp'
+  | 'draws_comp'
+  | 'losses_comp'
+>
+
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+
+  if (words.length === 0) return '?'
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase()
+}
+
+function teamLabel(team: string | null) {
+  if (team === 'a') return 'Branca'
+  if (team === 'b') return 'Preta'
+  return '—'
 }
 
 export async function generateMetadata({
@@ -53,34 +84,41 @@ export default async function PlayerProfilePage({
     .single() as { data: PlayerPublic | null; error: unknown }
 
   if (!player) notFound()
+
   const isApproved = session.profile.approved
   const [resolvedPlayer] = await signPlayerAvatarRecords([player], isApproved)
-
-  const { data: aliases } = await supabase
-    .from('player_aliases')
-    .select('id, alias_display')
-    .eq('player_id', id)
-    .order('alias_display') as { data: Pick<PlayerAlias, 'id' | 'alias_display'>[] | null; error: unknown }
 
   const { data: gps } = await supabase
     .from('game_players')
     .select('game_id, team')
-    .eq('player_id', id) as { data: { game_id: string; team: string | null }[] | null; error: unknown }
+    .eq('player_id', id) as {
+      data: { game_id: string; team: string | null }[] | null
+      error: unknown
+    }
 
-  const gameIds = (gps ?? []).map((gp) => gp.game_id)
+  const { data: stats } = await supabase
+    .from('player_stats')
+    .select('total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp')
+    .eq('id', id)
+    .maybeSingle() as { data: PublicPlayerStats | null; error: unknown }
 
-  let matchesPlayed = 0
-  if (gameIds.length > 0) {
-    const { count } = await supabase
-      .from('games')
-      .select('*', { count: 'exact', head: true })
-      .in('id', gameIds)
-      .eq('status', 'finished')
-      .eq('counts_for_stats', true)
-    matchesPlayed = count ?? 0
+  const statsSummary = stats ?? {
+    total_all: 0,
+    total_comp: 0,
+    wins_all: 0,
+    draws_all: 0,
+    losses_all: 0,
+    wins_comp: 0,
+    draws_comp: 0,
+    losses_comp: 0,
   }
 
+  const matchesPlayed = statsSummary.total_all
+  const totalPoints = statsSummary.wins_all * 3 + statsSummary.draws_all
+  const winRate = matchesPlayed > 0 ? Math.round((statsSummary.wins_all / matchesPlayed) * 100) : 0
+  const gameIds = (gps ?? []).map((gp) => gp.game_id)
   const isOwnProfile = !!resolvedPlayer.profile_id && resolvedPlayer.profile_id === session.userId
+
   let matchHistory: MatchRow[] = []
 
   if (isOwnProfile && gameIds.length > 0) {
@@ -107,16 +145,16 @@ export default async function PlayerProfilePage({
         error: unknown
       }
 
-    const ratingByGame = new Map((ratings ?? []).map((r) => [r.game_id, r.rating]))
+    const ratingByGame = new Map((ratings ?? []).map((rating) => [rating.game_id, rating.rating]))
 
-    matchHistory = (games ?? []).map((g) => ({
-      game_id: g.id,
-      team: teamByGame.get(g.id) ?? null,
-      date: g.date,
-      location: g.location,
-      score_a: g.score_a,
-      score_b: g.score_b,
-      rating: ratingByGame.get(g.id) ?? null,
+    matchHistory = (games ?? []).map((game) => ({
+      game_id: game.id,
+      team: teamByGame.get(game.id) ?? null,
+      date: game.date,
+      location: game.location,
+      score_a: game.score_a,
+      score_b: game.score_b,
+      rating: ratingByGame.get(game.id) ?? null,
     }))
   }
 
@@ -128,94 +166,246 @@ export default async function PlayerProfilePage({
     })
 
   return (
-    <div className="container max-w-screen-md mx-auto px-4 py-8 space-y-8">
-      {/* Basic info */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <PlayerIdentity
-            name={resolvedPlayer.display_name}
-            shirtNumber={resolvedPlayer.shirt_number}
-            avatarUrl={resolvedPlayer.avatar_url}
-            showAvatar={isApproved}
-            avatarSize="lg"
-            className="text-2xl font-bold text-fcda-navy"
-            nameClassName="text-2xl font-bold text-fcda-navy"
-          />
-        </div>
-        {(aliases ?? []).length > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {(aliases ?? []).map((a) => (
-              <span
-                key={a.id}
-                className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full"
-              >
-                {a.alias_display}
-              </span>
-            ))}
+    <div className="container mx-auto max-w-5xl space-y-8 px-4 py-8">
+      <section className="relative overflow-hidden rounded-[2rem] border border-fcda-navy/10 bg-gradient-to-br from-fcda-navy via-fcda-navy to-fcda-navy/90 text-white shadow-xl shadow-fcda-navy/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.12),transparent_28%)]" />
+        <div className="relative flex flex-col gap-8 px-6 py-8 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-10">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <Avatar className="size-28 border-4 border-white/25 shadow-2xl shadow-black/15 sm:size-36 lg:size-44">
+              {resolvedPlayer.avatar_url ? (
+                <AvatarImage src={resolvedPlayer.avatar_url} alt={resolvedPlayer.display_name} />
+              ) : null}
+              <AvatarFallback className="bg-fcda-gold text-3xl font-semibold text-fcda-navy sm:text-4xl">
+                {getInitials(resolvedPlayer.display_name)}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {isOwnProfile && (
+                  <Badge className="border-white/15 bg-fcda-gold text-fcda-navy hover:bg-fcda-gold">
+                    Perfil pessoal
+                  </Badge>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <h1 className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+                  {resolvedPlayer.shirt_number != null && (
+                    <span className="text-xl font-semibold tracking-[0.12em] text-white/65 sm:text-2xl lg:text-3xl">
+                      #{resolvedPlayer.shirt_number}
+                    </span>
+                  )}
+                  <span>{resolvedPlayer.display_name}</span>
+                </h1>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-border p-4 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Nota</p>
-          <p className="text-2xl font-bold text-fcda-navy">
-            {resolvedPlayer.current_rating != null ? resolvedPlayer.current_rating.toFixed(1) : '—'}
-          </p>
+          <div className="grid grid-cols-2 gap-3 sm:min-w-[18rem]">
+            <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-white/75">
+                <Star className="size-4" />
+                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Nota</span>
+              </div>
+              <p className="mt-3 text-3xl font-black">
+                {resolvedPlayer.current_rating != null ? resolvedPlayer.current_rating.toFixed(1) : '—'}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-white/75">
+                <Swords className="size-4" />
+                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Jogos</span>
+              </div>
+              <p className="mt-3 text-3xl font-black">{matchesPlayed}</p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-white/75">
+                <Trophy className="size-4" />
+                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Pontos</span>
+              </div>
+              <p className="mt-3 text-3xl font-black">{totalPoints}</p>
+            </div>
+            <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-white/75">
+                <Target className="size-4" />
+                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Vitórias</span>
+              </div>
+              <p className="mt-3 text-3xl font-black">{winRate}%</p>
+            </div>
+          </div>
         </div>
-        <div className="rounded-lg border border-border p-4 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Jogos</p>
-          <p className="text-2xl font-bold text-fcda-navy">{matchesPlayed}</p>
-        </div>
-      </div>
+      </section>
 
-      {/* Match history — own profile only */}
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {[
+          {
+            label: 'Jogos totais',
+            value: statsSummary.total_all,
+            detail: `${statsSummary.wins_all}V · ${statsSummary.draws_all}E · ${statsSummary.losses_all}D`,
+            icon: Swords,
+          },
+          {
+            label: 'Jogos competitivos',
+            value: statsSummary.total_comp,
+            detail: `${statsSummary.wins_comp}V · ${statsSummary.draws_comp}E · ${statsSummary.losses_comp}D`,
+            icon: ShieldCheck,
+          },
+          {
+            label: 'Vitórias totais',
+            value: statsSummary.wins_all,
+            detail: matchesPlayed > 0 ? `${winRate}% de taxa de vitória` : 'Sem jogos concluídos',
+            icon: Trophy,
+          },
+        ].map((item) => {
+          const Icon = item.icon
+
+          return (
+            <Card
+              key={item.label}
+              className="gap-0 rounded-3xl border-fcda-navy/10 bg-white/90 shadow-sm shadow-fcda-navy/5"
+            >
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      {item.label}
+                    </p>
+                    <p className="text-3xl font-black tracking-tight text-fcda-navy">{item.value}</p>
+                  </div>
+                  <div className="rounded-2xl bg-fcda-ice p-3 text-fcda-navy">
+                    <Icon className="size-5" />
+                  </div>
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground">{item.detail}</p>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        {[
+          {
+            title: 'Registo total',
+            subtitle: 'Jogos que contam para o histórico geral',
+            values: [
+              { label: 'Vitórias', value: statsSummary.wins_all, className: 'text-emerald-700' },
+              { label: 'Empates', value: statsSummary.draws_all, className: 'text-amber-600' },
+              { label: 'Derrotas', value: statsSummary.losses_all, className: 'text-rose-700' },
+            ],
+          },
+          {
+            title: 'Registo competitivo',
+            subtitle: 'Partidas competitivas registadas',
+            values: [
+              { label: 'Vitórias', value: statsSummary.wins_comp, className: 'text-emerald-700' },
+              { label: 'Empates', value: statsSummary.draws_comp, className: 'text-amber-600' },
+              { label: 'Derrotas', value: statsSummary.losses_comp, className: 'text-rose-700' },
+            ],
+          },
+        ].map((section) => (
+          <Card
+            key={section.title}
+            className="rounded-3xl border-fcda-navy/10 bg-gradient-to-br from-white to-fcda-ice/30 shadow-sm shadow-fcda-navy/5"
+          >
+            <CardContent className="space-y-5 p-6">
+              <div className="space-y-1">
+                <h2 className="text-lg font-bold text-fcda-navy">{section.title}</h2>
+                <p className="text-sm text-muted-foreground">{section.subtitle}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {section.values.map((value) => (
+                  <div
+                    key={value.label}
+                    className="rounded-2xl border border-border bg-background/90 p-4 text-center"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {value.label}
+                    </p>
+                    <p className={cn('mt-2 text-3xl font-black tabular-nums', value.className)}>
+                      {value.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+
+      {isOwnProfile ? (
+        <section className="rounded-3xl border border-fcda-gold/30 bg-fcda-gold/10 px-5 py-4 text-sm text-fcda-navy">
+          O histórico detalhado abaixo é visível apenas no teu próprio perfil.
+        </section>
+      ) : (
+        <section className="rounded-3xl border border-border bg-muted/30 px-5 py-4 text-sm text-muted-foreground">
+          O histórico jogo a jogo é reservado ao próprio jogador.
+        </section>
+      )}
+
       {isOwnProfile && (
-        <div>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-            Histórico
-          </h2>
+        <section className="space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+              Histórico recente
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Resultados e notas aprovadas dos jogos concluídos.
+            </p>
+          </div>
+
           {matchHistory.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem jogos registados.</p>
+            <Card className="rounded-3xl border-dashed border-fcda-navy/15 bg-muted/20">
+              <CardContent className="p-6">
+                <p className="text-sm text-muted-foreground">Sem jogos registados.</p>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="rounded-lg border border-border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-fcda-navy text-white text-xs uppercase tracking-wide">
-                    <th className="px-4 py-2.5 text-left font-semibold">Data</th>
-                    <th className="px-4 py-2.5 text-left font-semibold">Local</th>
-                    <th className="px-4 py-2.5 text-center font-semibold">Equipa</th>
-                    <th className="px-4 py-2.5 text-center font-semibold">Resultado</th>
-                    <th className="px-4 py-2.5 text-right font-semibold">Nota</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {matchHistory.map((m, i) => (
-                    <tr
-                      key={m.game_id}
-                      className={i % 2 === 0 ? 'bg-background' : 'bg-muted/30'}
-                    >
-                      <td className="px-4 py-2.5 whitespace-nowrap">{dateStr(m.date)}</td>
-                      <td className="px-4 py-2.5 text-muted-foreground">{m.location}</td>
-                      <td className="px-4 py-2.5 text-center">
-                        {m.team === 'a' ? 'Branca' : m.team === 'b' ? 'Preta' : '—'}
-                      </td>
-                      <td className="px-4 py-2.5 text-center tabular-nums font-medium">
-                        {m.score_a != null && m.score_b != null
-                          ? `${m.score_a}–${m.score_b}`
-                          : '—'}
-                      </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums font-medium">
-                        {m.rating != null ? m.rating.toFixed(1) : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid gap-3">
+              {matchHistory.map((match) => (
+                <Card
+                  key={match.game_id}
+                  className="rounded-3xl border-fcda-navy/10 bg-white/95 shadow-sm shadow-fcda-navy/5"
+                >
+                  <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-fcda-navy">{dateStr(match.date)}</p>
+                      <p className="text-sm text-muted-foreground">{match.location}</p>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 sm:min-w-[22rem]">
+                      <div className="rounded-2xl bg-muted/40 px-3 py-2 text-center">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Equipa
+                        </p>
+                        <p className="mt-1 font-semibold text-fcda-navy">{teamLabel(match.team)}</p>
+                      </div>
+                      <div className="rounded-2xl bg-muted/40 px-3 py-2 text-center">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Resultado
+                        </p>
+                        <p className="mt-1 font-semibold text-fcda-navy">
+                          {match.score_a != null && match.score_b != null
+                            ? `${match.score_a}–${match.score_b}`
+                            : '—'}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-muted/40 px-3 py-2 text-center">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Nota
+                        </p>
+                        <p className="mt-1 font-semibold text-fcda-navy">
+                          {match.rating != null ? match.rating.toFixed(1) : '—'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
-        </div>
+        </section>
       )}
     </div>
   )
