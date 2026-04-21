@@ -59,9 +59,9 @@ export async function POST(
   }
 
   const avatarUpdatedAt = new Date().toISOString()
-  const { error: updateError } = await admin.from('players')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .update({ avatar_path: avatarPath, avatar_updated_at: avatarUpdatedAt } as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (admin as any).from('players')
+    .update({ avatar_path: avatarPath, avatar_updated_at: avatarUpdatedAt })
     .eq('id', player.id)
 
   if (updateError) {
@@ -117,9 +117,9 @@ export async function DELETE(
     return Response.json({ error: 'Failed to delete photo' }, { status: 500 })
   }
 
-  const { error: updateError } = await admin.from('players')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .update({ avatar_path: null, avatar_updated_at: null } as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (admin as any).from('players')
+    .update({ avatar_path: null, avatar_updated_at: null })
     .eq('id', player.id)
 
   if (updateError) {
