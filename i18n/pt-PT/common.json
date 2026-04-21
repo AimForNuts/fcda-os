@@ -124,6 +124,7 @@
       "teamA": "A",
       "teamB": "B",
       "noTeam": "—",
+      "noTeamLabel": "Sem equipa",
       "current": "Convocados atuais",
       "noLineup": "Ainda sem convocados.",
       "errorParse": "Erro ao analisar convocados.",

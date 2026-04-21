@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupGrid } from '@/components/matches/LineupGrid'
+import { MatchScoreHero } from '@/components/matches/MatchScoreHero'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { PlayerPublic, GamePlayer, Game } from '@/types'
@@ -166,30 +167,10 @@ export default async function MatchDetailPage({
         </div>
       )}
 
-      {/* Score — only shown for finished games */}
-      {game.status === 'finished' &&
-        game.score_a != null &&
-        game.score_b != null && (
-          <div className="flex items-center justify-center gap-8 py-8 rounded-lg bg-fcda-navy text-white">
-            <div className="text-center">
-              <p className="text-xs uppercase tracking-widest text-white/60 mb-1">
-                Equipa Branca
-              </p>
-              <span className="text-5xl font-extrabold tabular-nums">
-                {game.score_a}
-              </span>
-            </div>
-            <span className="text-xl font-bold text-fcda-gold">VS</span>
-            <div className="text-center">
-              <p className="text-xs uppercase tracking-widest text-white/60 mb-1">
-                Equipa Preta
-              </p>
-              <span className="text-5xl font-extrabold tabular-nums">
-                {game.score_b}
-              </span>
-            </div>
-          </div>
-        )}
+      {/* Score */}
+      {game.status !== 'cancelled' && (
+        <MatchScoreHero scoreA={game.score_a} scoreB={game.score_b} />
+      )}
 
       {/* Rate button */}
       {showRateButton && (
