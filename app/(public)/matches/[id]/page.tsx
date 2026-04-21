@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupGrid } from '@/components/matches/LineupGrid'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -63,14 +64,14 @@ export default async function MatchDetailPage({
     .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team'>[] | null; error: unknown }
 
   const playerIds = (gamePlayers ?? []).map((gp) => gp.player_id)
-  let players: PlayerPublic[] = []
+  let players: Array<PlayerPublic & { avatar_url: string | null }> = []
 
   if (playerIds.length > 0) {
     const { data } = await supabase
       .from('players_public')
-      .select('id, display_name, shirt_number, current_rating, profile_id')
+      .select('id, display_name, shirt_number, current_rating, profile_id, avatar_path')
       .in('id', playerIds)
-    players = data ?? []
+    players = await signPlayerAvatarRecords(data ?? [], isApproved)
   }
 
   const showRateButton =
@@ -86,17 +87,17 @@ export default async function MatchDetailPage({
   const teamA = gpList
     .filter((gp) => gp.team === 'a')
     .map((gp) => playerMap.get(gp.player_id))
-    .filter((p): p is PlayerPublic => p != null)
+    .filter((p): p is (PlayerPublic & { avatar_url: string | null }) => p != null)
 
   const teamB = gpList
     .filter((gp) => gp.team === 'b')
     .map((gp) => playerMap.get(gp.player_id))
-    .filter((p): p is PlayerPublic => p != null)
+    .filter((p): p is (PlayerPublic & { avatar_url: string | null }) => p != null)
 
   const unassigned = gpList
     .filter((gp) => !gp.team)
     .map((gp) => playerMap.get(gp.player_id))
-    .filter((p): p is PlayerPublic => p != null)
+    .filter((p): p is (PlayerPublic & { avatar_url: string | null }) => p != null)
 
   const d = new Date(game.date)
   const dateStr = d.toLocaleDateString('pt-PT', {

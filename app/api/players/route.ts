@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
+import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { normaliseAlias } from '@/lib/whatsapp/parser'
 
 const createPlayerSchema = z.object({
@@ -22,14 +23,22 @@ export async function GET(request: Request) {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('players')
-    .select('id, sheet_name, shirt_number')
+    .select('id, sheet_name, shirt_number, avatar_path')
     .ilike('sheet_name', `%${q}%`)
     .order('sheet_name')
-    .limit(20) as { data: Array<{ id: string; sheet_name: string; shirt_number: number | null }> | null; error: unknown }
+    .limit(20) as {
+      data: Array<{
+        id: string
+        sheet_name: string
+        shirt_number: number | null
+        avatar_path: string | null
+      }> | null
+      error: unknown
+    }
 
   if (error) return Response.json({ error: 'Search failed' }, { status: 500 })
 
-  return Response.json(data ?? [])
+  return Response.json(await signPlayerAvatarRecords(data ?? [], session.profile.approved))
 }
 
 export async function POST(request: Request) {
@@ -45,7 +54,8 @@ export async function POST(request: Request) {
 
   const supabase = await createClient()
 
-  const { data: player, error: playerErr } = await (supabase.from('players') as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: player, error: playerErr } = await (supabase as any).from('players')
     .insert({ sheet_name: parsed.data.sheet_name })
     .select('id, sheet_name')
     .single() as { data: { id: string; sheet_name: string } | null; error: unknown }
@@ -54,22 +64,23 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Failed to create player' }, { status: 500 })
   }
 
-  // Create an alias so future parses can auto-match this name
   const aliasDisplay = parsed.data.alias_display ?? parsed.data.sheet_name
-  await supabase.from('player_aliases').insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).from('player_aliases').insert({
     player_id: player.id,
     alias: normaliseAlias(aliasDisplay),
     alias_display: aliasDisplay,
-  } as any)
+  })
 
   const admin = createServiceClient()
-  const { error: auditErr } = await admin.from('audit_log').insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: auditErr } = await (admin as any).from('audit_log').insert({
     action: 'player.created_guest',
     performed_by: session.userId,
     target_id: player.id,
     target_type: 'player',
     metadata: { sheet_name: player.sheet_name },
-  } as any)
+  })
   if (auditErr) console.error('audit_log insert failed', auditErr)
 
   return Response.json({ id: player.id, sheet_name: player.sheet_name }, { status: 201 })

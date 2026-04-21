@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import type { Game } from '@/types'
 
 const STATUS_LABEL: Record<Game['status'], string> = {
@@ -10,14 +11,14 @@ const STATUS_LABEL: Record<Game['status'], string> = {
 }
 
 export type LineupSummary = {
-  teamA: string[]
-  teamB: string[]
-  unassigned: string[]
+  teamA: Array<{ id: string; name: string; avatar_url: string | null }>
+  teamB: Array<{ id: string; name: string; avatar_url: string | null }>
+  unassigned: Array<{ id: string; name: string; avatar_url: string | null }>
 }
 
-type Props = { game: Game; lineup?: LineupSummary }
+type Props = { game: Game; lineup?: LineupSummary; showAvatars?: boolean }
 
-export function MatchCard({ game, lineup }: Props) {
+export function MatchCard({ game, lineup, showAvatars = false }: Props) {
   const d = new Date(game.date)
   const dateStr = d.toLocaleDateString('pt-PT', {
     day: '2-digit',
@@ -69,19 +70,53 @@ export function MatchCard({ game, lineup }: Props) {
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 pt-1 border-t border-border/50">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">Brancos</p>
-                <p className="text-xs text-foreground leading-snug">{lineup!.teamA.join(', ')}</p>
+                <div className="space-y-1">
+                  {lineup!.teamA.map((player) => (
+                    <PlayerIdentity
+                      key={player.id}
+                      name={player.name}
+                      avatarUrl={player.avatar_url}
+                      showAvatar={showAvatars}
+                      avatarSize="sm"
+                      className="text-xs"
+                      nameClassName="text-xs"
+                    />
+                  ))}
+                </div>
               </div>
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">Pretos</p>
-                <p className="text-xs text-foreground leading-snug">{lineup!.teamB.join(', ')}</p>
+                <div className="space-y-1">
+                  {lineup!.teamB.map((player) => (
+                    <PlayerIdentity
+                      key={player.id}
+                      name={player.name}
+                      avatarUrl={player.avatar_url}
+                      showAvatar={showAvatars}
+                      avatarSize="sm"
+                      className="text-xs"
+                      nameClassName="text-xs"
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
           {hasUnassigned && (
-            <p className="text-xs text-muted-foreground pt-1 border-t border-border/50">
-              {lineup!.unassigned.join(', ')}
-            </p>
+            <div className="space-y-1 border-t border-border/50 pt-1">
+              {lineup!.unassigned.map((player) => (
+                <PlayerIdentity
+                  key={player.id}
+                  name={player.name}
+                  avatarUrl={player.avatar_url}
+                  showAvatar={showAvatars}
+                  avatarSize="sm"
+                  className="text-xs text-muted-foreground"
+                  nameClassName="text-xs"
+                />
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
