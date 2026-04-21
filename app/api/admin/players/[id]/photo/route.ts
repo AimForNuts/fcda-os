@@ -6,7 +6,6 @@ import {
 } from '@/lib/players/avatar.server'
 import { validatePlayerAvatarFile } from '@/lib/players/avatar'
 import { createServiceClient } from '@/lib/supabase/server'
-import type { Database } from '@/types/database'
 
 async function resolvePlayer(id: string) {
   const admin = createServiceClient()
@@ -68,14 +67,13 @@ export async function POST(
     return Response.json({ error: 'Failed to save photo' }, { status: 500 })
   }
 
-  const auditEntry: Database['public']['Tables']['audit_log']['Insert'] = {
+  const { error: auditErr } = await admin.from('audit_log').insert({
     action: 'player.photo.uploaded',
     performed_by: session.userId,
     target_id: player.id,
     target_type: 'player',
     metadata: { actor: 'admin' },
-  }
-  const { error: auditErr } = await admin.from('audit_log').insert(auditEntry)
+  })
   if (auditErr) {
     console.error('audit_log insert failed', auditErr)
   }
@@ -126,14 +124,13 @@ export async function DELETE(
     return Response.json({ error: 'Failed to clear photo' }, { status: 500 })
   }
 
-  const auditEntry: Database['public']['Tables']['audit_log']['Insert'] = {
+  const { error: auditErr } = await admin.from('audit_log').insert({
     action: 'player.photo.deleted',
     performed_by: session.userId,
     target_id: player.id,
     target_type: 'player',
     metadata: { actor: 'admin' },
-  }
-  const { error: auditErr } = await admin.from('audit_log').insert(auditEntry)
+  })
   if (auditErr) {
     console.error('audit_log insert failed', auditErr)
   }
