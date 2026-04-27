@@ -25,10 +25,20 @@ export async function POST(
 
   const admin = createServiceClient()
 
+  const normalisedAlias = normaliseAlias(parsed.data.alias_display)
+
+  const { data: existing } = await (admin.from('player_aliases') as any)
+    .select('id')
+    .eq('player_id', id)
+    .eq('alias', normalisedAlias)
+    .maybeSingle() as { data: { id: string } | null; error: unknown }
+
+  if (existing) return Response.json({ error: 'Alias already exists' }, { status: 409 })
+
   const { data: alias, error } = await (admin.from('player_aliases') as any)
     .insert({
       player_id: id,
-      alias: normaliseAlias(parsed.data.alias_display),
+      alias: normalisedAlias,
       alias_display: parsed.data.alias_display,
     })
     .select('id, alias_display')
