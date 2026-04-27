@@ -21,7 +21,8 @@ export async function GET(request: Request) {
   if (!q) return Response.json([])
 
   const supabase = await createClient()
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .rpc('search_players', { q }) as {
       data: Array<{
         id: string
