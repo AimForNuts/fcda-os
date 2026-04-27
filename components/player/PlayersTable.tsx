@@ -27,10 +27,12 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null, 
   const deferredSearchValue = useDeferredValue(searchValue)
 
   const filteredPlayers = useMemo(() => {
-    const query = deferredSearchValue.trim().toLocaleLowerCase('pt-PT')
+    const normalize = (s: string) =>
+      s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-PT')
+    const query = normalize(deferredSearchValue.trim())
 
     return players.filter((player) => {
-      return !query || player.display_name.toLocaleLowerCase('pt-PT').includes(query)
+      return !query || normalize(player.display_name).includes(query)
     })
   }, [deferredSearchValue, players])
 

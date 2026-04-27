@@ -33,7 +33,9 @@ export function StatsTable({
   const deferredSearchValue = useDeferredValue(searchValue)
 
   const rows = useMemo(() => {
-    const query = deferredSearchValue.trim().toLocaleLowerCase('pt-PT')
+    const normalize = (s: string) =>
+      s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-PT')
+    const query = normalize(deferredSearchValue.trim())
 
     return players
       .map((player) => {
@@ -46,7 +48,7 @@ export function StatsTable({
         return { ...player, total, wins, draws, losses, points }
       })
       .filter((player) => {
-        return !query || player.display_name.toLocaleLowerCase('pt-PT').includes(query)
+        return !query || normalize(player.display_name).includes(query)
       })
   }, [deferredSearchValue, mode, players])
 
