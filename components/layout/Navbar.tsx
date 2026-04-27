@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -13,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Globe, ShieldCheck, Settings } from 'lucide-react'
+import { Globe, ShieldCheck, Settings, Menu, X } from 'lucide-react'
 import type { Profile, UserRole } from '@/types'
 import i18n from '@/i18n/config'
 import { ThemeToggle } from './ThemeToggle'
@@ -34,6 +35,7 @@ type NavbarProps = {
 export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: NavbarProps) {
   const { t } = useTranslation()
   const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
   const isMod = roles.includes('mod') || roles.includes('admin')
   const isAdmin = roles.includes('admin')
 
@@ -50,10 +52,10 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
   }
 
   const avatarLabel = linkedPlayer?.name ?? profile?.display_name ?? '?'
+  const initials = avatarLabel ? avatarLabel.slice(0, 2).toUpperCase() : '?'
 
-  const initials = avatarLabel
-    ? avatarLabel.slice(0, 2).toUpperCase()
-    : '?'
+  const drawerLinkClass =
+    'block px-2 py-3 text-white/70 hover:text-white transition-colors text-sm border-b border-white/10 last:border-0'
 
   return (
     <header className="sticky top-0 z-50 w-full bg-fcda-navy text-white shadow-md">
@@ -65,24 +67,15 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
           <span className="text-fcda-gold">FCDA</span>
         </Link>
 
-        {/* Nav links */}
+        {/* Desktop nav links */}
         <nav className="hidden md:flex items-center gap-6 text-sm">
-          <Link
-            href="/matches"
-            className="text-white/70 hover:text-white transition-colors"
-          >
+          <Link href="/matches" className="text-white/70 hover:text-white transition-colors">
             {t('nav.matches')}
           </Link>
-          <Link
-            href="/players"
-            className="text-white/70 hover:text-white transition-colors"
-          >
+          <Link href="/players" className="text-white/70 hover:text-white transition-colors">
             {t('nav.players')}
           </Link>
-          <Link
-            href="/stats"
-            className="text-white/70 hover:text-white transition-colors"
-          >
+          <Link href="/stats" className="text-white/70 hover:text-white transition-colors">
             {t('nav.stats')}
           </Link>
           {isMod && (
@@ -110,7 +103,6 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
-          {/* Language toggle */}
           <Button
             variant="ghost"
             size="sm"
@@ -149,10 +141,7 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                   {t('nav.profile')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-destructive"
-                >
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                   {t('nav.logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -178,8 +167,114 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
               </Button>
             </div>
           )}
+
+          {/* Hamburger button — mobile only */}
+          <button
+            type="button"
+            className="md:hidden rounded p-1 text-white/70 hover:text-white"
+            aria-label="Open menu"
+            aria-expanded={isOpen}
+            onClick={() => setIsOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
         </div>
       </div>
+
+      {/* Mobile backdrop + drawer */}
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="fixed inset-y-0 right-0 z-50 flex w-64 flex-col bg-fcda-navy shadow-xl md:hidden">
+            {/* Drawer header */}
+            <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
+              <span className="text-lg font-bold text-fcda-gold">FCDA</span>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                aria-label="Close menu"
+                className="rounded p-1 text-white/70 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Drawer nav links */}
+            <nav className="flex flex-col overflow-y-auto px-4 py-2">
+              <Link href="/" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
+                {t('nav.home')}
+              </Link>
+              <Link href="/matches" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
+                {t('nav.matches')}
+              </Link>
+              <Link href="/players" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
+                {t('nav.players')}
+              </Link>
+              <Link href="/stats" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
+                {t('nav.stats')}
+              </Link>
+              {isMod && (
+                <Link
+                  href="/mod/games/new"
+                  onClick={() => setIsOpen(false)}
+                  className={drawerLinkClass}
+                >
+                  <span className="flex items-center gap-2">
+                    <Settings className="h-3.5 w-3.5" />
+                    {t('nav.mod')}
+                  </span>
+                </Link>
+              )}
+              {isAdmin && (
+                <Link
+                  href="/admin/users"
+                  onClick={() => setIsOpen(false)}
+                  className={drawerLinkClass}
+                >
+                  <span className="flex items-center gap-2">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    {t('nav.admin')}
+                    {pendingCount > 0 && (
+                      <span className="ml-1 h-2 w-2 rounded-full bg-red-500" />
+                    )}
+                  </span>
+                </Link>
+              )}
+
+              {/* Auth section */}
+              <div className="mt-4 border-t border-white/10 pt-4">
+                {profile ? (
+                  <>
+                    <Link href="/profile" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
+                      {t('nav.profile')}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => { setIsOpen(false); handleLogout() }}
+                      className={`${drawerLinkClass} w-full text-left text-red-400 hover:text-red-300`}
+                    >
+                      {t('nav.logout')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/auth/login" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
+                      {t('nav.login')}
+                    </Link>
+                    <Link href="/auth/register" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
+                      {t('nav.register')}
+                    </Link>
+                  </>
+                )}
+              </div>
+            </nav>
+          </div>
+        </>
+      )}
     </header>
   )
 }
