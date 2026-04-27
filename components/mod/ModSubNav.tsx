@@ -9,7 +9,7 @@ export function ModSubNav() {
   const pathname = usePathname()
 
   const linkClass = (active: boolean) =>
-    `py-3 border-b-2 text-sm transition-colors ${
+    `whitespace-nowrap py-3 border-b-2 text-sm transition-colors ${
       active
         ? 'border-fcda-navy text-fcda-navy font-medium'
         : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -17,7 +17,8 @@ export function ModSubNav() {
 
   return (
     <nav className="border-b bg-background">
-      <div className="container max-w-screen-xl mx-auto px-4 flex gap-6">
+      <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="container max-w-screen-xl mx-auto px-4 flex gap-6">
         <Link
           href="/mod/games/new"
           className={linkClass(pathname.startsWith('/mod/games') || pathname.startsWith('/mod/game'))}
@@ -30,6 +31,7 @@ export function ModSubNav() {
         >
           {t('mod.aiAssistantNav')}
         </Link>
+        </div>
       </div>
     </nav>
   )

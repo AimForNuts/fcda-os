@@ -17,20 +17,22 @@ export function AdminNav() {
   ]
 
   return (
-    <nav className="flex gap-0 border-b border-border">
-      {tabs.map((tab) => (
-        <Link
-          key={tab.href}
-          href={tab.href}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-            pathname.startsWith(tab.href)
-              ? 'border-fcda-gold text-foreground'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {tab.label}
-        </Link>
-      ))}
+    <nav className="overflow-x-auto border-b border-border [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex">
+        {tabs.map((tab) => (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className={`whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              pathname.startsWith(tab.href)
+                ? 'border-fcda-gold text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
     </nav>
   )
 }
