@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { fetchSessionContext } from '@/lib/auth/permissions'
+import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import {
   resolveLinkedPlayerIdentity,
   signPlayerAvatarRecords,
@@ -19,12 +19,17 @@ export default async function PlayersPage() {
 
   const supabase = await createClient()
   const isApproved = session.profile.approved
+  const canViewRatings = canAccessMod(session.roles)
   const linkedPlayer = await resolveLinkedPlayerIdentity(session.userId, isApproved)
 
   const [playersRes, statsRes] = await Promise.all([
     supabase
       .from('players_public')
-      .select('id, display_name, shirt_number, current_rating, profile_id, avatar_path')
+      .select(
+        canViewRatings
+          ? 'id, display_name, shirt_number, current_rating, profile_id, avatar_path'
+          : 'id, display_name, shirt_number, profile_id, avatar_path'
+      )
       .order('shirt_number', { ascending: true, nullsFirst: false })
       .order('display_name', { ascending: true })
       .overrideTypes<
@@ -34,10 +39,9 @@ export default async function PlayersPage() {
             | 'id'
             | 'display_name'
             | 'shirt_number'
-            | 'current_rating'
             | 'profile_id'
             | 'avatar_path'
-          >
+          > & { current_rating?: number | null }
         >,
         { merge: false }
       >(),
@@ -60,6 +64,7 @@ export default async function PlayersPage() {
       <PlayersTable
         players={rows}
         isApproved={isApproved}
+        canViewRatings={canViewRatings}
         highlightedPlayerId={linkedPlayer?.id ?? null}
       />
     </div>
