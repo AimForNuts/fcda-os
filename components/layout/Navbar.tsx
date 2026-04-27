@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -36,6 +36,8 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
   const { t } = useTranslation()
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const hamburgerRef = useRef<HTMLButtonElement>(null)
   const isMod = roles.includes('mod') || roles.includes('admin')
   const isAdmin = roles.includes('admin')
 
@@ -64,6 +66,14 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen) {
+      closeButtonRef.current?.focus()
+    } else {
+      hamburgerRef.current?.focus()
+    }
   }, [isOpen])
 
   const drawerLinkClass =
@@ -182,10 +192,12 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
 
           {/* Hamburger button — mobile only */}
           <button
+            ref={hamburgerRef}
             type="button"
             className="md:hidden rounded p-1 text-white/70 hover:text-white"
             aria-label="Open menu"
             aria-expanded={isOpen}
+            aria-controls="mobile-nav-drawer"
             onClick={() => setIsOpen(true)}
           >
             <Menu className="h-5 w-5" />
@@ -201,11 +213,15 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
-          <div className="fixed inset-y-0 right-0 z-50 flex w-64 flex-col bg-fcda-navy shadow-xl md:hidden">
+          <div
+            id="mobile-nav-drawer"
+            className="fixed inset-y-0 right-0 z-50 flex w-64 flex-col bg-fcda-navy shadow-xl md:hidden"
+          >
             {/* Drawer header */}
             <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
               <span className="text-lg font-bold text-fcda-gold">FCDA</span>
               <button
+                ref={closeButtonRef}
                 type="button"
                 onClick={() => setIsOpen(false)}
                 aria-label="Close menu"
