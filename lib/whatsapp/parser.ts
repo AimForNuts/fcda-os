@@ -23,6 +23,7 @@ export type ParsedEntry = {
  */
 export function normaliseAlias(raw: string): string {
   return raw
+    .replace(/[\u200b-\u200f\u2028-\u202f\u2060-\u206f\ufeff]/gu, '') // strip invisible Unicode control chars (e.g. WhatsApp bidi isolates U+2068/U+2069)
     .trim()
     .toLowerCase()
     .normalize('NFD')
