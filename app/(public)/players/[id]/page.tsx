@@ -411,77 +411,7 @@ export default async function PlayerProfilePage({
             ))}
           </div>
         )}
-<<<<<<< HEAD
       </section>
-=======
-      </div>
-
-      {/* Stats */}
-      <div className={`grid gap-4 ${canViewRatings ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-1'}`}>
-        {canViewRatings && (
-          <div className="rounded-lg border border-border p-4 text-center">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Nota</p>
-            <p className="text-2xl font-bold text-fcda-navy">
-              {resolvedPlayer.current_rating != null ? resolvedPlayer.current_rating.toFixed(1) : '—'}
-            </p>
-          </div>
-        )}
-        <div className="rounded-lg border border-border p-4 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Jogos</p>
-          <p className="text-2xl font-bold text-fcda-navy">{matchesPlayed}</p>
-        </div>
-      </div>
-
-      {/* Match history — own profile only */}
-      {isOwnProfile && (
-        <div>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-            Histórico
-          </h2>
-          {matchHistory.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem jogos registados.</p>
-          ) : (
-            <div className="rounded-lg border border-border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-fcda-navy text-white text-xs uppercase tracking-wide">
-                    <th className="px-4 py-2.5 text-left font-semibold">Data</th>
-                    <th className="px-4 py-2.5 text-left font-semibold">Local</th>
-                    <th className="px-4 py-2.5 text-center font-semibold">Equipa</th>
-                    <th className="px-4 py-2.5 text-center font-semibold">Resultado</th>
-                    {canViewRatings && <th className="px-4 py-2.5 text-right font-semibold">Nota</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {matchHistory.map((m, i) => (
-                    <tr
-                      key={m.game_id}
-                      className={i % 2 === 0 ? 'bg-background' : 'bg-muted/30'}
-                    >
-                      <td className="px-4 py-2.5 whitespace-nowrap">{dateStr(m.date)}</td>
-                      <td className="px-4 py-2.5 text-muted-foreground">{m.location}</td>
-                      <td className="px-4 py-2.5 text-center">
-                        {m.team === 'a' ? 'Branca' : m.team === 'b' ? 'Preta' : '—'}
-                      </td>
-                      <td className="px-4 py-2.5 text-center tabular-nums font-medium">
-                        {m.score_a != null && m.score_b != null
-                          ? `${m.score_a}–${m.score_b}`
-                          : '—'}
-                      </td>
-                      {canViewRatings && (
-                        <td className="px-4 py-2.5 text-right tabular-nums font-medium">
-                          {m.rating != null ? m.rating.toFixed(1) : '—'}
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
->>>>>>> 691023d (fix: hide per-game ratings and fix grid layout for non-mod users in player profile)
     </div>
   )
 }
