@@ -33,6 +33,12 @@ type Props = {
   defaultCountsForStats: boolean
 }
 
+function toDatetimeLocal(iso: string): string {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 export function EditGameForm({ gameId, defaultDate, defaultLocation, defaultCountsForStats }: Props) {
   const { t } = useTranslation()
   const router = useRouter()
@@ -45,7 +51,7 @@ export function EditGameForm({ gameId, defaultDate, defaultLocation, defaultCoun
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      date: defaultDate,
+      date: toDatetimeLocal(defaultDate),
       location: defaultLocation,
       counts_for_stats: defaultCountsForStats,
     },

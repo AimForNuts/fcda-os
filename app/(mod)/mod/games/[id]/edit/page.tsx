@@ -19,16 +19,11 @@ export default async function EditGamePage({
 
   if (!game) notFound()
 
-  // Convert UTC-stored date to local time for datetime-local input (which expects local time)
-  const d = new Date(game.date)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const dateForInput = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-
   return (
     <div className="max-w-lg mx-auto">
       <EditGameForm
         gameId={id}
-        defaultDate={dateForInput}
+        defaultDate={game.date}
         defaultLocation={game.location}
         defaultCountsForStats={game.counts_for_stats}
       />
