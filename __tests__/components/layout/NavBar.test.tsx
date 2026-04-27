@@ -30,6 +30,7 @@ describe('Navbar', () => {
 
   it('renders Players link between Matches and Stats', () => {
     render(<Navbar profile={null} roles={[]} pendingCount={0} />)
+    // Drawer is mount-gated on isOpen (false by default), so only desktop nav links are in the DOM
     const links = screen.getAllByRole('link')
     const hrefs = links.map((l) => l.getAttribute('href'))
     const matchesIdx = hrefs.indexOf('/matches')
@@ -60,6 +61,14 @@ describe('Navbar', () => {
     render(<Navbar profile={null} roles={[]} pendingCount={0} />)
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Close menu' }))
+    expect(screen.getByRole('button', { name: 'Open menu' })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument()
+  })
+
+  it('pressing Escape closes the drawer', () => {
+    render(<Navbar profile={null} roles={[]} pendingCount={0} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+    fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.getByRole('button', { name: 'Open menu' })).toHaveAttribute('aria-expanded', 'false')
     expect(screen.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument()
   })
