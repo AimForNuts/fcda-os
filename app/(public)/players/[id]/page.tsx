@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ShieldCheck, Star, Swords, Target, Trophy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { fetchSessionContext } from '@/lib/auth/permissions'
+import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -77,16 +77,23 @@ export default async function PlayerProfilePage({
   }
 
   const supabase = await createClient()
+  const isApproved = session.profile.approved
+  const canViewRatings = canAccessMod(session.roles)
 
   const { data: player } = await supabase
     .from('players_public')
-    .select('id, display_name, shirt_number, current_rating, profile_id, avatar_path')
+    .select(
+      canViewRatings
+        ? 'id, display_name, shirt_number, current_rating, profile_id, avatar_path'
+        : 'id, display_name, shirt_number, profile_id, avatar_path'
+    )
     .eq('id', id)
-    .single() as { data: PlayerPublic | null; error: unknown }
+    .single() as {
+      data: (Omit<PlayerPublic, 'current_rating'> & { current_rating?: number | null }) | null
+      error: unknown
+    }
 
   if (!player) notFound()
-
-  const isApproved = session.profile.approved
   const [resolvedPlayer] = await signPlayerAvatarRecords([player], isApproved)
 
   const { data: gps } = await supabase
@@ -136,17 +143,19 @@ export default async function PlayerProfilePage({
         error: unknown
       }
 
-    const { data: ratings } = await supabase
-      .from('rating_submissions')
-      .select('game_id, rating')
-      .eq('rated_player_id', id)
-      .eq('status', 'approved')
-      .in('game_id', gameIds) as {
-        data: { game_id: string; rating: number }[] | null
-        error: unknown
-      }
-
-    const ratingByGame = new Map((ratings ?? []).map((rating) => [rating.game_id, rating.rating]))
+    let ratingByGame = new Map<string, number>()
+    if (canViewRatings) {
+      const { data: ratings } = await supabase
+        .from('rating_submissions')
+        .select('game_id, rating')
+        .eq('rated_player_id', id)
+        .eq('status', 'approved')
+        .in('game_id', gameIds) as {
+          data: { game_id: string; rating: number }[] | null
+          error: unknown
+        }
+      ratingByGame = new Map((ratings ?? []).map((rating) => [rating.game_id, rating.rating]))
+    }
 
     matchHistory = (games ?? []).map((game) => ({
       game_id: game.id,
@@ -203,16 +212,18 @@ export default async function PlayerProfilePage({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:min-w-[18rem]">
-            <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
-              <div className="flex items-center gap-2 text-white/75">
-                <Star className="size-4" />
-                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Nota</span>
+          <div className={`grid gap-3 sm:min-w-[18rem] ${canViewRatings ? 'grid-cols-2' : 'grid-cols-3'}`}>
+            {canViewRatings && (
+              <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
+                <div className="flex items-center gap-2 text-white/75">
+                  <Star className="size-4" />
+                  <span className="text-xs font-semibold uppercase tracking-[0.2em]">Nota</span>
+                </div>
+                <p className="mt-3 text-3xl font-black">
+                  {resolvedPlayer.current_rating != null ? resolvedPlayer.current_rating.toFixed(1) : '—'}
+                </p>
               </div>
-              <p className="mt-3 text-3xl font-black">
-                {resolvedPlayer.current_rating != null ? resolvedPlayer.current_rating.toFixed(1) : '—'}
-              </p>
-            </div>
+            )}
             <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
               <div className="flex items-center gap-2 text-white/75">
                 <Swords className="size-4" />
@@ -366,7 +377,7 @@ export default async function PlayerProfilePage({
                       <p className="text-xs text-muted-foreground sm:text-sm">{match.location}</p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 sm:min-w-[18rem]">
+                    <div className={`grid gap-2 ${canViewRatings ? 'grid-cols-3 sm:min-w-[18rem]' : 'grid-cols-2 sm:min-w-[12rem]'}`}>
                       <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                           Equipa
@@ -383,14 +394,16 @@ export default async function PlayerProfilePage({
                             : '—'}
                         </p>
                       </div>
-                      <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Nota
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-fcda-navy">
-                          {match.rating != null ? match.rating.toFixed(1) : '—'}
-                        </p>
-                      </div>
+                      {canViewRatings && (
+                        <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            Nota
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-fcda-navy">
+                            {match.rating != null ? match.rating.toFixed(1) : '—'}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
