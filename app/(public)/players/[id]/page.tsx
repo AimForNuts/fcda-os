@@ -212,7 +212,7 @@ export default async function PlayerProfilePage({
             </div>
           </div>
 
-          <div className={`grid gap-3 sm:min-w-[18rem] ${canViewRatings ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <div className={`grid gap-3 ${canViewRatings ? 'grid-cols-2' : 'grid-cols-3'}`}>
             {canViewRatings && (
               <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
                 <div className="flex items-center gap-2 text-white/75">
@@ -377,7 +377,7 @@ export default async function PlayerProfilePage({
                       <p className="text-xs text-muted-foreground sm:text-sm">{match.location}</p>
                     </div>
 
-                    <div className={`grid gap-2 ${canViewRatings ? 'grid-cols-3 sm:min-w-[18rem]' : 'grid-cols-2 sm:min-w-[12rem]'}`}>
+                    <div className={`grid gap-2 ${canViewRatings ? 'grid-cols-3' : 'grid-cols-2'}`}>
                       <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                           Equipa

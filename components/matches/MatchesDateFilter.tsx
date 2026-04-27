@@ -47,7 +47,7 @@ export function MatchesDateFilter({ className }: { className?: string }) {
             else p.delete('from')
           })
         }}
-        className="h-8 w-[9.25rem] min-w-0 shrink-0 px-2 text-[13px] md:w-36"
+        className="h-8 w-full min-w-0 shrink px-2 text-[13px] sm:w-36"
       />
       <span className="shrink-0 select-none text-muted-foreground" aria-hidden>
         —
@@ -63,7 +63,7 @@ export function MatchesDateFilter({ className }: { className?: string }) {
             else p.delete('to')
           })
         }}
-        className="h-8 w-[9.25rem] min-w-0 shrink-0 px-2 text-[13px] md:w-36"
+        className="h-8 w-full min-w-0 shrink px-2 text-[13px] sm:w-36"
       />
       {hasFilter ? (
         <Button
