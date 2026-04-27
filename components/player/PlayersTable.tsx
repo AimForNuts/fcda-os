@@ -16,9 +16,10 @@ type Props = {
   players: PlayerRow[]
   isApproved: boolean
   highlightedPlayerId?: string | null
+  canViewRatings: boolean
 }
 
-export function PlayersTable({ players, isApproved, highlightedPlayerId = null }: Props) {
+export function PlayersTable({ players, isApproved, highlightedPlayerId = null, canViewRatings }: Props) {
   const [searchValue, setSearchValue] = useState('')
   const deferredSearchValue = useDeferredValue(searchValue)
 
@@ -65,18 +66,22 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
       align: 'right',
       cell: (player) => <span className="tabular-nums">{player.total_all}</span>,
     },
-    {
-      id: 'current_rating',
-      header: 'Nota',
-      sortable: true,
-      sortValue: (player) => player.current_rating,
-      align: 'right',
-      cell: (player) => (
-        <span className="tabular-nums font-medium">
-          {player.current_rating != null ? player.current_rating.toFixed(1) : '—'}
-        </span>
-      ),
-    },
+    ...(canViewRatings
+      ? [
+          {
+            id: 'current_rating',
+            header: 'Nota',
+            sortable: true,
+            sortValue: (player: PlayerRow) => player.current_rating,
+            align: 'right' as const,
+            cell: (player: PlayerRow) => (
+              <span className="tabular-nums font-medium">
+                {player.current_rating != null ? player.current_rating.toFixed(1) : '—'}
+              </span>
+            ),
+          },
+        ]
+      : []),
   ]
 
   return (
