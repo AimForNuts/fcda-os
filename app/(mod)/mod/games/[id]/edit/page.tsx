@@ -19,9 +19,10 @@ export default async function EditGamePage({
 
   if (!game) notFound()
 
-  // Format date for datetime-local input: strip seconds + timezone offset
-  // Input expects "YYYY-MM-DDTHH:MM"
-  const dateForInput = game.date.slice(0, 16)
+  // Convert UTC-stored date to local time for datetime-local input (which expects local time)
+  const d = new Date(game.date)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const dateForInput = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 
   return (
     <div className="max-w-lg mx-auto">

@@ -53,7 +53,7 @@ export function EditGameForm({ gameId, defaultDate, defaultLocation, defaultCoun
 
   async function onSubmit(data: FormData) {
     setServerError(null)
-    const date = data.date.length === 16 ? data.date + ':00' : data.date
+    const date = new Date(data.date).toISOString()
 
     const res = await fetch(`/api/games/${gameId}`, {
       method: 'PATCH',
