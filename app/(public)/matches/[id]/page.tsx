@@ -6,6 +6,7 @@ import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupGrid } from '@/components/matches/LineupGrid'
 import { MatchScoreHero } from '@/components/matches/MatchScoreHero'
+import { GameDateTime } from '@/components/matches/GameDateTime'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { PlayerPublic, GamePlayer, Game } from '@/types'
@@ -100,25 +101,13 @@ export default async function MatchDetailPage({
     .map((gp) => playerMap.get(gp.player_id))
     .filter((p): p is (PlayerPublic & { avatar_url: string | null }) => p != null)
 
-  const d = new Date(game.date)
-  const dateStr = d.toLocaleDateString('pt-PT', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  })
-  const timeStr = d.toLocaleTimeString('pt-PT', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-
   return (
     <div className="container max-w-screen-md mx-auto px-4 py-8 space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-0.5">
           <p className="text-sm font-medium">
-            {dateStr.charAt(0).toUpperCase() + dateStr.slice(1)} · {timeStr}
+            <GameDateTime iso={game.date} />
           </p>
           <p className="text-sm text-muted-foreground">{game.location}</p>
         </div>
