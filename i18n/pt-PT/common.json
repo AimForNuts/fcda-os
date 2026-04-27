@@ -192,6 +192,7 @@
       "roleFailed": "Erro ao atualizar função.",
       "playerUpdateFailed": "Erro ao atualizar jogador.",
       "aliasFailed": "Erro ao guardar alias.",
+      "aliasDuplicate": "Este alias já existe.",
       "linkFailed": "Erro ao ligar.",
       "ratingFailed": "Erro ao atualizar avaliação.",
       "feedbackFailed": "Erro ao atualizar feedback."

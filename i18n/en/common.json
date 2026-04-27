@@ -192,6 +192,7 @@
       "roleFailed": "Failed to update role.",
       "playerUpdateFailed": "Failed to update player.",
       "aliasFailed": "Failed to save alias.",
+      "aliasDuplicate": "This alias already exists.",
       "linkFailed": "Failed to link.",
       "ratingFailed": "Failed to update rating.",
       "feedbackFailed": "Failed to update feedback."

@@ -135,6 +135,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ alias_display: display }),
       })
+      if (res.status === 409) throw new Error(t('admin.errors.aliasDuplicate'))
       if (!res.ok) throw new Error()
       const newAlias: { id: string; alias_display: string } = await res.json()
       setRows((prev) =>
