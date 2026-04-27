@@ -7,7 +7,8 @@ import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { cn } from '@/lib/utils'
 import type { PlayerPublic } from '@/types'
 
-type PlayerRow = PlayerPublic & {
+type PlayerRow = Omit<PlayerPublic, 'current_rating'> & {
+  current_rating?: number | null
   avatar_url?: string | null
   total_all: number
 }
