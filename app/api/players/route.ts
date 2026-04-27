@@ -22,11 +22,7 @@ export async function GET(request: Request) {
 
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('players')
-    .select('id, sheet_name, shirt_number, avatar_path')
-    .ilike('sheet_name', `%${q}%`)
-    .order('sheet_name')
-    .limit(20) as {
+    .rpc('search_players', { q }) as {
       data: Array<{
         id: string
         sheet_name: string
