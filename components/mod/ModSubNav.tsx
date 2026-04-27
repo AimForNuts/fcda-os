@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
 export function ModSubNav() {
+  const { t } = useTranslation()
   const pathname = usePathname()
 
   const linkClass = (active: boolean) =>
@@ -20,13 +22,13 @@ export function ModSubNav() {
           href="/mod/games/new"
           className={linkClass(pathname.startsWith('/mod/games') || pathname.startsWith('/mod/game'))}
         >
-          Games
+          {t('mod.gamesNav')}
         </Link>
         <Link
           href="/mod/ai-assistant"
           className={linkClass(pathname === '/mod/ai-assistant')}
         >
-          AI Assistant
+          {t('mod.aiAssistantNav')}
         </Link>
       </div>
     </nav>

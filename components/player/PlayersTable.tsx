@@ -1,6 +1,7 @@
 'use client'
 
 import { useDeferredValue, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import { PlayerTableFilters } from '@/components/player/PlayerTableFilters'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
@@ -21,6 +22,7 @@ type Props = {
 }
 
 export function PlayersTable({ players, isApproved, highlightedPlayerId = null, canViewRatings }: Props) {
+  const { t } = useTranslation()
   const [searchValue, setSearchValue] = useState('')
   const deferredSearchValue = useDeferredValue(searchValue)
 
@@ -35,7 +37,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null, 
   const columns: Array<DataTableColumn<PlayerRow>> = [
     {
       id: 'shirt_number',
-      header: '#',
+      header: t('players.colNumber'),
       sortable: true,
       sortValue: (player) => player.shirt_number,
       cell: (player) => (
@@ -46,7 +48,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null, 
     },
     {
       id: 'player',
-      header: 'Jogador',
+      header: t('players.colPlayer'),
       sortable: true,
       sortValue: (player) => player.display_name,
       cell: (player) => (
@@ -61,7 +63,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null, 
     },
     {
       id: 'games',
-      header: 'Jogos',
+      header: t('players.colGames'),
       sortable: true,
       sortValue: (player) => player.total_all,
       align: 'right',
@@ -71,7 +73,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null, 
       ? [
           {
             id: 'current_rating',
-            header: 'Nota',
+            header: t('players.colRating'),
             sortable: true,
             sortValue: (player: PlayerRow) => player.current_rating,
             align: 'right' as const,
@@ -102,7 +104,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null, 
           )
         }
         emptyState={
-          <p className="text-sm text-muted-foreground py-4">Sem jogadores registados.</p>
+          <p className="text-sm text-muted-foreground py-4">{t('stats.noPlayers')}</p>
         }
         defaultSort={{ columnId: 'player', direction: 'asc' }}
       />

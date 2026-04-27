@@ -1,3 +1,6 @@
+'use client'
+
+import { useTranslation } from 'react-i18next'
 import type { PlayerPublic } from '@/types'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import { TeamHeader } from '@/components/matches/TeamHeader'
@@ -27,10 +30,12 @@ function PlayerRow({ player, isApproved }: { player: LineupPlayer; isApproved?: 
 }
 
 export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
+  const { t } = useTranslation()
+
   if (teamA.length === 0 && teamB.length === 0 && unassigned.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Convocatória não disponível.
+        {t('matches.noLineup')}
       </p>
     )
   }
@@ -57,7 +62,7 @@ export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
   return (
     <div>
       <h3 className="text-xs font-semibold uppercase tracking-wide text-fcda-navy mb-2">
-        Convocados
+        {t('matches.lineup')}
       </h3>
       {unassigned.map((p) => (
         <PlayerRow key={p.id} player={p} isApproved={isApproved} />

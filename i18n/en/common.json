@@ -82,12 +82,27 @@
       "ratingFailed": "Failed to submit ratings."
     }
   },
+  "players": {
+    "nameLabel": "Name",
+    "searchPlaceholder": "Search player...",
+    "colNumber": "#",
+    "colPlayer": "Player",
+    "colGames": "Games",
+    "colRating": "Rating"
+  },
   "stats": {
     "title": "Stats",
     "player": "Player",
     "rating": "Rating",
     "noPlayers": "No player data yet.",
-    "anonymisedNote": "Sign in to see player names."
+    "anonymisedNote": "Sign in to see player names.",
+    "colGames": "Games",
+    "colWins": "Wins",
+    "colDraws": "Draws",
+    "colLosses": "Losses",
+    "colPoints": "Points",
+    "modeAll": "All",
+    "modeCompetitive": "Competitive"
   },
   "mod": {
     "newGame": "New Game",
@@ -100,6 +115,8 @@
     "saveChanges": "Save Changes",
     "editLineup": "Edit Lineup",
     "finishGame": "Finish Game",
+    "gamesNav": "Games",
+    "aiAssistantNav": "AI Assistant",
     "game": {
       "created": "Game created.",
       "updated": "Game updated.",

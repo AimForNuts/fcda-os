@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useDeferredValue } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { PlayerStats } from '@/types'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import { PlayerTableFilters } from '@/components/player/PlayerTableFilters'
@@ -26,6 +27,7 @@ export function StatsTable({
   isAnonymised,
   highlightedPlayerId = null,
 }: Props) {
+  const { t } = useTranslation()
   const [mode, setMode] = useState<'all' | 'competitive'>('all')
   const [searchValue, setSearchValue] = useState('')
   const deferredSearchValue = useDeferredValue(searchValue)
@@ -51,7 +53,7 @@ export function StatsTable({
   if (players.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-4">
-        Sem dados de jogadores.
+        {t('stats.noPlayers')}
       </p>
     )
   }
@@ -59,7 +61,7 @@ export function StatsTable({
   const columns: Array<DataTableColumn<StatsRow>> = [
     {
       id: 'shirt_number',
-      header: '#',
+      header: t('players.colNumber'),
       sortable: true,
       sortValue: (player) => player.shirt_number,
       cell: (player) => (
@@ -70,7 +72,7 @@ export function StatsTable({
     },
     {
       id: 'player',
-      header: 'Jogador',
+      header: t('players.colPlayer'),
       sortable: true,
       sortValue: (player) => player.display_name,
       cell: (player) => (
@@ -85,7 +87,7 @@ export function StatsTable({
     },
     {
       id: 'games',
-      header: 'Jogos',
+      header: t('stats.colGames'),
       sortable: true,
       sortValue: (player) => player.total,
       align: 'right',
@@ -93,7 +95,7 @@ export function StatsTable({
     },
     {
       id: 'wins',
-      header: 'Vitórias',
+      header: t('stats.colWins'),
       sortable: true,
       sortValue: (player) => player.wins,
       align: 'right',
@@ -101,7 +103,7 @@ export function StatsTable({
     },
     {
       id: 'draws',
-      header: 'Empates',
+      header: t('stats.colDraws'),
       sortable: true,
       sortValue: (player) => player.draws,
       align: 'right',
@@ -109,7 +111,7 @@ export function StatsTable({
     },
     {
       id: 'losses',
-      header: 'Derrotas',
+      header: t('stats.colLosses'),
       sortable: true,
       sortValue: (player) => player.losses,
       align: 'right',
@@ -117,7 +119,7 @@ export function StatsTable({
     },
     {
       id: 'points',
-      header: 'Pontos',
+      header: t('stats.colPoints'),
       sortable: true,
       sortValue: (player) => player.points,
       align: 'right',
@@ -141,7 +143,7 @@ export function StatsTable({
               : 'border border-input text-muted-foreground hover:bg-muted'
           }`}
         >
-          Todos
+          {t('stats.modeAll')}
         </button>
         <button
           type="button"
@@ -152,7 +154,7 @@ export function StatsTable({
               : 'border border-input text-muted-foreground hover:bg-muted'
           }`}
         >
-          Competitivos
+          {t('stats.modeCompetitive')}
         </button>
       </div>
 
@@ -168,14 +170,10 @@ export function StatsTable({
         }
         emptyState={
           <p className="text-sm text-muted-foreground py-4">
-            Sem dados de jogadores.
+            {t('stats.noPlayers')}
           </p>
         }
-        banner={
-          isAnonymised
-            ? 'Inicia sessão para ver os nomes dos jogadores.'
-            : undefined
-        }
+        banner={isAnonymised ? t('stats.anonymisedNote') : undefined}
         defaultSort={{ columnId: 'games', direction: 'desc' }}
       />
     </div>

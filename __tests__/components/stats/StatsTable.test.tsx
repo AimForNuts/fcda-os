@@ -1,6 +1,29 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { StatsTable } from '@/components/stats/StatsTable'
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (k: string) => {
+      const map: Record<string, string> = {
+        'players.colNumber': '#',
+        'players.colPlayer': 'Jogador',
+        'players.nameLabel': 'Nome',
+        'players.searchPlaceholder': 'Procurar jogador...',
+        'stats.colGames': 'Jogos',
+        'stats.colWins': 'Vitórias',
+        'stats.colDraws': 'Empates',
+        'stats.colLosses': 'Derrotas',
+        'stats.colPoints': 'Pontos',
+        'stats.modeAll': 'Todos',
+        'stats.modeCompetitive': 'Competitivos',
+        'stats.noPlayers': 'Ainda sem dados de jogadores.',
+        'stats.anonymisedNote': 'Inicia sessão para ver os nomes dos jogadores.',
+      }
+      return map[k] ?? k
+    },
+  }),
+}))
 import type { PlayerStats } from '@/types'
 
 const players: PlayerStats[] = [
@@ -63,7 +86,7 @@ describe('StatsTable', () => {
 
   it('renders empty state when no players', () => {
     render(<StatsTable players={[]} isAnonymised={false} />)
-    expect(screen.getByText(/Sem dados/)).toBeInTheDocument()
+    expect(screen.getByText(/sem dados/i)).toBeInTheDocument()
   })
 
   it('renders shirt number in the number column when present', () => {

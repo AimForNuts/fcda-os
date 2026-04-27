@@ -82,12 +82,27 @@
       "ratingFailed": "Erro ao submeter avaliações."
     }
   },
+  "players": {
+    "nameLabel": "Nome",
+    "searchPlaceholder": "Procurar jogador...",
+    "colNumber": "#",
+    "colPlayer": "Jogador",
+    "colGames": "Jogos",
+    "colRating": "Nota"
+  },
   "stats": {
     "title": "Estatísticas",
     "player": "Jogador",
     "rating": "Nota",
     "noPlayers": "Ainda sem dados de jogadores.",
-    "anonymisedNote": "Inicia sessão para ver os nomes dos jogadores."
+    "anonymisedNote": "Inicia sessão para ver os nomes dos jogadores.",
+    "colGames": "Jogos",
+    "colWins": "Vitórias",
+    "colDraws": "Empates",
+    "colLosses": "Derrotas",
+    "colPoints": "Pontos",
+    "modeAll": "Todos",
+    "modeCompetitive": "Competitivos"
   },
   "mod": {
     "newGame": "Novo Jogo",
@@ -100,6 +115,8 @@
     "saveChanges": "Guardar Alterações",
     "editLineup": "Editar Convocados",
     "finishGame": "Terminar Jogo",
+    "gamesNav": "Jogos",
+    "aiAssistantNav": "Assistente IA",
     "game": {
       "created": "Jogo criado.",
       "updated": "Jogo atualizado.",
@@ -149,10 +166,10 @@
     "approved": "Aprovado",
     "approve": "Aprovar",
     "unapprove": "Revogar",
-    "linkPlayer": "Ligar jogador",
-    "unlinkPlayer": "Desligar jogador",
-    "linkUser": "Ligar utilizador",
-    "unlinkUser": "Desligar utilizador",
+    "linkPlayer": "Associar jogador",
+    "unlinkPlayer": "Desassociar jogador",
+    "linkUser": "Associar utilizador",
+    "unlinkUser": "Desassociar utilizador",
     "guest": "Convidado",
     "addAlias": "Adicionar alias",
     "noPlayer": "—",
@@ -165,14 +182,14 @@
     "rejectAll": "Rejeitar tudo",
     "noRatings": "Sem avaliações pendentes.",
     "feedback": "Feedback",
-    "coach": "Coach",
+    "coach": "Treinador",
     "closeItem": "Fechar",
     "noOpenFeedback": "Sem feedback em aberto.",
     "openFeedback": "Em aberto",
     "closedFeedback": "Fechado",
     "errors": {
       "approveFailed": "Erro ao atualizar aprovação.",
-      "roleFailed": "Erro ao atualizar papel.",
+      "roleFailed": "Erro ao atualizar função.",
       "playerUpdateFailed": "Erro ao atualizar jogador.",
       "aliasFailed": "Erro ao guardar alias.",
       "linkFailed": "Erro ao ligar.",

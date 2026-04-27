@@ -8,14 +8,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import { TeamHeader } from '@/components/matches/TeamHeader'
+import { useTranslation } from 'react-i18next'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import type { Game } from '@/types'
-
-const STATUS_LABEL: Record<Game['status'], string> = {
-  scheduled: 'Agendado',
-  finished: 'Terminado',
-  cancelled: 'Cancelado',
-}
 
 export type LineupSummary = {
   teamA: Array<{ id: string; name: string; avatar_url: string | null; shirt_number: number | null }>
@@ -34,6 +29,7 @@ function toTitleCase(name: string): string {
 type Props = { game: Game; lineup?: LineupSummary; showAvatars?: boolean }
 
 export function MatchCard({ game, lineup, showAvatars = false }: Props) {
+  const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(
     game.status === 'finished' || game.status === 'cancelled'
   )
@@ -102,7 +98,7 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
                       : 'secondary'
                 }
               >
-                {STATUS_LABEL[game.status]}
+                {t(`matches.status.${game.status}`)}
               </Badge>
               {hasPlayers && (
                 <button

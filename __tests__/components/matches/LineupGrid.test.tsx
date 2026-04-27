@@ -1,7 +1,19 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { LineupGrid } from '@/components/matches/LineupGrid'
 import type { PlayerPublic } from '@/types'
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (k: string) => {
+      const map: Record<string, string> = {
+        'matches.noLineup': 'Convocatória não disponível.',
+        'matches.lineup': 'Convocatória',
+      }
+      return map[k] ?? k
+    },
+  }),
+}))
 
 const makePlayer = (id: string, name: string, shirt?: number): PlayerPublic => ({
   id,
@@ -33,7 +45,7 @@ describe('LineupGrid', () => {
   it('renders unassigned list when no team assignments', () => {
     const players = [makePlayer('1', 'Rui'), makePlayer('2', 'Pedro')]
     render(<LineupGrid teamA={[]} teamB={[]} unassigned={players} />)
-    expect(screen.getByText('Convocados')).toBeInTheDocument()
+    expect(screen.getByText('Convocatória')).toBeInTheDocument()
     expect(screen.getByText('Rui')).toBeInTheDocument()
     expect(screen.getByText('Pedro')).toBeInTheDocument()
   })

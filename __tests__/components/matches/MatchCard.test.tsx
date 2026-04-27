@@ -1,6 +1,19 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MatchCard } from '@/components/matches/MatchCard'
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (k: string) => {
+      const map: Record<string, string> = {
+        'matches.status.scheduled': 'Agendado',
+        'matches.status.finished': 'Terminado',
+        'matches.status.cancelled': 'Cancelado',
+      }
+      return map[k] ?? k
+    },
+  }),
+}))
 import type { Game } from '@/types'
 import type { LineupSummary } from '@/components/matches/MatchCard'
 

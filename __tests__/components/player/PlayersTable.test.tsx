@@ -1,6 +1,23 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { PlayersTable } from '@/components/player/PlayersTable'
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (k: string) => {
+      const map: Record<string, string> = {
+        'players.colNumber': '#',
+        'players.colPlayer': 'Jogador',
+        'players.colGames': 'Jogos',
+        'players.colRating': 'Nota',
+        'players.nameLabel': 'Nome',
+        'players.searchPlaceholder': 'Procurar jogador...',
+        'stats.noPlayers': 'Ainda sem dados de jogadores.',
+      }
+      return map[k] ?? k
+    },
+  }),
+}))
 
 const players = [
   {
