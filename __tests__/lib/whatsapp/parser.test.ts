@@ -57,4 +57,19 @@ describe('extractNames', () => {
   it('filters out blank names after stripping @', () => {
     expect(extractNames('@\n@João')).toEqual(['João'])
   })
+
+  it('extracts name when bidi isolate wraps the name after @', () => {
+    // WhatsApp format: @<U+2068>Ze Pedro<U+2069>
+    expect(extractNames('@⁨Ze Pedro⁩')).toEqual(['Ze Pedro'])
+  })
+
+  it('extracts name when bidi isolate precedes @', () => {
+    // Defensive: bidi char before @ should not block detection
+    expect(extractNames('⁨@Ze Pedro⁩')).toEqual(['Ze Pedro'])
+  })
+
+  it('normalised form of extracted name matches clean alias', () => {
+    const [name] = extractNames('@⁨Ze Pedro⁩')
+    expect(normaliseAlias(name!)).toBe('ze pedro')
+  })
 })
