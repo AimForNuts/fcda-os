@@ -57,22 +57,21 @@ export async function POST() {
   const prompt = buildAiRatingPrompt(promptPlayers)
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY })
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ],
-    response_format: { type: 'json_object' },
-  })
-
-  const raw = completion.choices[0].message.content ?? '{}'
   let ratings: Array<{ player_id: string; suggested_rating: number }> = []
   try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
+    })
+    const raw = completion.choices[0].message.content ?? '{}'
     const parsed = JSON.parse(raw)
     ratings = parsed.ratings ?? []
   } catch {
-    return Response.json({ error: 'Failed to parse AI response' }, { status: 500 })
+    return Response.json({ error: 'Failed to contact AI' }, { status: 500 })
   }
 
   const ratingMap = new Map(ratings.map((r) => [r.player_id, r.suggested_rating]))
