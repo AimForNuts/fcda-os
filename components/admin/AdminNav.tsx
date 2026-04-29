@@ -14,6 +14,7 @@ export function AdminNav() {
     { href: '/admin/ratings', label: t('admin.ratings') },
     { href: '/admin/feedback', label: t('admin.feedback') },
     { href: '/admin/coach', label: t('admin.coach') },
+    { href: '/admin/ai-rating', label: 'AI Rating' },
   ]
 
   return (
