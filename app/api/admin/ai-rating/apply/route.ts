@@ -31,22 +31,25 @@ export async function POST(request: Request) {
       .eq('id', update.player_id)
       .single() as { data: { current_rating: number | null } | null; error: unknown }
 
-    await (admin.from('players') as any)
+    const { error: playerErr } = await (admin.from('players') as any)
       .update({ current_rating: update.new_rating, updated_at: now })
       .eq('id', update.player_id)
+    if (playerErr) return Response.json({ error: 'Failed to update player rating' }, { status: 500 })
 
-    await (admin.from('rating_submissions') as any)
+    const { error: submissionsErr } = await (admin.from('rating_submissions') as any)
       .update({ status: 'processed' })
       .eq('rated_player_id', update.player_id)
       .eq('status', 'approved')
+    if (submissionsErr) console.error('Failed to mark submissions processed', submissionsErr)
 
-    await admin.from('rating_history').insert({
+    const { error: historyErr } = await admin.from('rating_history').insert({
       player_id: update.player_id,
       rating: update.new_rating,
       previous_rating: player?.current_rating ?? null,
       changed_by: session.userId,
       notes: 'AI rating update',
     } as any)
+    if (historyErr) console.error('Failed to insert rating_history', historyErr)
   }
 
   return Response.json({ ok: true })
