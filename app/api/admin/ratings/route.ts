@@ -57,7 +57,7 @@ export async function PATCH(request: Request) {
     return Response.json({ ok: true })
   }
 
-  // Approve: mark all as approved
+  // Approve: mark all as approved (current_rating is updated via AI Rating tab only)
   const { error: approveErr } = await (admin.from('rating_submissions') as any)
     .update({ status: 'approved', reviewed_by: session.userId, reviewed_at: now })
     .eq('game_id', gameId)
@@ -65,42 +65,6 @@ export async function PATCH(request: Request) {
     .eq('status', 'pending')
 
   if (approveErr) return Response.json({ error: 'Failed to approve' }, { status: 500 })
-
-  // Per submission: insert rating_history and recalculate current_rating
-  for (const submission of batch) {
-    // Fetch player's current rating for the history record
-    const { data: player } = await admin
-      .from('players')
-      .select('current_rating')
-      .eq('id', submission.rated_player_id)
-      .single() as { data: { current_rating: number | null } | null; error: unknown }
-
-    const { error: historyErr } = await admin.from('rating_history').insert({
-      player_id: submission.rated_player_id,
-      rating: submission.rating,
-      previous_rating: player?.current_rating ?? null,
-      changed_by: session.userId,
-    } as any)
-    if (historyErr) console.error('rating_history insert failed', historyErr)
-
-    // Recalculate: average of ALL approved submissions for this player across all games
-    const { data: approvedRatings } = await admin
-      .from('rating_submissions')
-      .select('rating')
-      .eq('rated_player_id', submission.rated_player_id)
-      .eq('status', 'approved') as { data: Array<{ rating: number }> | null; error: unknown }
-
-    const allRatings = approvedRatings ?? []
-    if (allRatings.length === 0) continue
-
-    const avg = allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length
-    const newRating = Math.round(avg * 100) / 100
-
-    const { error: updateErr } = await (admin.from('players') as any)
-      .update({ current_rating: newRating, updated_at: now })
-      .eq('id', submission.rated_player_id)
-    if (updateErr) console.error('players current_rating update failed', updateErr)
-  }
 
   const { error: auditErr } = await admin.from('audit_log').insert({
     action: 'rating.approved',
