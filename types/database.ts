@@ -157,7 +157,7 @@ export type Database = {
           submitted_by: string
           rated_player_id: string
           rating: number
-          status: 'pending' | 'approved' | 'rejected'
+          status: 'pending' | 'approved' | 'rejected' | 'processed'
           reviewed_by: string | null
           reviewed_at: string | null
           feedback: string | null
@@ -169,14 +169,14 @@ export type Database = {
           submitted_by: string
           rated_player_id: string
           rating: number
-          status?: 'pending' | 'approved' | 'rejected'
+          status?: 'pending' | 'approved' | 'rejected' | 'processed'
           reviewed_by?: string | null
           reviewed_at?: string | null
           feedback?: string | null
           created_at?: string
         }
         Update: {
-          status?: 'pending' | 'approved' | 'rejected'
+          status?: 'pending' | 'approved' | 'rejected' | 'processed'
           reviewed_by?: string | null
           reviewed_at?: string | null
           feedback?: string | null
