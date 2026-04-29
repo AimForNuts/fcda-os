@@ -49,12 +49,11 @@ describe('buildAiRatingPrompt', () => {
 
   it('joins multiple players with newlines', () => {
     const result = buildAiRatingPrompt([
-      { player_id: 'a', player_name: 'A', current_rating: 8, approved_ratings: [9], feedback_texts: [] },
-      { player_id: 'b', player_name: 'B', current_rating: 6, approved_ratings: [], feedback_texts: [] },
+      { player_id: 'a', player_name: 'Ana', current_rating: 8, approved_ratings: [9], feedback_texts: [] },
+      { player_id: 'b', player_name: 'Bruno', current_rating: 6, approved_ratings: [], feedback_texts: [] },
     ])
-    const lines = result.split('\n')
-    expect(lines).toHaveLength(2)
-    expect(lines[0]).toContain('A (id:a)')
-    expect(lines[1]).toContain('B (id:b)')
+    expect(result).toBe(
+      'Ana (id:a) rating: 8 feedback ratings: 9\nBruno (id:b) rating: 6 feedback ratings: (none)'
+    )
   })
 })
