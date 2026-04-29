@@ -24,11 +24,11 @@ export async function PATCH(request: Request) {
   // Fetch the pending batch
   const { data: batch } = await admin
     .from('rating_submissions')
-    .select('id, rated_player_id, rating')
+    .select('id')
     .eq('game_id', gameId)
     .eq('submitted_by', submittedBy)
     .eq('status', 'pending') as {
-      data: Array<{ id: string; rated_player_id: string; rating: number }> | null
+      data: Array<{ id: string }> | null
       error: unknown
     }
 
