@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { PlayerRow } from './page'
 
 type Suggestion = {
@@ -16,8 +17,11 @@ export function AiRatingClient({ players }: { players: PlayerRow[] }) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [edited, setEdited] = useState<Record<string, number>>({})
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
-  const pendingCount = players.filter((p) => p.pending_count > 0).length
+  const pendingCount = state === 'confirm'
+    ? suggestions.filter((s) => s.pending_count > 0).length
+    : players.filter((p) => p.pending_count > 0).length
 
   async function handleProcess() {
     setError(null)
@@ -53,6 +57,7 @@ export function AiRatingClient({ players }: { players: PlayerRow[] }) {
     setState('idle')
     setSuggestions([])
     setEdited({})
+    router.refresh()
   }
 
   const displayRows: Array<Suggestion | PlayerRow> =
@@ -128,7 +133,9 @@ export function AiRatingClient({ players }: { players: PlayerRow[] }) {
                           onChange={(e) =>
                             setEdited((prev) => ({
                               ...prev,
-                              [row.player_id]: parseFloat(e.target.value) || 0,
+                              [row.player_id]: isNaN(parseFloat(e.target.value))
+                                ? (edited[row.player_id] ?? (row as Suggestion).suggested_rating)
+                                : parseFloat(e.target.value),
                             }))
                           }
                           className="w-16 text-right border border-border rounded px-1 py-0.5 bg-background"
