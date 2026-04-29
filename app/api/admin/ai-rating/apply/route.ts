@@ -8,7 +8,7 @@ const schema = z.object({
       player_id: z.string().uuid(),
       new_rating: z.number().min(0).max(10),
     })
-  ),
+  ).min(1),
 })
 
 export async function POST(request: Request) {

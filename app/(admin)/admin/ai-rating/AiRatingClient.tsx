@@ -17,6 +17,7 @@ export function AiRatingClient({ players }: { players: PlayerRow[] }) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [edited, setEdited] = useState<Record<string, number>>({})
   const [error, setError] = useState<string | null>(null)
+  const [isApplying, setIsApplying] = useState(false)
   const router = useRouter()
 
   const pendingCount = state === 'confirm'
@@ -41,18 +42,23 @@ export function AiRatingClient({ players }: { players: PlayerRow[] }) {
 
   async function handleApply() {
     setError(null)
-    const updates = suggestions.map((s) => ({
-      player_id: s.player_id,
-      new_rating: Math.round((edited[s.player_id] ?? s.suggested_rating) * 10) / 10,
-    }))
-    const res = await fetch('/api/admin/ai-rating/apply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ updates }),
-    })
-    if (!res.ok) {
-      setError('Falha ao aplicar avaliações. Tenta novamente.')
-      return
+    setIsApplying(true)
+    try {
+      const updates = suggestions.map((s) => ({
+        player_id: s.player_id,
+        new_rating: Math.round((edited[s.player_id] ?? s.suggested_rating) * 10) / 10,
+      }))
+      const res = await fetch('/api/admin/ai-rating/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates }),
+      })
+      if (!res.ok) {
+        setError('Falha ao aplicar avaliações. Tenta novamente.')
+        return
+      }
+    } finally {
+      setIsApplying(false)
     }
     setState('idle')
     setSuggestions([])
@@ -167,13 +173,15 @@ export function AiRatingClient({ players }: { players: PlayerRow[] }) {
         <div className="flex gap-3">
           <button
             onClick={handleApply}
-            className="px-4 py-2 bg-fcda-gold text-fcda-navy text-sm font-semibold rounded"
+            disabled={isApplying}
+            className="px-4 py-2 bg-fcda-gold text-fcda-navy text-sm font-semibold rounded disabled:opacity-40"
           >
-            Aplicar todas
+            {isApplying ? 'A aplicar…' : 'Aplicar todas'}
           </button>
           <button
             onClick={() => { setState('idle'); setEdited({}); setSuggestions([]) }}
-            className="px-4 py-2 border border-border text-sm rounded"
+            disabled={isApplying}
+            className="px-4 py-2 border border-border text-sm rounded disabled:opacity-40"
           >
             Cancelar
           </button>

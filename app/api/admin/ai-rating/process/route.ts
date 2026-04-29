@@ -69,7 +69,13 @@ export async function POST() {
     })
     const raw = completion.choices[0].message.content ?? '{}'
     const parsed = JSON.parse(raw)
-    ratings = parsed.ratings ?? []
+    ratings = (parsed.ratings ?? []).filter(
+      (r: unknown): r is { player_id: string; suggested_rating: number } =>
+        typeof (r as any)?.player_id === 'string' &&
+        typeof (r as any)?.suggested_rating === 'number' &&
+        (r as any).suggested_rating >= 0 &&
+        (r as any).suggested_rating <= 10
+    )
   } catch {
     return Response.json({ error: 'Failed to contact AI' }, { status: 500 })
   }
