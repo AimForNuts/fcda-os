@@ -25,71 +25,58 @@ function formatDate(iso: string) {
   })
 }
 
-function buildPrompt(players: PlayerEntry[]): string {
-  const lines = players.map((p) => {
-    const pos = p.preferred_positions.length > 0 ? p.preferred_positions.join(', ') : 'no position'
-    const rating = p.current_rating != null ? p.current_rating.toFixed(2) : 'unrated'
-    const last3 = p.last3Ratings.length > 0 ? `Last 3: ${p.last3Ratings.map((r) => r.toFixed(1)).join(' / ')}` : 'Last 3: -'
-    const games = p.totalGames > 0
-      ? `Games: ${p.totalGames} (W: ${p.winPct}%)`
-      : 'Games: 0'
-    const feedback = p.recentFeedback.length > 0
-      ? `Feedback: ${p.recentFeedback.map((f) => `"${f}"`).join(' ')}`
-      : ''
-    return [`- ${p.sheet_name} (${pos}) - Rating: ${rating} - ${last3} - ${games}`, feedback]
-      .filter(Boolean)
-      .join(' - ')
-  })
-  return `Give me next game teams\n\nPlayers:\n${lines.join('\n')}`
-}
-
 export function AiAssistantClient({ games }: { games: Game[] }) {
   const [selectedGameId, setSelectedGameId] = useState<string>(games[0]?.id ?? '')
   const [players, setPlayers] = useState<PlayerEntry[] | null>(games[0]?.id ? null : [])
-  const [copied, setCopied] = useState(false)
+  const [result, setResult] = useState<string | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!selectedGameId) return
     let cancelled = false
+    setResult(null)
+    setError(null)
     fetch(`/api/games/${selectedGameId}/players`)
       .then(async (res) => {
-        if (!res.ok) {
-          return []
-        }
+        if (!res.ok) return []
         return res.json() as Promise<PlayerEntry[]>
       })
-      .then((data) => {
-        if (cancelled) return
-        setPlayers(data)
-      })
-      .catch(() => {
-        if (cancelled) return
-        setPlayers([])
-      })
+      .then((data) => { if (!cancelled) setPlayers(data) })
+      .catch(() => { if (!cancelled) setPlayers([]) })
     return () => { cancelled = true }
   }, [selectedGameId])
 
-  const prompt = buildPrompt(players ?? [])
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(prompt)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  async function handleGenerate() {
+    if (!players || players.length === 0) return
+    setError(null)
+    setResult(null)
+    setIsGenerating(true)
+    try {
+      const res = await fetch('/api/mod/ai-assistant/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ players }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? 'Failed to generate teams.')
+        return
+      }
+      setResult(data.result)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   if (games.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">No scheduled games found.</p>
-    )
+    return <p className="text-sm text-muted-foreground">No scheduled games found.</p>
   }
 
   return (
     <div className="space-y-6 max-w-xl">
-      {/* Game selector */}
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="game-select">
-          Game
-        </label>
+        <label className="text-sm font-medium" htmlFor="game-select">Game</label>
         <select
           id="game-select"
           className="w-full rounded border border-input bg-background px-3 py-2 text-sm"
@@ -107,7 +94,6 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
         </select>
       </div>
 
-      {/* Player list */}
       {players == null ? (
         <p className="text-sm text-muted-foreground">Loading players…</p>
       ) : players.length > 0 ? (
@@ -115,17 +101,11 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
           <p className="text-sm font-medium">{players.length} players</p>
           {players.map((p, i) => (
             <div key={p.id ?? i} className="flex items-center justify-between gap-3 text-sm">
-              <PlayerIdentity
-                name={p.sheet_name}
-                avatarUrl={p.avatar_url}
-                avatarSize="sm"
-              />
+              <PlayerIdentity name={p.sheet_name} avatarUrl={p.avatar_url} avatarSize="sm" />
               <span className="text-muted-foreground">
-                {p.preferred_positions.length > 0
-                  ? p.preferred_positions.join(', ')
-                  : 'no position'}
+                {p.preferred_positions.length > 0 ? p.preferred_positions.join(', ') : 'no position'}
                 {' — '}
-                {p.current_rating != null ? p.current_rating.toFixed(2) : '1'}
+                {p.current_rating != null ? p.current_rating.toFixed(2) : '—'}
               </span>
             </div>
           ))}
@@ -134,21 +114,24 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
         <p className="text-sm text-muted-foreground">No players in this game.</p>
       )}
 
-      {/* Generated prompt */}
       {players && players.length > 0 && (
+        <Button
+          className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
+          onClick={handleGenerate}
+          disabled={isGenerating}
+        >
+          {isGenerating ? 'Generating…' : 'Generate Teams'}
+        </Button>
+      )}
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {result && (
         <div className="space-y-2">
-          <label className="text-sm font-medium">Prompt</label>
-          <textarea
-            readOnly
-            className="w-full rounded border border-input bg-muted px-3 py-2 text-sm font-mono min-h-[200px] resize-none"
-            value={prompt}
-          />
-          <Button
-            className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
-            onClick={handleCopy}
-          >
-            {copied ? 'Copied!' : 'Copy'}
-          </Button>
+          <p className="text-sm font-medium">Teams</p>
+          <pre className="w-full rounded border border-input bg-muted px-4 py-3 text-sm whitespace-pre-wrap font-mono leading-relaxed">
+            {result}
+          </pre>
         </div>
       )}
     </div>
