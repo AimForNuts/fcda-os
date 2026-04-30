@@ -147,13 +147,11 @@ export async function POST(request: Request) {
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY })
   try {
-    const systemWithPlayers = `${SYSTEM_PROMPT}\n\n6. Current player ratings table\n\n${playerTable}`
-
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: systemWithPlayers },
-        { role: 'user', content: "Generate teams for this week's game." },
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: `Generate teams for this week's game. Do not ask for more information — all player data is provided below.\n\n${playerTable}` },
       ],
     })
     const result = completion.choices[0].message.content ?? ''
