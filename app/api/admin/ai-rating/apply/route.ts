@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       .update({ status: 'processed' })
       .eq('rated_player_id', update.player_id)
       .eq('status', 'approved')
-    if (submissionsErr) console.error('Failed to mark submissions processed', submissionsErr)
+    if (submissionsErr) return Response.json({ error: 'Failed to mark submissions processed', detail: submissionsErr }, { status: 500 })
 
     const { error: historyErr } = await admin.from('rating_history').insert({
       player_id: update.player_id,

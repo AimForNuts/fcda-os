@@ -89,6 +89,7 @@ export async function POST() {
     player_name: p.sheet_name,
     current_rating: p.current_rating,
     suggested_rating: ratingMap.get(p.id) ?? p.current_rating ?? 0,
+    pending_ratings: submissionsByPlayer.get(p.id)?.ratings ?? [],
     pending_count: submissionsByPlayer.get(p.id)?.ratings.length ?? 0,
   }))
 

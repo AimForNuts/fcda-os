@@ -9,6 +9,7 @@ type Suggestion = {
   player_name: string
   current_rating: number | null
   suggested_rating: number
+  pending_ratings: number[]
   pending_count: number
 }
 
@@ -44,10 +45,13 @@ export function AiRatingClient({ players }: { players: PlayerRow[] }) {
     setError(null)
     setIsApplying(true)
     try {
-      const updates = suggestions.map((s) => ({
-        player_id: s.player_id,
-        new_rating: Math.round((edited[s.player_id] ?? s.suggested_rating) * 10) / 10,
-      }))
+      const updates = suggestions
+        .filter((s) => s.pending_count > 0)
+        .map((s) => ({
+          player_id: s.player_id,
+          new_rating: Math.round((edited[s.player_id] ?? s.suggested_rating) * 10) / 10,
+        }))
+      if (updates.length === 0) return
       const res = await fetch('/api/admin/ai-rating/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,7 +103,9 @@ export function AiRatingClient({ players }: { players: PlayerRow[] }) {
             <tr className="border-b border-border text-left">
               <th className="py-2 pr-4 font-medium">Jogador</th>
               <th className="py-2 pr-4 font-medium text-right">Avaliação atual</th>
-              <th className="py-2 pr-4 font-medium text-right">Pendentes</th>
+              <th className="py-2 pr-4 font-medium text-right">
+                {state === 'confirm' ? 'Avaliações' : 'Pendentes'}
+              </th>
               {state === 'confirm' && (
                 <>
                   <th className="py-2 pr-4 font-medium text-right">Sugestão IA</th>
@@ -124,8 +130,12 @@ export function AiRatingClient({ players }: { players: PlayerRow[] }) {
                   <td className="py-2 pr-4 text-right">
                     {row.current_rating != null ? row.current_rating.toFixed(1) : '—'}
                   </td>
-                  <td className="py-2 pr-4 text-right">
-                    {hasPending ? row.pending_count : '—'}
+                  <td className="py-2 pr-4 text-right text-muted-foreground">
+                    {hasPending
+                      ? state === 'confirm'
+                        ? (row as Suggestion).pending_ratings.map((r) => r.toFixed(1)).join(' · ')
+                        : row.pending_count
+                      : '—'}
                   </td>
                   {state === 'confirm' && (
                     <>
