@@ -98,8 +98,7 @@ export async function POST(request: Request) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY })
   try {
     const completion = await openai.chat.completions.parse({
-      model: 'o4-mini',
-      reasoning_effort: 'low',
+      model: 'gpt-5.4-mini',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userMessage },
