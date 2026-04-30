@@ -18,7 +18,7 @@ export default async function AiAssistantPage() {
       <div>
         <h1 className="text-2xl font-bold text-fcda-navy">AI Assistant</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Generate a ChatGPT prompt for balanced team selection.
+          Generate balanced teams with AI and apply them directly to the lineup.
         </p>
       </div>
       <AiAssistantClient games={games ?? []} />
