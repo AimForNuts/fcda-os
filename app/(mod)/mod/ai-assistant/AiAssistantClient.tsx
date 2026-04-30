@@ -11,6 +11,10 @@ type PlayerEntry = {
   current_rating: number | null
   preferred_positions: string[]
   avatar_url: string | null
+  last3Ratings: number[]
+  totalGames: number
+  winPct: number | null
+  recentFeedback: string[]
 }
 
 function formatDate(iso: string) {
@@ -24,8 +28,17 @@ function formatDate(iso: string) {
 function buildPrompt(players: PlayerEntry[]): string {
   const lines = players.map((p) => {
     const pos = p.preferred_positions.length > 0 ? p.preferred_positions.join(', ') : 'no position'
-    const rating = p.current_rating != null ? p.current_rating.toFixed(2) : '1'
-    return `- ${p.sheet_name} (${pos}) - Rating: ${rating}`
+    const rating = p.current_rating != null ? p.current_rating.toFixed(2) : 'unrated'
+    const last3 = p.last3Ratings.length > 0 ? `Last 3: ${p.last3Ratings.map((r) => r.toFixed(1)).join(' / ')}` : 'Last 3: -'
+    const games = p.totalGames > 0
+      ? `Games: ${p.totalGames} (W: ${p.winPct}%)`
+      : 'Games: 0'
+    const feedback = p.recentFeedback.length > 0
+      ? `Feedback: ${p.recentFeedback.map((f) => `"${f}"`).join(' ')}`
+      : ''
+    return [`- ${p.sheet_name} (${pos}) - Rating: ${rating} - ${last3} - ${games}`, feedback]
+      .filter(Boolean)
+      .join(' - ')
   })
   return `Give me next game teams\n\nPlayers:\n${lines.join('\n')}`
 }
