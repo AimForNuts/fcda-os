@@ -147,7 +147,7 @@ export async function POST(request: Request) {
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY })
   try {
-    const systemWithPlayers = SYSTEM_PROMPT.replace('[WEEKLY PLAYERS HERE]', playerTable)
+    const systemWithPlayers = `${SYSTEM_PROMPT}\n\n6. Current player ratings table\n\n${playerTable}`
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
