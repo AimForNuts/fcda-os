@@ -147,11 +147,13 @@ export async function POST(request: Request) {
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY })
   try {
+    const systemWithPlayers = SYSTEM_PROMPT.replace('[WEEKLY PLAYERS HERE]', playerTable)
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: `Generate teams for this week's game.\n\n${playerTable}` },
+        { role: 'system', content: systemWithPlayers },
+        { role: 'user', content: "Generate teams for this week's game." },
       ],
     })
     const result = completion.choices[0].message.content ?? ''
