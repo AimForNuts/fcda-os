@@ -76,7 +76,8 @@ export async function POST() {
         (r as any).suggested_rating >= 0 &&
         (r as any).suggested_rating <= 10
     )
-  } catch {
+  } catch (err) {
+    console.error('[ai-rating/process] OpenAI error:', err)
     return Response.json({ error: 'Failed to contact AI' }, { status: 500 })
   }
 
