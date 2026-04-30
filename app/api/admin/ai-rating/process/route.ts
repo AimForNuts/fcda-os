@@ -77,8 +77,9 @@ export async function POST() {
         (r as any).suggested_rating <= 10
     )
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
     console.error('[ai-rating/process] OpenAI error:', err)
-    return Response.json({ error: 'Failed to contact AI' }, { status: 500 })
+    return Response.json({ error: `Failed to contact AI: ${message}` }, { status: 500 })
   }
 
   const ratingMap = new Map(ratings.map((r) => [r.player_id, r.suggested_rating]))
