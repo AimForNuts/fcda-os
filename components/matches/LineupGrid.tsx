@@ -5,7 +5,7 @@ import type { PlayerPublic } from '@/types'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import { TeamHeader } from '@/components/matches/TeamHeader'
 
-type LineupPlayer = PlayerPublic & { avatar_url?: string | null }
+type LineupPlayer = PlayerPublic & { avatar_url?: string | null; is_captain?: boolean }
 
 type Props = {
   teamA: LineupPlayer[]
@@ -25,6 +25,11 @@ function PlayerRow({ player, isApproved }: { player: LineupPlayer; isApproved?: 
         showAvatar={!!isApproved}
         avatarSize="sm"
       />
+      {player.is_captain && (
+        <span className="ml-auto rounded bg-fcda-gold/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-fcda-navy">
+          C
+        </span>
+      )}
     </div>
   )
 }

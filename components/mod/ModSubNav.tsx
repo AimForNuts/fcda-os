@@ -25,12 +25,6 @@ export function ModSubNav() {
           >
             {t('mod.gamesNav')}
           </Link>
-          <Link
-            href="/mod/ai-assistant"
-            className={linkClass(pathname === '/mod/ai-assistant')}
-          >
-            {t('mod.aiAssistantNav')}
-          </Link>
         </div>
       </div>
     </nav>

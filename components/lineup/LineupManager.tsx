@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, type DragEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { WhatsAppPasteBox } from './WhatsAppPasteBox'
 import { PlayerChip } from './PlayerChip'
 import { TeamAssignmentToggle } from './TeamAssignmentToggle'
+import { AiGeneratedLineupModal, type AiGeneratedLineup } from './AiGeneratedLineupModal'
 import { Button } from '@/components/ui/button'
+import { TeamHeader } from '@/components/matches/TeamHeader'
 import type { ParsedEntry } from '@/lib/whatsapp/parser'
 
 type ResolvedEntry = {
@@ -24,6 +26,7 @@ type ResolvedEntry = {
   resolvedShirtNumber: number | null
   resolvedAvatarUrl: string | null
   team: 'a' | 'b' | null
+  is_captain: boolean
   originallyUnmatched: boolean
 }
 
@@ -33,6 +36,7 @@ type CurrentPlayer = {
   shirt_number: number | null
   avatar_url: string | null
   team: 'a' | 'b' | null
+  is_captain: boolean
 }
 
 type Props = {
@@ -66,17 +70,72 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   // Editable copy of the current lineup for team assignment in the paste phase
   const [editableLineup, setEditableLineup] = useState(currentLineup)
   const [isSavingTeams, setIsSavingTeams] = useState(false)
+  const [isClearingTeams, setIsClearingTeams] = useState(false)
   const [teamsError, setTeamsError] = useState<string | null>(null)
+  const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null)
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false)
+  const [generatedTeams, setGeneratedTeams] = useState<AiGeneratedLineup | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [isApplyingAi, setIsApplyingAi] = useState(false)
 
   // ── Current lineup team editing ────────────────────────────────────────
   function setCurrentTeam(playerId: string, team: 'a' | 'b' | null) {
-    setEditableLineup((prev) => prev.map((p) => p.player_id === playerId ? { ...p, team } : p))
+    setEditableLineup((prev) => {
+      const moving = prev.find((p) => p.player_id === playerId)
+      const remainsCaptain = Boolean(team && moving?.is_captain)
+      return prev.map((p) => {
+        if (p.player_id === playerId) {
+          return { ...p, team, is_captain: remainsCaptain }
+        }
+        if (remainsCaptain && p.team === team) {
+          return { ...p, is_captain: false }
+        }
+        return p
+      })
+    })
+  }
+
+  function setCurrentCaptain(playerId: string) {
+    setEditableLineup((prev) => {
+      const selected = prev.find((p) => p.player_id === playerId)
+      if (!selected?.team) return prev
+      return prev.map((p) =>
+        p.team === selected.team
+          ? { ...p, is_captain: p.player_id === playerId }
+          : p
+      )
+    })
+  }
+
+  function validateCurrentCaptainCounts() {
+    const counts = { a: 0, b: 0 }
+    for (const player of editableLineup) {
+      if (player.is_captain && player.team) counts[player.team] += 1
+    }
+    return counts.a <= 1 && counts.b <= 1
+  }
+
+  function handleDrop(team: 'a' | 'b' | null, event: DragEvent<HTMLElement>) {
+    event.preventDefault()
+    const playerId = event.dataTransfer.getData('text/plain') || draggedPlayerId
+    if (!playerId) return
+    setCurrentTeam(playerId, team)
+    setDraggedPlayerId(null)
   }
 
   async function saveTeams() {
+    if (!validateCurrentCaptainCounts()) {
+      setTeamsError(t('mod.lineup.errorCaptainCount'))
+      return
+    }
     setIsSavingTeams(true)
     setTeamsError(null)
-    const players = editableLineup.map((p) => ({ player_id: p.player_id, team: p.team }))
+    const players = editableLineup.map((p) => ({
+      player_id: p.player_id,
+      team: p.team,
+      is_captain: p.is_captain,
+    }))
     const res = await fetch(`/api/games/${gameId}/lineup`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -88,6 +147,108 @@ export function LineupManager({ gameId, currentLineup }: Props) {
       router.refresh()
     }
     setIsSavingTeams(false)
+  }
+
+  async function clearTeams() {
+    if (editableLineup.length === 0 || isClearingTeams) return
+    const confirmed = window.confirm(t('mod.lineup.confirmClearTeams'))
+    if (!confirmed) return
+
+    setIsClearingTeams(true)
+    setTeamsError(null)
+    const players = editableLineup.map((p) => ({
+      player_id: p.player_id,
+      team: null,
+      is_captain: false,
+    }))
+
+    const res = await fetch(`/api/games/${gameId}/lineup`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ players }),
+    })
+
+    if (!res.ok) {
+      setTeamsError(t('mod.lineup.errorSave'))
+    } else {
+      setEditableLineup((prev) => prev.map((p) => ({ ...p, team: null, is_captain: false })))
+      router.refresh()
+    }
+    setIsClearingTeams(false)
+  }
+
+  async function generateAiTeams() {
+    if (editableLineup.length === 0) return
+    setIsAiModalOpen(true)
+    setIsGeneratingAi(true)
+    setGeneratedTeams(null)
+    setAiError(null)
+    try {
+      const res = await fetch('/api/mod/ai-assistant/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const details = Array.isArray(data.details) ? ` ${data.details.join(' ')}` : ''
+        setAiError(`${data.error ?? t('mod.lineup.aiGenerateError')}${details}`)
+        return
+      }
+      setGeneratedTeams(data)
+    } catch {
+      setAiError(t('mod.lineup.aiGenerateError'))
+    } finally {
+      setIsGeneratingAi(false)
+    }
+  }
+
+  async function applyAiTeams() {
+    if (!generatedTeams) return
+    setIsApplyingAi(true)
+    setAiError(null)
+    const players = [
+      ...generatedTeams.team_a.players.map((p) => ({
+        player_id: p.player_id,
+        team: 'a' as const,
+        is_captain: p.is_captain,
+      })),
+      ...generatedTeams.team_b.players.map((p) => ({
+        player_id: p.player_id,
+        team: 'b' as const,
+        is_captain: p.is_captain,
+      })),
+    ]
+
+    try {
+      const res = await fetch(`/api/games/${gameId}/lineup`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ players }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        setAiError(data?.error ?? t('mod.lineup.errorSave'))
+        return
+      }
+
+      const generatedMap = new Map(players.map((p) => [p.player_id, p]))
+      setEditableLineup((prev) =>
+        prev.map((player) => {
+          const generated = generatedMap.get(player.player_id)
+          return generated
+            ? { ...player, team: generated.team, is_captain: generated.is_captain }
+            : { ...player, team: null, is_captain: false }
+        })
+      )
+      setIsAiModalOpen(false)
+      router.refresh()
+    } catch {
+      setAiError(t('mod.lineup.errorSave'))
+    } finally {
+      setIsApplyingAi(false)
+    }
   }
 
   // ── Parse ──────────────────────────────────────────────────────────────
@@ -109,6 +270,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
         resolvedShirtNumber: e.status === 'matched' ? e.matches[0].shirt_number : null,
         resolvedAvatarUrl: e.status === 'matched' ? e.matches[0].avatar_url : null,
         team: null,
+        is_captain: false,
         originallyUnmatched: e.status === 'unmatched',
       }))
       setEntries(resolved)
@@ -224,7 +386,11 @@ export function LineupManager({ gameId, currentLineup }: Props) {
 
     const players = entries
       .filter((e) => e.resolvedPlayerId != null)
-      .map((e) => ({ player_id: e.resolvedPlayerId!, team: e.team ?? null }))
+      .map((e) => ({
+        player_id: e.resolvedPlayerId!,
+        team: e.team ?? null,
+        is_captain: e.team ? e.is_captain : false,
+      }))
 
     const res = await fetch(`/api/games/${gameId}/lineup`, {
       method: 'PUT',
@@ -251,37 +417,80 @@ export function LineupManager({ gameId, currentLineup }: Props) {
       {/* Current lineup (if set) — editable team assignments */}
       {editableLineup.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            {t('mod.lineup.current')}
-          </h2>
-          <div className="space-y-2">
-            {editableLineup.map((p) => (
-              <div key={p.player_id} className="flex items-center justify-between gap-2">
-                <PlayerChip
-                  name={p.sheet_name}
-                  shirtNumber={p.shirt_number}
-                  avatarUrl={p.avatar_url}
-                  status="matched"
-                />
-                <TeamAssignmentToggle
-                  value={p.team}
-                  onChange={(team) => setCurrentTeam(p.player_id, team)}
-                  noTeamLabel={t('mod.lineup.noTeamLabel')}
-                  className="shrink-0"
-                />
-              </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              {t('mod.lineup.current')}
+            </h2>
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                type="button"
+                size="sm"
+                className="bg-fcda-gold text-fcda-navy font-semibold hover:bg-fcda-gold/90"
+                onClick={generateAiTeams}
+                disabled={isGeneratingAi || editableLineup.length === 0}
+              >
+                {isGeneratingAi ? t('mod.lineup.aiGenerating') : t('mod.lineup.aiGenerate')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                onClick={clearTeams}
+                disabled={isClearingTeams || isSavingTeams}
+              >
+                {isClearingTeams ? t('common.loading') : t('mod.lineup.clearTeams')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={saveTeams}
+                disabled={isSavingTeams || isClearingTeams}
+                className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
+              >
+                {isSavingTeams ? t('common.loading') : t('mod.lineup.saveLineup')}
+              </Button>
+            </div>
+          </div>
+          <div className="grid gap-2 md:grid-cols-2">
+            {(['a', 'b'] as const).map((team) => (
+              <CurrentTeamDropZone
+                key={team}
+                team={team}
+                players={editableLineup.filter((p) => p.team === team)}
+                setDraggedPlayerId={setDraggedPlayerId}
+                onDrop={handleDrop}
+                onCaptain={setCurrentCaptain}
+                captainLabel={t('mod.lineup.captain')}
+                makeCaptainLabel={t('mod.lineup.makeCaptain')}
+                captainColumnLabel={t('mod.lineup.captainShort')}
+              />
             ))}
           </div>
+          <CurrentTeamDropZone
+            team={null}
+            players={editableLineup.filter((p) => p.team == null)}
+            setDraggedPlayerId={setDraggedPlayerId}
+            onDrop={handleDrop}
+            onCaptain={setCurrentCaptain}
+            captainLabel={t('mod.lineup.captain')}
+            makeCaptainLabel={t('mod.lineup.makeCaptain')}
+            captainColumnLabel={t('mod.lineup.captainShort')}
+            emptyLabel={t('mod.lineup.noUnassigned')}
+            title={t('mod.lineup.noTeamLabel')}
+          />
           {teamsError && <p role="alert" className="text-sm text-destructive">{teamsError}</p>}
-          <Button
-            type="button"
-            size="sm"
-            onClick={saveTeams}
-            disabled={isSavingTeams}
-            className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
-          >
-            {isSavingTeams ? t('common.loading') : t('mod.lineup.saveLineup')}
-          </Button>
+          {isAiModalOpen && (
+            <AiGeneratedLineupModal
+              teams={generatedTeams}
+              playerCount={editableLineup.length}
+              isGenerating={isGeneratingAi}
+              isApplying={isApplyingAi}
+              error={aiError}
+              onApply={applyAiTeams}
+              onRegenerate={generateAiTeams}
+              onClose={() => setIsAiModalOpen(false)}
+            />
+          )}
         </div>
       )}
 
@@ -431,5 +640,102 @@ export function LineupManager({ gameId, currentLineup }: Props) {
         </div>
       )}
     </div>
+  )
+}
+
+function CurrentTeamDropZone({
+  team,
+  players,
+  setDraggedPlayerId,
+  onDrop,
+  onCaptain,
+  captainLabel,
+  makeCaptainLabel,
+  captainColumnLabel,
+  emptyLabel,
+  title,
+}: {
+  team: 'a' | 'b' | null
+  players: CurrentPlayer[]
+  setDraggedPlayerId: (playerId: string | null) => void
+  onDrop: (team: 'a' | 'b' | null, event: DragEvent<HTMLElement>) => void
+  onCaptain: (playerId: string) => void
+  captainLabel: string
+  makeCaptainLabel: string
+  captainColumnLabel: string
+  emptyLabel?: string
+  title?: string
+}) {
+  return (
+    <section
+      data-testid={team ? `drop-team-${team}` : 'drop-unassigned'}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => onDrop(team, event)}
+      className="space-y-2"
+    >
+      {team ? (
+        <TeamHeader team={team} />
+      ) : (
+        <div className="rounded-lg border border-dashed border-border bg-muted/20 px-2.5 py-1.5">
+          <p className="text-sm font-semibold text-muted-foreground">{title}</p>
+        </div>
+      )}
+
+      <div className="rounded-lg border border-border bg-card">
+        <div className="grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-2 border-b border-border px-2.5 py-1.5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {players.length} {players.length === 1 ? 'player' : 'players'}
+          </p>
+          <p className="text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {captainColumnLabel}
+          </p>
+        </div>
+        <div className="min-h-10 divide-y divide-border/70">
+          {players.length === 0 ? (
+            <p className="px-2.5 py-2.5 text-center text-xs text-muted-foreground">
+              {emptyLabel ?? 'Drop players here'}
+            </p>
+          ) : (
+            players.map((player) => (
+              <div
+                key={player.player_id}
+                draggable
+                onDragStart={(event) => {
+                  event.dataTransfer.setData('text/plain', player.player_id)
+                  event.dataTransfer.effectAllowed = 'move'
+                  setDraggedPlayerId(player.player_id)
+                }}
+                onDragEnd={() => setDraggedPlayerId(null)}
+                className="grid cursor-grab grid-cols-[minmax(0,1fr)_2rem] items-center gap-2 px-2.5 py-1.5 active:cursor-grabbing"
+              >
+                <PlayerChip
+                  name={player.sheet_name}
+                  shirtNumber={player.shirt_number}
+                  avatarUrl={player.avatar_url}
+                  status="matched"
+                  className="w-full"
+                />
+                <button
+                  type="button"
+                  aria-label={player.is_captain ? captainLabel : makeCaptainLabel}
+                  aria-pressed={player.is_captain}
+                  disabled={!player.team}
+                  onClick={() => onCaptain(player.player_id)}
+                  className={[
+                    'flex h-8 w-8 items-center justify-center rounded-md border text-xs font-bold transition-colors',
+                    player.is_captain
+                      ? 'border-fcda-gold bg-fcda-gold/30 text-fcda-navy'
+                      : 'border-fcda-navy/20 bg-white text-fcda-navy hover:border-fcda-navy/50',
+                    !player.team ? 'cursor-not-allowed opacity-40 hover:border-fcda-navy/20' : '',
+                  ].join(' ')}
+                >
+                  C
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
   )
 }

@@ -74,4 +74,10 @@ describe('LineupGrid', () => {
     render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} isApproved={false} />)
     expect(screen.queryByRole('link', { name: 'Carlos' })).not.toBeInTheDocument()
   })
+
+  it('renders a captain marker when a player is captain', () => {
+    const a = [{ ...makePlayer('1', 'Carlos', 10), is_captain: true }]
+    render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
+    expect(screen.getByText('C')).toBeInTheDocument()
+  })
 })
