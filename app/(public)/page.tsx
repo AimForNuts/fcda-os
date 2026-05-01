@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Clock3 } from 'lucide-react'
+import { Clock3, MessageCircle } from 'lucide-react'
 import { CompletedGamesCarousel } from '@/components/home/CompletedGamesCarousel'
 import { formatScheduleDate } from '@/lib/games/format-schedule-date'
 import { createClient } from '@/lib/supabase/server'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
+import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
 import type { Game } from '@/types'
 
 export const metadata = { title: 'FCDA — Futebol Clube Dragões da Areosa' }
@@ -12,7 +13,13 @@ export const metadata = { title: 'FCDA — Futebol Clube Dragões da Areosa' }
 const teamA = getTeamPresentation('a')
 const teamB = getTeamPresentation('b')
 
-function ScheduledGameFeature({ game }: { game: Game }) {
+function ScheduledGameFeature({
+  game,
+  commentCount = 0,
+}: {
+  game: Game
+  commentCount?: number
+}) {
   const formatted = formatScheduleDate(game.date)
 
   return (
@@ -25,8 +32,16 @@ function ScheduledGameFeature({ game }: { game: Game }) {
         className="pointer-events-none absolute right-[-3rem] top-1/2 z-0 h-80 w-80 -translate-y-1/2 object-contain opacity-20"
         aria-hidden
       />
+      <span
+        className="absolute right-4 top-4 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium text-white ring-1 ring-white/15"
+        aria-label={`${commentCount} comentários`}
+        title={`${commentCount} comentários`}
+      >
+        <MessageCircle size={14} aria-hidden />
+        <span className="tabular-nums">{commentCount}</span>
+      </span>
       <div className="relative z-10 grid gap-4 p-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center">
-        <div className="min-w-0">
+        <div className="min-w-0 pr-16">
           <div className="mb-4 inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold uppercase text-white ring-1 ring-white/15">
             <Clock3 size={12} aria-hidden />
             Agendado
@@ -102,6 +117,14 @@ export default async function HomePage() {
     { data: Game[] | null; error: unknown },
   ]
   const completedGameList = completedGames ?? []
+  const commentCountGameIds = [
+    ...(nextGame ? [nextGame.id] : []),
+    ...completedGameList.map((game) => game.id),
+  ]
+  const commentCounts = await fetchMatchCommentCounts(supabase, commentCountGameIds)
+  const completedCommentCounts = Object.fromEntries(
+    completedGameList.map((game) => [game.id, commentCounts.get(game.id) ?? 0])
+  )
 
   return (
     <div className="flex flex-col">
@@ -161,7 +184,7 @@ export default async function HomePage() {
         </div>
 
         {nextGame ? (
-          <ScheduledGameFeature game={nextGame} />
+          <ScheduledGameFeature game={nextGame} commentCount={commentCounts.get(nextGame.id) ?? 0} />
         ) : (
           <p className="text-sm text-muted-foreground">
             Sem jogos agendados de momento.
@@ -185,7 +208,7 @@ export default async function HomePage() {
           </div>
 
           {completedGameList.length > 0 ? (
-            <CompletedGamesCarousel games={completedGameList} />
+            <CompletedGamesCarousel games={completedGameList} commentCounts={completedCommentCounts} />
           ) : (
             <p className="text-sm text-muted-foreground">
               Ainda não há jogos concluídos.

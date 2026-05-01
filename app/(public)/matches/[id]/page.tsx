@@ -3,12 +3,13 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessAdmin, canAccessMod } from '@/lib/auth/permissions'
-import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
+import { resolveLinkedPlayerIdentity, signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupGrid } from '@/components/matches/LineupGrid'
 import { MatchScoreHero } from '@/components/matches/MatchScoreHero'
 import { GameDateTime } from '@/components/matches/GameDateTime'
 import { ResetTeamsButton } from '@/components/matches/ResetTeamsButton'
 import { DeleteGameButton } from '@/components/matches/DeleteGameButton'
+import { MatchComments, type MatchComment } from '@/components/matches/MatchComments'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { PlayerPublic, GamePlayer, Game } from '@/types'
@@ -42,6 +43,20 @@ const STATUS_LABEL: Record<Game['status'], string> = {
 type MatchLineupPlayer = PlayerPublic & {
   avatar_url: string | null
   is_captain: boolean
+}
+
+type MentionableUser = {
+  id: string
+  display_name: string
+}
+
+type MatchCommentRow = {
+  id: string
+  author_id: string
+  content: string
+  mention_user_ids: string[]
+  created_at: string
+  profiles: { display_name: string } | null
 }
 
 export default async function MatchDetailPage({
@@ -118,6 +133,62 @@ export default async function MatchDetailPage({
       return player ? { ...player, is_captain: gp.is_captain } : null
     })
     .filter((p): p is MatchLineupPlayer => p != null)
+
+  let comments: MatchComment[] = []
+  let mentionableUsers: MentionableUser[] = []
+  const currentUserLinkedPlayer = session
+    ? await resolveLinkedPlayerIdentity(session.userId, isApproved)
+    : null
+
+  if (session) {
+    const [{ data: commentRows }, { data: profileRows }] = await Promise.all([
+      supabase
+        .from('match_comments')
+        .select('id, author_id, content, mention_user_ids, created_at, profiles:author_id(display_name)')
+        .eq('game_id', id)
+        .order('created_at', { ascending: true }) as unknown as PromiseLike<{
+          data: MatchCommentRow[] | null
+          error: unknown
+        }>,
+      supabase
+        .from('profiles')
+        .select('id, display_name')
+        .order('display_name', { ascending: true }) as unknown as PromiseLike<{
+          data: MentionableUser[] | null
+          error: unknown
+        }>,
+    ])
+
+    const authorIds = [...new Set((commentRows ?? []).map((comment) => comment.author_id))]
+    const authorAvatarByProfile = new Map<string, string | null>()
+
+    if (isApproved && authorIds.length > 0) {
+      const { data: authorPlayers } = await supabase
+        .from('players')
+        .select('profile_id, avatar_path')
+        .in('profile_id', authorIds) as {
+          data: Array<{ profile_id: string | null; avatar_path: string | null }> | null
+          error: unknown
+        }
+      const signedAuthorPlayers = await signPlayerAvatarRecords(authorPlayers ?? [], true)
+      for (const player of signedAuthorPlayers) {
+        if (player.profile_id) {
+          authorAvatarByProfile.set(player.profile_id, player.avatar_url)
+        }
+      }
+    }
+
+    comments = (commentRows ?? []).map((comment) => ({
+      id: comment.id,
+      author_id: comment.author_id,
+      author_name: comment.profiles?.display_name ?? 'Utilizador',
+      author_avatar_url: authorAvatarByProfile.get(comment.author_id) ?? null,
+      content: comment.content,
+      mention_user_ids: comment.mention_user_ids,
+      created_at: comment.created_at,
+    }))
+    mentionableUsers = profileRows ?? []
+  }
 
   return (
     <div className="container max-w-screen-md mx-auto px-4 py-8 space-y-6">
@@ -206,6 +277,21 @@ export default async function MatchDetailPage({
         </h2>
         <LineupGrid teamA={teamA} teamB={teamB} unassigned={unassigned} isApproved={isApproved} />
       </div>
+
+      <MatchComments
+        gameId={id}
+        comments={comments}
+        mentionableUsers={mentionableUsers}
+        currentUser={
+          session
+            ? {
+                id: session.userId,
+                display_name: session.profile.display_name,
+                avatar_url: currentUserLinkedPlayer?.avatar_url ?? null,
+              }
+            : null
+        }
+      />
     </div>
   )
 }
