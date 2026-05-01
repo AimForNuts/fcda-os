@@ -69,6 +69,8 @@ const generateSchema = z.object({
   gameId: z.string().uuid(),
 })
 
+const MAX_OPENAI_RETRIES = 2
+
 type PlayerRow = {
   id: string
   sheet_name: string
@@ -191,6 +193,34 @@ async function fetchPlayersForGame(gameId: string, approved: boolean) {
   return { players: result, playerIds }
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function parseLineupWithRetries(
+  openai: OpenAI,
+  messages: Array<{ role: 'system' | 'user'; content: string }>
+) {
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= MAX_OPENAI_RETRIES; attempt += 1) {
+    try {
+      return await openai.chat.completions.parse({
+        model: 'gpt-5.4-mini',
+        messages,
+        response_format: zodResponseFormat(AiLineupSchema, 'lineup'),
+      })
+    } catch (err) {
+      lastError = err
+      if (attempt < MAX_OPENAI_RETRIES) {
+        await sleep(500 * (attempt + 1))
+      }
+    }
+  }
+
+  throw lastError
+}
+
 export async function POST(request: Request) {
   const session = await fetchSessionContext()
   if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
@@ -210,14 +240,10 @@ export async function POST(request: Request) {
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY })
   try {
-    const completion = await openai.chat.completions.parse({
-      model: 'gpt-5.4-mini',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userMessage },
-      ],
-      response_format: zodResponseFormat(AiLineupSchema, 'lineup'),
-    })
+    const completion = await parseLineupWithRetries(openai, [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userMessage },
+    ])
 
     const message = completion.choices[0].message
     if (message.refusal) return Response.json({ error: message.refusal }, { status: 422 })

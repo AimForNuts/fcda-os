@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, type DragEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { WhatsAppPasteBox } from './WhatsAppPasteBox'
 import { PlayerChip } from './PlayerChip'
 import { TeamAssignmentToggle } from './TeamAssignmentToggle'
 import { Button } from '@/components/ui/button'
+import { TeamHeader } from '@/components/matches/TeamHeader'
 import type { ParsedEntry } from '@/lib/whatsapp/parser'
 
 type ResolvedEntry = {
@@ -69,19 +70,58 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   const [editableLineup, setEditableLineup] = useState(currentLineup)
   const [isSavingTeams, setIsSavingTeams] = useState(false)
   const [teamsError, setTeamsError] = useState<string | null>(null)
+  const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null)
 
   // ── Current lineup team editing ────────────────────────────────────────
   function setCurrentTeam(playerId: string, team: 'a' | 'b' | null) {
-    setEditableLineup((prev) =>
-      prev.map((p) =>
-        p.player_id === playerId
-          ? { ...p, team, is_captain: team ? p.is_captain : false }
+    setEditableLineup((prev) => {
+      const moving = prev.find((p) => p.player_id === playerId)
+      const remainsCaptain = Boolean(team && moving?.is_captain)
+      return prev.map((p) => {
+        if (p.player_id === playerId) {
+          return { ...p, team, is_captain: remainsCaptain }
+        }
+        if (remainsCaptain && p.team === team) {
+          return { ...p, is_captain: false }
+        }
+        return p
+      })
+    })
+  }
+
+  function setCurrentCaptain(playerId: string) {
+    setEditableLineup((prev) => {
+      const selected = prev.find((p) => p.player_id === playerId)
+      if (!selected?.team) return prev
+      return prev.map((p) =>
+        p.team === selected.team
+          ? { ...p, is_captain: p.player_id === playerId }
           : p
       )
-    )
+    })
+  }
+
+  function validateCurrentCaptainCounts() {
+    const counts = { a: 0, b: 0 }
+    for (const player of editableLineup) {
+      if (player.is_captain && player.team) counts[player.team] += 1
+    }
+    return counts.a <= 1 && counts.b <= 1
+  }
+
+  function handleDrop(team: 'a' | 'b' | null, event: DragEvent<HTMLElement>) {
+    event.preventDefault()
+    const playerId = event.dataTransfer.getData('text/plain') || draggedPlayerId
+    if (!playerId) return
+    setCurrentTeam(playerId, team)
+    setDraggedPlayerId(null)
   }
 
   async function saveTeams() {
+    if (!validateCurrentCaptainCounts()) {
+      setTeamsError(t('mod.lineup.errorCaptainCount'))
+      return
+    }
     setIsSavingTeams(true)
     setTeamsError(null)
     const players = editableLineup.map((p) => ({
@@ -271,25 +311,33 @@ export function LineupManager({ gameId, currentLineup }: Props) {
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             {t('mod.lineup.current')}
           </h2>
-          <div className="space-y-2">
-            {editableLineup.map((p) => (
-              <div key={p.player_id} className="flex items-center justify-between gap-2">
-                <PlayerChip
-                  name={p.sheet_name}
-                  shirtNumber={p.shirt_number}
-                  avatarUrl={p.avatar_url}
-                  status="matched"
-                  isCaptain={p.is_captain}
-                />
-                <TeamAssignmentToggle
-                  value={p.team}
-                  onChange={(team) => setCurrentTeam(p.player_id, team)}
-                  noTeamLabel={t('mod.lineup.noTeamLabel')}
-                  className="shrink-0"
-                />
-              </div>
+          <div className="grid gap-2 md:grid-cols-2">
+            {(['a', 'b'] as const).map((team) => (
+              <CurrentTeamDropZone
+                key={team}
+                team={team}
+                players={editableLineup.filter((p) => p.team === team)}
+                setDraggedPlayerId={setDraggedPlayerId}
+                onDrop={handleDrop}
+                onCaptain={setCurrentCaptain}
+                captainLabel={t('mod.lineup.captain')}
+                makeCaptainLabel={t('mod.lineup.makeCaptain')}
+                captainColumnLabel={t('mod.lineup.captainShort')}
+              />
             ))}
           </div>
+          <CurrentTeamDropZone
+            team={null}
+            players={editableLineup.filter((p) => p.team == null)}
+            setDraggedPlayerId={setDraggedPlayerId}
+            onDrop={handleDrop}
+            onCaptain={setCurrentCaptain}
+            captainLabel={t('mod.lineup.captain')}
+            makeCaptainLabel={t('mod.lineup.makeCaptain')}
+            captainColumnLabel={t('mod.lineup.captainShort')}
+            emptyLabel={t('mod.lineup.noUnassigned')}
+            title={t('mod.lineup.noTeamLabel')}
+          />
           {teamsError && <p role="alert" className="text-sm text-destructive">{teamsError}</p>}
           <Button
             type="button"
@@ -449,5 +497,102 @@ export function LineupManager({ gameId, currentLineup }: Props) {
         </div>
       )}
     </div>
+  )
+}
+
+function CurrentTeamDropZone({
+  team,
+  players,
+  setDraggedPlayerId,
+  onDrop,
+  onCaptain,
+  captainLabel,
+  makeCaptainLabel,
+  captainColumnLabel,
+  emptyLabel,
+  title,
+}: {
+  team: 'a' | 'b' | null
+  players: CurrentPlayer[]
+  setDraggedPlayerId: (playerId: string | null) => void
+  onDrop: (team: 'a' | 'b' | null, event: DragEvent<HTMLElement>) => void
+  onCaptain: (playerId: string) => void
+  captainLabel: string
+  makeCaptainLabel: string
+  captainColumnLabel: string
+  emptyLabel?: string
+  title?: string
+}) {
+  return (
+    <section
+      data-testid={team ? `drop-team-${team}` : 'drop-unassigned'}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => onDrop(team, event)}
+      className="space-y-2"
+    >
+      {team ? (
+        <TeamHeader team={team} />
+      ) : (
+        <div className="rounded-lg border border-dashed border-border bg-muted/20 px-2.5 py-1.5">
+          <p className="text-sm font-semibold text-muted-foreground">{title}</p>
+        </div>
+      )}
+
+      <div className="rounded-lg border border-border bg-card">
+        <div className="grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-2 border-b border-border px-2.5 py-1.5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {players.length} {players.length === 1 ? 'player' : 'players'}
+          </p>
+          <p className="text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {captainColumnLabel}
+          </p>
+        </div>
+        <div className="min-h-10 divide-y divide-border/70">
+          {players.length === 0 ? (
+            <p className="px-2.5 py-2.5 text-center text-xs text-muted-foreground">
+              {emptyLabel ?? 'Drop players here'}
+            </p>
+          ) : (
+            players.map((player) => (
+              <div
+                key={player.player_id}
+                draggable
+                onDragStart={(event) => {
+                  event.dataTransfer.setData('text/plain', player.player_id)
+                  event.dataTransfer.effectAllowed = 'move'
+                  setDraggedPlayerId(player.player_id)
+                }}
+                onDragEnd={() => setDraggedPlayerId(null)}
+                className="grid cursor-grab grid-cols-[minmax(0,1fr)_2rem] items-center gap-2 px-2.5 py-1.5 active:cursor-grabbing"
+              >
+                <PlayerChip
+                  name={player.sheet_name}
+                  shirtNumber={player.shirt_number}
+                  avatarUrl={player.avatar_url}
+                  status="matched"
+                  className="w-full"
+                />
+                <button
+                  type="button"
+                  aria-label={player.is_captain ? captainLabel : makeCaptainLabel}
+                  aria-pressed={player.is_captain}
+                  disabled={!player.team}
+                  onClick={() => onCaptain(player.player_id)}
+                  className={[
+                    'flex h-8 w-8 items-center justify-center rounded-md border text-xs font-bold transition-colors',
+                    player.is_captain
+                      ? 'border-fcda-gold bg-fcda-gold/30 text-fcda-navy'
+                      : 'border-fcda-navy/20 bg-white text-fcda-navy hover:border-fcda-navy/50',
+                    !player.team ? 'cursor-not-allowed opacity-40 hover:border-fcda-navy/20' : '',
+                  ].join(' ')}
+                >
+                  C
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
   )
 }

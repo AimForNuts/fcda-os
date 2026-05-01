@@ -7,6 +7,7 @@ import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupGrid } from '@/components/matches/LineupGrid'
 import { MatchScoreHero } from '@/components/matches/MatchScoreHero'
 import { GameDateTime } from '@/components/matches/GameDateTime'
+import { ResetTeamsButton } from '@/components/matches/ResetTeamsButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { PlayerPublic, GamePlayer, Game } from '@/types'
@@ -71,6 +72,7 @@ export default async function MatchDetailPage({
     .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team' | 'is_captain'>[] | null; error: unknown }
 
   const playerIds = (gamePlayers ?? []).map((gp) => gp.player_id)
+  const hasTeamDefinitions = (gamePlayers ?? []).some((gp) => gp.team != null || gp.is_captain)
   let players: Array<PlayerPublic & { avatar_url: string | null }> = []
 
   if (playerIds.length > 0) {
@@ -166,6 +168,9 @@ export default async function MatchDetailPage({
             >
               Terminar jogo
             </Button>
+          )}
+          {game.status === 'scheduled' && hasTeamDefinitions && (
+            <ResetTeamsButton gameId={id} playerIds={playerIds} />
           )}
         </div>
       )}

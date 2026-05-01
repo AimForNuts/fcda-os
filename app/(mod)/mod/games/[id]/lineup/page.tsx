@@ -71,7 +71,7 @@ export default async function LineupPage({
 
   if (game.status !== 'scheduled') {
     return (
-      <div className="max-w-lg mx-auto space-y-4">
+      <div className="max-w-4xl mx-auto space-y-4">
         <h1 className="text-2xl font-bold text-fcda-navy">Convocados</h1>
         <p className="text-sm text-muted-foreground">
           {dateStr} · {timeStr} · {game.location}
@@ -86,7 +86,7 @@ export default async function LineupPage({
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-fcda-navy">Convocados</h1>
         <p className="text-sm text-muted-foreground mt-1">
