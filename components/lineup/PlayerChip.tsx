@@ -8,6 +8,7 @@ type PlayerChipProps = {
   status: ChipStatus
   shirtNumber?: number | null
   avatarUrl?: string | null
+  isCaptain?: boolean
 }
 
 const STATUS_STYLES: Record<ChipStatus, string> = {
@@ -22,7 +23,13 @@ const DOT_STYLES: Record<ChipStatus, string> = {
   unmatched: 'bg-red-500',
 }
 
-export function PlayerChip({ name, status, shirtNumber = null, avatarUrl = null }: PlayerChipProps) {
+export function PlayerChip({
+  name,
+  status,
+  shirtNumber = null,
+  avatarUrl = null,
+  isCaptain = false,
+}: PlayerChipProps) {
   return (
     <span
       data-testid="player-chip"
@@ -43,6 +50,11 @@ export function PlayerChip({ name, status, shirtNumber = null, avatarUrl = null 
         className="min-w-0 gap-1.5"
         nameClassName="hover:no-underline"
       />
+      {isCaptain && (
+        <span className="rounded bg-fcda-gold/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-fcda-navy">
+          C
+        </span>
+      )}
     </span>
   )
 }

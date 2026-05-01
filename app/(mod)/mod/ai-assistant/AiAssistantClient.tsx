@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
+import { TeamHeader } from '@/components/matches/TeamHeader'
 
 type Game = { id: string; date: string; location: string }
 type PlayerEntry = {
@@ -18,9 +20,30 @@ type PlayerEntry = {
   recentFeedback: string[]
 }
 type TeamsResult = {
-  team_a: string[]
-  team_b: string[]
-  notes?: string
+  game_id: string
+  team_a: TeamPreview
+  team_b: TeamPreview
+  balance: {
+    rating_delta: number
+    player_count_delta: number
+  }
+  notes: string[]
+  reasoning: string[]
+}
+type TeamPreview = {
+  label: string
+  players: PlayerPreview[]
+  rating_total: number
+  average_rating: number
+}
+type PlayerPreview = {
+  player_id: string
+  sheet_name: string
+  shirt_number: number | null
+  current_rating: number | null
+  preferred_positions: string[]
+  avatar_url: string | null
+  is_captain: boolean
 }
 
 function formatDate(iso: string) {
@@ -31,18 +54,12 @@ function formatDate(iso: string) {
   })
 }
 
-function totalRating(playerIds: string[], players: PlayerEntry[]) {
-  return playerIds.reduce((sum, id) => {
-    const p = players.find((p) => p.id === id)
-    return sum + (p?.current_rating ?? 0)
-  }, 0)
-}
-
 export function AiAssistantClient({ games }: { games: Game[] }) {
   const router = useRouter()
   const [selectedGameId, setSelectedGameId] = useState<string>(games[0]?.id ?? '')
   const [players, setPlayers] = useState<PlayerEntry[] | null>(games[0]?.id ? null : [])
   const [teams, setTeams] = useState<TeamsResult | null>(null)
+  const [isResultOpen, setIsResultOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -51,6 +68,7 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
     if (!selectedGameId) return
     let cancelled = false
     setTeams(null)
+    setIsResultOpen(false)
     setError(null)
     fetch(`/api/games/${selectedGameId}/players`)
       .then(async (res) => (res.ok ? (res.json() as Promise<PlayerEntry[]>) : []))
@@ -63,16 +81,22 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
     if (!players || players.length === 0) return
     setError(null)
     setTeams(null)
+    setIsResultOpen(false)
     setIsGenerating(true)
     try {
       const res = await fetch('/api/mod/ai-assistant/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ players }),
+        body: JSON.stringify({ gameId: selectedGameId }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Failed to generate teams.'); return }
+      if (!res.ok) {
+        const details = Array.isArray(data.details) ? ` ${data.details.join(' ')}` : ''
+        setError(`${data.error ?? 'Failed to generate teams.'}${details}`)
+        return
+      }
       setTeams(data)
+      setIsResultOpen(true)
     } finally {
       setIsGenerating(false)
     }
@@ -84,8 +108,16 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
     setIsApplying(true)
     try {
       const lineup = [
-        ...teams.team_a.map((id) => ({ player_id: id, team: 'a' as const })),
-        ...teams.team_b.map((id) => ({ player_id: id, team: 'b' as const })),
+        ...teams.team_a.players.map((p) => ({
+          player_id: p.player_id,
+          team: 'a' as const,
+          is_captain: p.is_captain,
+        })),
+        ...teams.team_b.players.map((p) => ({
+          player_id: p.player_id,
+          team: 'b' as const,
+          is_captain: p.is_captain,
+        })),
       ]
       const res = await fetch(`/api/games/${selectedGameId}/lineup`, {
         method: 'PUT',
@@ -107,8 +139,6 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
     return <p className="text-sm text-muted-foreground">No scheduled games found.</p>
   }
 
-  const playerMap = new Map((players ?? []).map((p) => [p.id, p]))
-
   return (
     <div className="space-y-6 max-w-xl">
       <div className="space-y-2">
@@ -117,7 +147,7 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
           id="game-select"
           className="w-full rounded border border-input bg-background px-3 py-2 text-sm"
           value={selectedGameId}
-          onChange={(e) => { setSelectedGameId(e.target.value); setPlayers(null); setTeams(null) }}
+          onChange={(e) => { setSelectedGameId(e.target.value); setPlayers(null); setTeams(null); setIsResultOpen(false) }}
         >
           {games.map((g) => (
             <option key={g.id} value={g.id}>{formatDate(g.date)} — {g.location}</option>
@@ -145,69 +175,230 @@ export function AiAssistantClient({ games }: { games: Game[] }) {
         <p className="text-sm text-muted-foreground">No players in this game.</p>
       )}
 
-      {players && players.length > 0 && !teams && (
-        <Button
-          className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
-          onClick={handleGenerate}
-          disabled={isGenerating}
-        >
-          {isGenerating ? 'Generating…' : 'Generate Teams'}
-        </Button>
+      {players && players.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-3">
+            <Button
+              className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+            >
+              {isGenerating ? 'Generating teams…' : teams ? 'Regenerate Teams' : 'Generate Teams'}
+            </Button>
+            {teams && (
+              <Button
+                variant="outline"
+                onClick={() => setIsResultOpen(true)}
+                disabled={isGenerating}
+              >
+                View Generated Teams
+              </Button>
+            )}
+          </div>
+          {isGenerating && <GeneratingState playerCount={players.length} />}
+        </div>
       )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {teams && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            {(['a', 'b'] as const).map((team) => {
-              const ids = team === 'a' ? teams.team_a : teams.team_b
-              const label = team === 'a' ? 'Equipa Branca' : 'Equipa Preta'
-              const total = totalRating(ids, players ?? [])
-              return (
-                <div key={team} className="rounded border border-border p-3 space-y-2">
-                  <p className="text-sm font-semibold">{label}</p>
-                  <ul className="space-y-1">
-                    {ids.map((id) => {
-                      const p = playerMap.get(id)
-                      return (
-                        <li key={id} className="text-sm flex items-center justify-between">
-                          <span>{p?.sheet_name ?? id}</span>
-                          <span className="text-muted-foreground text-xs">
-                            {p?.current_rating && p.current_rating > 0 ? p.current_rating.toFixed(1) : '—'}
-                          </span>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                  <p className="text-xs text-muted-foreground border-t border-border pt-1">
-                    Total: {total.toFixed(1)}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
+      {teams && isResultOpen && (
+        <GeneratedTeamsModal
+          teams={teams}
+          isApplying={isApplying}
+          isGenerating={isGenerating}
+          onApply={handleApply}
+          onRegenerate={handleGenerate}
+          onClose={() => setIsResultOpen(false)}
+        />
+      )}
+    </div>
+  )
+}
 
-          {teams.notes && (
-            <p className="text-xs text-muted-foreground italic">{teams.notes}</p>
+function GeneratingState({ playerCount }: { playerCount: number }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-fcda-navy">Balancing {playerCount} players</p>
+          <p className="text-xs text-muted-foreground">
+            Ratings, positions, feedback and captain choices are being checked.
+          </p>
+        </div>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-fcda-gold border-t-fcda-navy" />
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        {['Anchors', 'Team shape', 'Captains'].map((label) => (
+          <div key={label} className="rounded border border-border/70 bg-background px-3 py-2">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="h-full w-2/3 animate-pulse rounded-full bg-fcda-gold" />
+            </div>
+            <p className="mt-2 text-xs font-medium text-muted-foreground">{label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function GeneratedTeamsModal({
+  teams,
+  isApplying,
+  isGenerating,
+  onApply,
+  onRegenerate,
+  onClose,
+}: {
+  teams: TeamsResult
+  isApplying: boolean
+  isGenerating: boolean
+  onApply: () => void
+  onRegenerate: () => void
+  onClose: () => void
+}) {
+  const [tab, setTab] = useState<'lineup' | 'reasoning'>('lineup')
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ai-lineup-title"
+        className="max-h-[92vh] w-full max-w-3xl overflow-hidden rounded-t-xl border border-border bg-background shadow-xl sm:rounded-xl"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
+          <div className="min-w-0 space-y-1">
+            <h2 id="ai-lineup-title" className="text-lg font-bold text-fcda-navy">
+              Generated Lineup
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Rating delta {teams.balance.rating_delta.toFixed(1)} · Player count delta {teams.balance.player_count_delta}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="border-b border-border px-4 pt-3 sm:px-5">
+          <div className="flex gap-4 text-sm">
+            <button
+              type="button"
+              onClick={() => setTab('lineup')}
+              className={tab === 'lineup'
+                ? 'border-b-2 border-fcda-navy pb-3 font-semibold text-fcda-navy'
+                : 'border-b-2 border-transparent pb-3 text-muted-foreground hover:text-foreground'}
+            >
+              Teams
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('reasoning')}
+              className={tab === 'reasoning'
+                ? 'border-b-2 border-fcda-navy pb-3 font-semibold text-fcda-navy'
+                : 'border-b-2 border-transparent pb-3 text-muted-foreground hover:text-foreground'}
+            >
+              Reasoning
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-[58vh] overflow-y-auto px-4 py-4 sm:px-5">
+          {tab === 'lineup' ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TeamPreviewPanel team="a" preview={teams.team_a} />
+              <TeamPreviewPanel team="b" preview={teams.team_b} />
+            </div>
+          ) : (
+            <ReasoningPanel reasoning={teams.reasoning} notes={teams.notes} />
           )}
+        </div>
 
-          <div className="flex gap-3">
-            <Button
-              className="bg-fcda-gold text-fcda-navy font-semibold hover:bg-fcda-gold/90"
-              onClick={handleApply}
-              disabled={isApplying}
-            >
-              {isApplying ? 'Applying…' : 'Apply to Lineup'}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleGenerate}
-              disabled={isGenerating}
-            >
-              {isGenerating ? 'Generating…' : 'Regenerate'}
-            </Button>
-          </div>
+        <div className="flex flex-wrap justify-end gap-3 border-t border-border px-4 py-4 sm:px-5">
+          <Button variant="outline" onClick={onRegenerate} disabled={isGenerating || isApplying}>
+            {isGenerating ? 'Generating…' : 'Regenerate'}
+          </Button>
+          <Button
+            className="bg-fcda-gold text-fcda-navy font-semibold hover:bg-fcda-gold/90"
+            onClick={onApply}
+            disabled={isApplying || isGenerating}
+          >
+            {isApplying ? 'Applying…' : 'Apply to Lineup'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TeamPreviewPanel({ team, preview }: { team: 'a' | 'b'; preview: TeamPreview }) {
+  return (
+    <div className="space-y-3">
+      <TeamHeader team={team} />
+      <div className="rounded-lg border border-border bg-card">
+        <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {preview.players.length} players
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Total {preview.rating_total.toFixed(1)} · Avg {preview.average_rating.toFixed(1)}
+          </p>
+        </div>
+        <div className="divide-y divide-border/70">
+          {preview.players.map((player) => (
+            <div key={player.player_id} className="flex items-center justify-between gap-3 px-3 py-2">
+              <PlayerIdentity
+                name={player.sheet_name}
+                shirtNumber={player.shirt_number}
+                avatarUrl={player.avatar_url}
+                avatarSize="sm"
+                className="min-w-0 text-sm"
+              />
+              <div className="flex shrink-0 items-center gap-2">
+                {player.is_captain && (
+                  <span className="rounded bg-fcda-gold/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-fcda-navy">
+                    C
+                  </span>
+                )}
+                <span className="text-xs tabular-nums text-muted-foreground">
+                  {player.current_rating && player.current_rating > 0 ? player.current_rating.toFixed(1) : '—'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ReasoningPanel({ reasoning, notes }: { reasoning: string[]; notes: string[] }) {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-border bg-card p-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reasoning</h3>
+        <ul className="mt-2 space-y-2 text-sm">
+          {(reasoning.length > 0 ? reasoning : ['No reasoning returned.']).map((item, i) => (
+            <li key={i} className="flex gap-2">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-fcda-gold" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {notes.length > 0 && (
+        <div className="rounded-lg border border-border bg-muted/30 p-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</h3>
+          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+            {notes.map((note, i) => (
+              <li key={i}>{note}</li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

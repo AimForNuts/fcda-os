@@ -24,6 +24,7 @@ type ResolvedEntry = {
   resolvedShirtNumber: number | null
   resolvedAvatarUrl: string | null
   team: 'a' | 'b' | null
+  is_captain: boolean
   originallyUnmatched: boolean
 }
 
@@ -33,6 +34,7 @@ type CurrentPlayer = {
   shirt_number: number | null
   avatar_url: string | null
   team: 'a' | 'b' | null
+  is_captain: boolean
 }
 
 type Props = {
@@ -70,13 +72,23 @@ export function LineupManager({ gameId, currentLineup }: Props) {
 
   // ── Current lineup team editing ────────────────────────────────────────
   function setCurrentTeam(playerId: string, team: 'a' | 'b' | null) {
-    setEditableLineup((prev) => prev.map((p) => p.player_id === playerId ? { ...p, team } : p))
+    setEditableLineup((prev) =>
+      prev.map((p) =>
+        p.player_id === playerId
+          ? { ...p, team, is_captain: team ? p.is_captain : false }
+          : p
+      )
+    )
   }
 
   async function saveTeams() {
     setIsSavingTeams(true)
     setTeamsError(null)
-    const players = editableLineup.map((p) => ({ player_id: p.player_id, team: p.team }))
+    const players = editableLineup.map((p) => ({
+      player_id: p.player_id,
+      team: p.team,
+      is_captain: p.is_captain,
+    }))
     const res = await fetch(`/api/games/${gameId}/lineup`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -109,6 +121,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
         resolvedShirtNumber: e.status === 'matched' ? e.matches[0].shirt_number : null,
         resolvedAvatarUrl: e.status === 'matched' ? e.matches[0].avatar_url : null,
         team: null,
+        is_captain: false,
         originallyUnmatched: e.status === 'unmatched',
       }))
       setEntries(resolved)
@@ -224,7 +237,11 @@ export function LineupManager({ gameId, currentLineup }: Props) {
 
     const players = entries
       .filter((e) => e.resolvedPlayerId != null)
-      .map((e) => ({ player_id: e.resolvedPlayerId!, team: e.team ?? null }))
+      .map((e) => ({
+        player_id: e.resolvedPlayerId!,
+        team: e.team ?? null,
+        is_captain: e.team ? e.is_captain : false,
+      }))
 
     const res = await fetch(`/api/games/${gameId}/lineup`, {
       method: 'PUT',
@@ -262,6 +279,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                   shirtNumber={p.shirt_number}
                   avatarUrl={p.avatar_url}
                   status="matched"
+                  isCaptain={p.is_captain}
                 />
                 <TeamAssignmentToggle
                   value={p.team}

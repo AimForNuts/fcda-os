@@ -23,8 +23,8 @@ export default async function LineupPage({
   // Fetch current game_players
   const { data: gamePlayers } = await supabase
     .from('game_players')
-    .select('player_id, team')
-    .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team'>[] | null; error: unknown }
+    .select('player_id, team, is_captain')
+    .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team' | 'is_captain'>[] | null; error: unknown }
 
   const playerIds = (gamePlayers ?? []).map((gp) => gp.player_id)
 
@@ -61,6 +61,7 @@ export default async function LineupPage({
       shirt_number: p?.shirt_number ?? null,
       avatar_url: p?.avatar_url ?? null,
       team: gp.team,
+      is_captain: gp.is_captain,
     }
   })
 

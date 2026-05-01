@@ -139,6 +139,7 @@ export type Database = {
           game_id: string
           player_id: string
           team: 'a' | 'b' | null
+          is_captain: boolean
           created_at: string
         }
         Insert: {
@@ -146,6 +147,7 @@ export type Database = {
           game_id: string
           player_id: string
           team?: 'a' | 'b' | null
+          is_captain?: boolean
           created_at?: string
         }
         Update: never

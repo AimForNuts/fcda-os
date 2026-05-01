@@ -37,6 +37,11 @@ const STATUS_LABEL: Record<Game['status'], string> = {
   cancelled: 'Cancelado',
 }
 
+type MatchLineupPlayer = PlayerPublic & {
+  avatar_url: string | null
+  is_captain: boolean
+}
+
 export default async function MatchDetailPage({
   params,
 }: {
@@ -62,8 +67,8 @@ export default async function MatchDetailPage({
 
   const { data: gamePlayers } = await supabase
     .from('game_players')
-    .select('player_id, team')
-    .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team'>[] | null; error: unknown }
+    .select('player_id, team, is_captain')
+    .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team' | 'is_captain'>[] | null; error: unknown }
 
   const playerIds = (gamePlayers ?? []).map((gp) => gp.player_id)
   let players: Array<PlayerPublic & { avatar_url: string | null }> = []
@@ -88,18 +93,27 @@ export default async function MatchDetailPage({
 
   const teamA = gpList
     .filter((gp) => gp.team === 'a')
-    .map((gp) => playerMap.get(gp.player_id))
-    .filter((p): p is (PlayerPublic & { avatar_url: string | null }) => p != null)
+    .map((gp) => {
+      const player = playerMap.get(gp.player_id)
+      return player ? { ...player, is_captain: gp.is_captain } : null
+    })
+    .filter((p): p is MatchLineupPlayer => p != null)
 
   const teamB = gpList
     .filter((gp) => gp.team === 'b')
-    .map((gp) => playerMap.get(gp.player_id))
-    .filter((p): p is (PlayerPublic & { avatar_url: string | null }) => p != null)
+    .map((gp) => {
+      const player = playerMap.get(gp.player_id)
+      return player ? { ...player, is_captain: gp.is_captain } : null
+    })
+    .filter((p): p is MatchLineupPlayer => p != null)
 
   const unassigned = gpList
     .filter((gp) => !gp.team)
-    .map((gp) => playerMap.get(gp.player_id))
-    .filter((p): p is (PlayerPublic & { avatar_url: string | null }) => p != null)
+    .map((gp) => {
+      const player = playerMap.get(gp.player_id)
+      return player ? { ...player, is_captain: gp.is_captain } : null
+    })
+    .filter((p): p is MatchLineupPlayer => p != null)
 
   return (
     <div className="container max-w-screen-md mx-auto px-4 py-8 space-y-6">
