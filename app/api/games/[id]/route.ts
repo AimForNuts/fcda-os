@@ -26,6 +26,9 @@ type UpdateGameQuery = {
     }
   }
 }
+type InsertOnly<TInput> = {
+  insert(values: TInput): PromiseLike<{ error: unknown }>
+}
 
 export async function PATCH(
   request: Request,
@@ -82,7 +85,8 @@ export async function PATCH(
     metadata: parsed.data,
   } satisfies AuditLogInsert
 
-  const { error: auditErr } = await admin.from('audit_log').insert(auditRow)
+  const auditLog = admin.from('audit_log') as unknown as InsertOnly<AuditLogInsert>
+  const { error: auditErr } = await auditLog.insert(auditRow)
   if (auditErr) console.error('audit_log insert failed', auditErr)
 
   return Response.json(game)
@@ -136,7 +140,8 @@ export async function DELETE(
     },
   } satisfies AuditLogInsert
 
-  const { error: auditErr } = await admin.from('audit_log').insert(auditRow)
+  const auditLog = admin.from('audit_log') as unknown as InsertOnly<AuditLogInsert>
+  const { error: auditErr } = await auditLog.insert(auditRow)
   if (auditErr) console.error('audit_log insert failed', auditErr)
 
   return Response.json({ ok: true })
