@@ -21,6 +21,7 @@ export type Database = {
           approved?: boolean
           updated_at?: string
         }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -38,6 +39,7 @@ export type Database = {
           created_at?: string
         }
         Update: never
+        Relationships: []
       }
       players: {
         Row: {
@@ -74,6 +76,7 @@ export type Database = {
           avatar_updated_at?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       player_aliases: {
         Row: {
@@ -91,6 +94,7 @@ export type Database = {
           created_at?: string
         }
         Update: never
+        Relationships: []
       }
       games: {
         Row: {
@@ -132,6 +136,7 @@ export type Database = {
           finished_at?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       game_players: {
         Row: {
@@ -151,6 +156,7 @@ export type Database = {
           created_at?: string
         }
         Update: never
+        Relationships: []
       }
       rating_submissions: {
         Row: {
@@ -183,6 +189,7 @@ export type Database = {
           reviewed_at?: string | null
           feedback?: string | null
         }
+        Relationships: []
       }
       rating_history: {
         Row: {
@@ -204,6 +211,7 @@ export type Database = {
           created_at?: string
         }
         Update: never
+        Relationships: []
       }
       feedback: {
         Row: {
@@ -231,6 +239,33 @@ export type Database = {
           closed_by?: string | null
           closed_at?: string | null
         }
+        Relationships: []
+      }
+      match_comments: {
+        Row: {
+          id: string
+          game_id: string
+          author_id: string
+          content: string
+          mention_user_ids: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          game_id: string
+          author_id: string
+          content: string
+          mention_user_ids?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          mention_user_ids?: string[]
+          updated_at?: string
+        }
+        Relationships: []
       }
       audit_log: {
         Row: {
@@ -252,6 +287,7 @@ export type Database = {
           created_at?: string
         }
         Update: never
+        Relationships: []
       }
     }
     Views: {
@@ -289,6 +325,10 @@ export type Database = {
       has_role: {
         Args: { p_role: string }
         Returns: boolean
+      }
+      get_match_comment_counts: {
+        Args: { p_game_ids: string[] }
+        Returns: Array<{ game_id: string; comment_count: number }>
       }
     }
   }

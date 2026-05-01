@@ -8,6 +8,7 @@ import { MatchesDateFilter } from '@/components/matches/MatchesDateFilter'
 import { NewGameModal } from '@/components/matches/NewGameModal'
 import { filterGamesByDateRange } from '@/lib/games/filter-by-date-range'
 import { sortGames } from '@/lib/games/sort'
+import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
 import type { Game } from '@/types'
 
 export const metadata = { title: 'Jogos — FCDA' }
@@ -30,6 +31,7 @@ export default async function MatchesPage({
   const sorted = sortGames(games ?? [])
   const gameList = filterGamesByDateRange(sorted, from, to)
   const hasDateFilter = Boolean(from || to)
+  const commentCounts = await fetchMatchCommentCounts(supabase, gameList.map((game) => game.id))
 
   // Batch-fetch all game_players and player names for the listed games
   const lineupsByGame = new Map<string, LineupSummary>()
@@ -143,6 +145,7 @@ export default async function MatchesPage({
                 game={g}
                 lineup={lineupsByGame.get(g.id)}
                 showAvatars={isApproved}
+                commentCount={commentCounts.get(g.id) ?? 0}
               />
             ))}
           </div>

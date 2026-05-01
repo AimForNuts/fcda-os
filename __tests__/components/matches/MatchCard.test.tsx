@@ -150,4 +150,11 @@ describe('MatchCard', () => {
     expect(screen.getByAltText('Kit da Equipa Branca')).toBeInTheDocument()
     expect(screen.getByAltText('Kit da Equipa Preta')).toBeInTheDocument()
   })
+
+  it('shows the comment count', () => {
+    render(<MatchCard game={baseGame} commentCount={4} />)
+
+    expect(screen.getByLabelText('4 comentários')).toBeInTheDocument()
+    expect(screen.getByText('4')).toBeInTheDocument()
+  })
 })
