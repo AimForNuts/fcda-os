@@ -48,6 +48,7 @@ export type Database = {
           shirt_number: number | null
           current_rating: number | null
           preferred_positions: string[]
+          description: string | null
           profile_id: string | null
           avatar_path: string | null
           avatar_updated_at: string | null
@@ -60,6 +61,7 @@ export type Database = {
           shirt_number?: number | null
           current_rating?: number | null
           preferred_positions?: string[]
+          description?: string | null
           profile_id?: string | null
           avatar_path?: string | null
           avatar_updated_at?: string | null
@@ -71,6 +73,7 @@ export type Database = {
           shirt_number?: number | null
           current_rating?: number | null
           preferred_positions?: string[]
+          description?: string | null
           profile_id?: string | null
           avatar_path?: string | null
           avatar_updated_at?: string | null
@@ -299,6 +302,7 @@ export type Database = {
           current_rating: number | null
           profile_id: string | null
           avatar_path: string | null
+          description: string | null
         }
         Relationships: []
       }

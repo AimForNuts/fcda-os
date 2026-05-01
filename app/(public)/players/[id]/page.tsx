@@ -5,18 +5,17 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   ArrowLeft,
-  CalendarDays,
   Medal,
   ShieldCheck,
-  Star,
   Swords,
   Target,
   Trophy,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
+import { canAccessAdmin, fetchSessionContext } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
+import { PlayerDescriptionEditor } from '@/components/player/PlayerDescriptionEditor'
 import type { Game, Player, PlayerPublic, PlayerStats } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -27,7 +26,6 @@ type MatchRow = {
   location: string
   score_a: number | null
   score_b: number | null
-  rating: number | null
 }
 
 type UpcomingMatch = {
@@ -38,7 +36,13 @@ type UpcomingMatch = {
 
 type RankingRow = Pick<
   PlayerStats,
-  'id' | 'display_name' | 'total_all' | 'wins_all' | 'draws_all' | 'losses_all'
+  | 'id'
+  | 'display_name'
+  | 'total_all'
+  | 'wins_all'
+  | 'draws_all'
+  | 'losses_all'
+  | 'avatar_path'
 >
 
 type PublicPlayerStats = Pick<
@@ -55,9 +59,8 @@ type PublicPlayerStats = Pick<
 
 type PlayerProfileRecord = Pick<
   PlayerPublic,
-  'id' | 'display_name' | 'shirt_number' | 'profile_id' | 'avatar_path'
+  'id' | 'display_name' | 'shirt_number' | 'profile_id' | 'avatar_path' | 'description'
 > & {
-  current_rating?: number | null
   preferred_positions: string[]
 }
 
@@ -77,6 +80,78 @@ function matchTeam(team: string | null): MatchTeam | null {
 
 function percentage(part: number, total: number) {
   return total > 0 ? Math.round((part / total) * 100) : 0
+}
+
+const RANKING_PREVIEW_ROWS = 4
+
+type RankingWithPoints = RankingRow & { points: number }
+
+function RankingPreviewAvatar({
+  name,
+  avatarUrl,
+  isHighlighted = false,
+}: {
+  name: string
+  avatarUrl: string | null
+  isHighlighted?: boolean
+}) {
+  const initials = getInitials(name)
+
+  return (
+    <div
+      className={cn(
+        'flex size-7 shrink-0 overflow-hidden rounded-full border bg-white',
+        isHighlighted ? 'border-fcda-navy/20' : 'border-fcda-navy/10'
+      )}
+      aria-hidden
+    >
+      {avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={avatarUrl} alt="" className="size-full object-cover" />
+      ) : (
+        <span
+          className={cn(
+            'flex size-full items-center justify-center text-[0.65rem] font-black',
+            isHighlighted ? 'bg-fcda-navy/15 text-fcda-navy' : 'bg-fcda-gold/90 text-fcda-navy'
+          )}
+        >
+          {initials}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** Four consecutive rows around the player (e.g. 12–15 when they are 13th), clamped at list bounds. */
+function rankingPreviewAroundPlayer(
+  ranking: RankingWithPoints[],
+  playerRankIndex: number,
+): Array<{ row: RankingWithPoints; rank: number }> {
+  if (ranking.length === 0) return []
+
+  let start: number
+  let end: number
+
+  if (playerRankIndex < 0) {
+    start = 0
+    end = Math.min(RANKING_PREVIEW_ROWS, ranking.length)
+  } else {
+    start = playerRankIndex - 1
+    end = start + RANKING_PREVIEW_ROWS
+    if (end > ranking.length) {
+      end = ranking.length
+      start = Math.max(0, end - RANKING_PREVIEW_ROWS)
+    }
+    if (start < 0) {
+      start = 0
+      end = Math.min(RANKING_PREVIEW_ROWS, ranking.length)
+    }
+  }
+
+  return ranking.slice(start, end).map((row, i) => ({
+    row,
+    rank: start + i + 1,
+  }))
 }
 
 function resultForPlayer(match: MatchRow) {
@@ -125,22 +200,17 @@ export default async function PlayerProfilePage({
 
   const supabase = await createClient()
   const isApproved = session.profile.approved
-  const canViewRatings = canAccessMod(session.roles)
 
   let player: PlayerProfileRecord | null = null
 
   if (isApproved) {
     const { data } = await supabase
       .from('players')
-      .select(
-        canViewRatings
-          ? 'id, sheet_name, shirt_number, current_rating, preferred_positions, profile_id, avatar_path'
-          : 'id, sheet_name, shirt_number, preferred_positions, profile_id, avatar_path'
-      )
+      .select('id, sheet_name, shirt_number, preferred_positions, profile_id, avatar_path, description')
       .eq('id', id)
       .single() as {
         data:
-          | (Pick<
+          | Pick<
               Player,
               | 'id'
               | 'sheet_name'
@@ -148,7 +218,8 @@ export default async function PlayerProfilePage({
               | 'preferred_positions'
               | 'profile_id'
               | 'avatar_path'
-            > & { current_rating?: number | null })
+              | 'description'
+            >
           | null
         error: unknown
       }
@@ -158,23 +229,22 @@ export default async function PlayerProfilePage({
           id: data.id,
           display_name: data.sheet_name,
           shirt_number: data.shirt_number,
-          current_rating: canViewRatings ? data.current_rating ?? null : null,
           preferred_positions: data.preferred_positions ?? [],
           profile_id: data.profile_id,
           avatar_path: data.avatar_path,
+          description: data.description,
         }
       : null
   } else {
     const { data } = await supabase
       .from('players_public')
-      .select(
-        canViewRatings
-          ? 'id, display_name, shirt_number, current_rating, profile_id, avatar_path'
-          : 'id, display_name, shirt_number, profile_id, avatar_path'
-      )
+      .select('id, display_name, shirt_number, profile_id, avatar_path, description')
       .eq('id', id)
       .single() as {
-        data: (Omit<PlayerPublic, 'current_rating'> & { current_rating?: number | null }) | null
+        data: Pick<
+          PlayerPublic,
+          'id' | 'display_name' | 'shirt_number' | 'profile_id' | 'avatar_path' | 'description'
+        > | null
         error: unknown
       }
 
@@ -183,6 +253,8 @@ export default async function PlayerProfilePage({
 
   if (!player) notFound()
   const [resolvedPlayer] = await signPlayerAvatarRecords([player], isApproved)
+  const canEditDescription =
+    isApproved && (canAccessAdmin(session.roles) || resolvedPlayer.profile_id === session.userId)
 
   const { data: gps } = await supabase
     .from('game_players')
@@ -214,7 +286,6 @@ export default async function PlayerProfilePage({
   const winRate = percentage(statsSummary.wins_all, matchesPlayed)
   const competitiveWinRate = percentage(statsSummary.wins_comp, statsSummary.total_comp)
   const gameIds = (gps ?? []).map((gp) => gp.game_id)
-  const isOwnProfile = !!resolvedPlayer.profile_id && resolvedPlayer.profile_id === session.userId
 
   let matchHistory: MatchRow[] = []
   let upcomingMatch: UpcomingMatch | null = null
@@ -233,33 +304,6 @@ export default async function PlayerProfilePage({
         error: unknown
       }
 
-    let ratingByGame = new Map<string, number>()
-    if (canViewRatings) {
-      const { data: ratings } = await supabase
-        .from('rating_submissions')
-        .select('game_id, rating')
-        .eq('rated_player_id', id)
-        .eq('status', 'approved')
-        .in('game_id', gameIds) as {
-          data: { game_id: string; rating: number }[] | null
-          error: unknown
-        }
-
-      const ratingsByGame = new Map<string, number[]>()
-      for (const rating of ratings ?? []) {
-        const bucket = ratingsByGame.get(rating.game_id) ?? []
-        bucket.push(rating.rating)
-        ratingsByGame.set(rating.game_id, bucket)
-      }
-
-      ratingByGame = new Map(
-        [...ratingsByGame.entries()].map(([gameId, values]) => [
-          gameId,
-          values.reduce((sum, value) => sum + value, 0) / values.length,
-        ])
-      )
-    }
-
     matchHistory = (games ?? []).map((game) => ({
       game_id: game.id,
       team: teamByGame.get(game.id) ?? null,
@@ -267,7 +311,6 @@ export default async function PlayerProfilePage({
       location: game.location,
       score_a: game.score_a,
       score_b: game.score_b,
-      rating: ratingByGame.get(game.id) ?? null,
     }))
 
     const { data: upcomingGames } = await supabase
@@ -286,7 +329,7 @@ export default async function PlayerProfilePage({
 
   const { data: rankingRows } = await supabase
     .from('player_stats')
-    .select('id, display_name, total_all, wins_all, draws_all, losses_all') as {
+    .select('id, display_name, total_all, wins_all, draws_all, losses_all, avatar_path') as {
       data: RankingRow[] | null
       error: unknown
     }
@@ -304,7 +347,14 @@ export default async function PlayerProfilePage({
 
   const playerRankIndex = ranking.findIndex((row) => row.id === id)
   const playerRank = playerRankIndex >= 0 ? playerRankIndex + 1 : null
-  const rankingPreview = ranking.slice(0, 4)
+  const rankingPreview = rankingPreviewAroundPlayer(ranking, playerRankIndex)
+  const rankingPreviewAvatars = await signPlayerAvatarRecords(
+    rankingPreview.map(({ row }) => ({ id: row.id, avatar_path: row.avatar_path })),
+    isApproved
+  )
+  const rankingPreviewAvatarUrlById = new Map(
+    rankingPreviewAvatars.map((entry) => [entry.id, entry.avatar_url])
+  )
   const latestMatch = matchHistory[0] ?? null
 
   const dateStr = (iso: string) =>
@@ -315,15 +365,11 @@ export default async function PlayerProfilePage({
     })
 
   const heroStats = [
-    ...(canViewRatings
-      ? [
-          {
-            label: 'Nota',
-            value: resolvedPlayer.current_rating != null ? resolvedPlayer.current_rating.toFixed(1) : '—',
-            icon: Star,
-          },
-        ]
-      : []),
+    {
+      label: 'Ranking',
+      value: playerRank != null ? `${playerRank}.º` : '—',
+      icon: Medal,
+    },
     { label: 'Jogos', value: matchesPlayed, icon: Swords },
     { label: 'Pontos', value: totalPoints, icon: Trophy },
     { label: 'Vitórias', value: `${winRate}%`, icon: Target },
@@ -337,6 +383,9 @@ export default async function PlayerProfilePage({
     resolvedPlayer.preferred_positions.length > 0
       ? resolvedPlayer.preferred_positions.map((position) => POSITION_LABELS[position] ?? position)
       : ['Jogador']
+  const fallbackBiography = `${resolvedPlayer.display_name} faz parte do plantel FCDA como ${positionLabels.join(' / ').toLowerCase()}. O perfil reúne o registo competitivo do jogador, incluindo jogos, pontos, resultados e histórico recente.
+
+Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma taxa de vitória de ${winRate}%. Os dados são atualizados a partir dos jogos concluídos registados na plataforma.`
 
   return (
     <div className="bg-[#f6f8fb] text-fcda-navy">
@@ -344,7 +393,7 @@ export default async function PlayerProfilePage({
         <div className="mx-auto max-w-screen-2xl">
           <div className="relative lg:min-h-[520px]">
             <div className="relative z-10 flex min-h-[500px] flex-col justify-between bg-white px-6 py-8 md:px-10 lg:min-h-[520px] lg:w-[60%] lg:py-9 lg:pl-14 lg:pr-36 lg:[clip-path:polygon(0_0,100%_0,84%_68%,84%_100%,0_100%)]">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
               <Link
                 href="/players"
                 className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-fcda-navy/45 transition-colors hover:text-fcda-navy"
@@ -352,11 +401,6 @@ export default async function PlayerProfilePage({
                 <ArrowLeft className="size-4" />
                 Plantel
               </Link>
-              {isOwnProfile && (
-                <span className="inline-flex min-h-8 items-center bg-fcda-gold px-3 text-xs font-semibold uppercase tracking-[0.14em] text-fcda-navy">
-                  Perfil pessoal
-                </span>
-              )}
             </div>
 
             <div className="space-y-8">
@@ -388,7 +432,7 @@ export default async function PlayerProfilePage({
                 </div>
               </div>
 
-              <div className={`grid max-w-xl gap-6 ${canViewRatings ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
+              <div className="grid max-w-xl grid-cols-2 gap-6 sm:grid-cols-4">
                 {heroStats.map((item) => {
                   const Icon = item.icon
 
@@ -411,32 +455,26 @@ export default async function PlayerProfilePage({
             </div>
 
             <div className="relative flex min-h-[400px] items-center justify-center overflow-hidden bg-white p-8 lg:absolute lg:inset-y-0 lg:right-0 lg:z-0 lg:min-h-0 lg:w-[54%] lg:p-12">
+              <Image
+                src="/crest.png"
+                alt=""
+                width={720}
+                height={720}
+                className="pointer-events-none absolute right-0 top-1/2 z-0 h-[92%] w-auto -translate-y-1/2 object-contain opacity-[0.26] grayscale mix-blend-multiply"
+                aria-hidden
+              />
               {resolvedPlayer.avatar_url ? (
-                <>
-                  <Image
-                    src="/crest.png"
+                <div className="relative z-10 flex h-[20rem] w-[14rem] items-center justify-center overflow-hidden border border-fcda-navy/[0.08] bg-white md:h-[24rem] md:w-[17rem] lg:h-[28rem] lg:w-[20rem]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={resolvedPlayer.avatar_url}
                     alt=""
-                    width={720}
-                    height={720}
-                    className="absolute right-0 top-1/2 h-[92%] w-auto -translate-y-1/2 object-contain opacity-[0.26] grayscale mix-blend-multiply"
+                    className="h-full w-full object-cover object-center"
                     aria-hidden
                   />
-                  <div className="relative z-10 flex h-[20rem] w-[14rem] items-center justify-center overflow-hidden border border-fcda-navy/[0.08] bg-white md:h-[24rem] md:w-[17rem] lg:h-[28rem] lg:w-[20rem]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={resolvedPlayer.avatar_url}
-                      alt=""
-                      className="h-full w-full object-cover object-center"
-                      aria-hidden
-                    />
-                  </div>
-                  <div className="absolute inset-0 z-20 bg-gradient-to-r from-white/18 via-transparent to-fcda-gold/18 pointer-events-none" />
-                </>
-              ) : (
-                <div className="relative z-10 flex h-[20rem] w-[14rem] items-center justify-center border border-fcda-navy/[0.08] bg-white text-7xl font-black text-fcda-navy/30 md:h-[24rem] md:w-[17rem] lg:h-[28rem] lg:w-[20rem]">
-                  {getInitials(resolvedPlayer.display_name)}
                 </div>
-              )}
+              ) : null}
+              <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-r from-white/18 via-transparent to-fcda-gold/18" />
               <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/35 to-transparent" />
             </div>
           </div>
@@ -448,6 +486,7 @@ export default async function PlayerProfilePage({
           {[
             ['Biografia', '#biografia'],
             ['Estatísticas', '#estatisticas'],
+            ['Jogos', '#jogos'],
           ].map(([label, href]) => (
             <a
               key={href}
@@ -466,15 +505,13 @@ export default async function PlayerProfilePage({
             <h2 className="text-3xl font-black tracking-normal text-fcda-navy md:text-4xl">
               Biografia
             </h2>
-            <div className="mt-6 max-w-4xl space-y-4 text-base leading-7 text-fcda-navy/65">
-              <p>
-                {resolvedPlayer.display_name} faz parte do plantel FCDA como {positionLabels.join(' / ').toLowerCase()}.
-                O perfil reúne o registo competitivo do jogador, incluindo jogos, pontos, resultados e histórico recente.
-              </p>
-              <p>
-                Nesta época, soma {matchesPlayed} jogos oficiais, {totalPoints} pontos e uma taxa de vitória de {winRate}%.
-                Os dados são atualizados a partir dos jogos concluídos registados na plataforma.
-              </p>
+            <div className="mt-6 max-w-4xl">
+              <PlayerDescriptionEditor
+                playerId={resolvedPlayer.id}
+                initialDescription={resolvedPlayer.description}
+                fallbackDescription={fallbackBiography}
+                canEdit={canEditDescription}
+              />
             </div>
           </article>
         </section>
@@ -515,85 +552,221 @@ export default async function PlayerProfilePage({
             })}
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <section className="bg-white p-6 shadow-sm shadow-fcda-navy/5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-2xl font-black text-fcda-navy">Ranking</h3>
-                  <p className="mt-1 text-sm text-fcda-navy/55">Classificação por pontos totais.</p>
-                </div>
-                <Medal className="size-6 text-fcda-gold" />
+          <section className="bg-white p-4 shadow-sm shadow-fcda-navy/5 md:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <div className="flex items-center gap-2">
+                <Medal className="size-5 shrink-0 text-fcda-gold" aria-hidden />
+                <h3 className="text-lg font-black leading-tight text-fcda-navy">Ranking</h3>
               </div>
-              <div className="mt-6 space-y-2">
-                {rankingPreview.map((row, index) => (
-                  <div
-                    key={row.id}
-                    className={cn(
-                      'grid grid-cols-[2rem_1fr_auto] items-center gap-3 px-4 py-3 text-sm',
-                      row.id === id ? 'bg-fcda-gold text-fcda-navy' : 'bg-fcda-ice/45 text-fcda-navy'
-                    )}
-                  >
-                    <span className="font-black tabular-nums">{index + 1}</span>
-                    <span className="truncate font-semibold">{row.display_name}</span>
-                    <span className="font-black tabular-nums">{row.points}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+              <Link
+                href="/stats"
+                className="shrink-0 text-xs font-semibold uppercase tracking-wide text-fcda-navy underline underline-offset-2 hover:text-fcda-navy/75"
+              >
+                Ver classificação completa
+              </Link>
+            </div>
+            <table className="mt-3 w-full border-separate border-spacing-y-1 text-xs">
+              <caption className="sr-only">
+                Pré-visualização da classificação por pontos com vitórias, empates e derrotas.
+              </caption>
+              <thead>
+                <tr className="text-left font-semibold uppercase tracking-wide text-fcda-navy/50">
+                  <th scope="col" className="w-9 px-3 pb-1 align-bottom font-semibold">
+                    #
+                  </th>
+                  <th scope="col" className="min-w-[7rem] px-1 pb-1 align-bottom font-semibold">
+                    Jogador
+                  </th>
+                  <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
+                    V
+                  </th>
+                  <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
+                    E
+                  </th>
+                  <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
+                    D
+                  </th>
+                  <th scope="col" className="w-11 px-3 pb-1 text-right align-bottom font-semibold tabular-nums">
+                    Pts
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {rankingPreview.map(({ row, rank }) => {
+                  const isSelf = row.id === id
+                  const avatarUrl = rankingPreviewAvatarUrlById.get(row.id) ?? null
 
-            <section className="bg-white p-6 shadow-sm shadow-fcda-navy/5">
-              <h3 className="text-2xl font-black text-fcda-navy">Jogos</h3>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <div className="border border-fcda-navy/10 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-fcda-navy/45">
-                    Último jogo
-                  </p>
-                  {latestMatch ? (
-                    <>
-                      <p className="mt-4 text-3xl font-black tabular-nums">
-                        {latestMatch.score_a != null && latestMatch.score_b != null
-                          ? `${latestMatch.score_a}-${latestMatch.score_b}`
-                          : '—'}
-                      </p>
-                      <p className="mt-1 text-sm text-fcda-navy/55">{dateStr(latestMatch.date)}</p>
-                      <Link href={`/matches/${latestMatch.game_id}`} className="mt-4 inline-flex text-sm font-bold text-fcda-navy underline underline-offset-4">
-                        Ficha de jogo
-                      </Link>
-                    </>
-                  ) : (
-                    <p className="mt-4 text-sm text-fcda-navy/55">Sem jogos concluídos.</p>
-                  )}
-                </div>
-                <div className="border border-fcda-navy/10 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-fcda-navy/45">
-                    Próximo jogo
-                  </p>
-                  {upcomingMatch ? (
-                    <>
-                      <p className="mt-4 text-3xl font-black tabular-nums">
-                        {new Date(upcomingMatch.date).toLocaleTimeString('pt-PT', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                      <p className="mt-1 text-sm text-fcda-navy/55">{dateStr(upcomingMatch.date)}</p>
-                      <Link href={`/matches/${upcomingMatch.id}`} className="mt-4 inline-flex text-sm font-bold text-fcda-navy underline underline-offset-4">
-                        Ver jogo
-                      </Link>
-                    </>
-                  ) : (
-                    <p className="mt-4 text-sm text-fcda-navy/55">Sem próximo jogo associado.</p>
-                  )}
-                </div>
-              </div>
-            </section>
+                  return (
+                    <tr
+                      key={row.id}
+                      className={cn(
+                        isSelf ? 'bg-fcda-gold text-fcda-navy' : 'bg-fcda-ice/45 text-fcda-navy'
+                      )}
+                    >
+                    <td className="rounded-l-md px-3 py-1.5 align-middle font-black tabular-nums">{rank}</td>
+                    <td className="max-w-[min(100%,16rem)] px-1 py-1.5 align-middle sm:max-w-none">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <RankingPreviewAvatar
+                          name={row.display_name}
+                          avatarUrl={avatarUrl}
+                          isHighlighted={isSelf}
+                        />
+                        {isApproved ? (
+                          <Link
+                            href={`/players/${row.id}`}
+                            className={cn(
+                              'min-w-0 truncate font-semibold hover:underline',
+                              isSelf && 'text-fcda-navy'
+                            )}
+                          >
+                            {row.display_name}
+                          </Link>
+                        ) : (
+                          <span className="min-w-0 truncate font-semibold">{row.display_name}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-1 py-1.5 text-right align-middle tabular-nums font-medium">
+                      {row.wins_all}
+                    </td>
+                    <td className="px-1 py-1.5 text-right align-middle tabular-nums font-medium">
+                      {row.draws_all}
+                    </td>
+                    <td className="px-1 py-1.5 text-right align-middle tabular-nums font-medium">
+                      {row.losses_all}
+                    </td>
+                    <td className="rounded-r-md px-3 py-1.5 text-right align-middle font-black tabular-nums">
+                      {row.points}
+                    </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </section>
+        </section>
+
+        <section id="jogos" className="scroll-mt-24 space-y-6">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-3xl font-black tracking-normal text-fcda-navy md:text-4xl">
+                Jogos
+              </h2>
+              <p className="mt-2 text-sm text-fcda-navy/55">
+                Detalhes dos jogos associados ao jogador.
+              </p>
+            </div>
           </div>
 
-          {matchHistory.length > 0 && (
-            <section className="bg-white p-6 shadow-sm shadow-fcda-navy/5">
-              <h3 className="text-2xl font-black text-fcda-navy">Histórico recente</h3>
-              <div className="mt-6 divide-y divide-fcda-navy/10 border border-fcda-navy/10">
-                {matchHistory.map((match) => {
+          <section className="grid gap-4 md:grid-cols-2">
+            <div className="bg-white p-4 shadow-sm shadow-fcda-navy/5 md:p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-fcda-navy/45">
+                Último jogo
+              </p>
+              {latestMatch ? (
+                <>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Image
+                      src={getTeamPresentation('a').imageSrc}
+                      alt=""
+                      width={40}
+                      height={55}
+                      className="h-8 w-auto shrink-0 object-contain opacity-90"
+                      aria-hidden
+                    />
+                    <p className="text-2xl font-black tabular-nums">
+                      {latestMatch.score_a != null && latestMatch.score_b != null
+                        ? `${latestMatch.score_a}-${latestMatch.score_b}`
+                        : '—'}
+                    </p>
+                    <Image
+                      src={getTeamPresentation('b').imageSrc}
+                      alt=""
+                      width={40}
+                      height={55}
+                      className="h-8 w-auto shrink-0 object-contain opacity-90"
+                      aria-hidden
+                    />
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                    <p className="text-xs text-fcda-navy/55">
+                      <span>{dateStr(latestMatch.date)}</span>
+                      <span className="mx-1.5 text-fcda-navy/25" aria-hidden>
+                        ·
+                      </span>
+                      <span>{latestMatch.location}</span>
+                    </p>
+                    <Link
+                      href={`/matches/${latestMatch.game_id}`}
+                      className="shrink-0 text-xs font-semibold text-fcda-navy underline underline-offset-2"
+                    >
+                      Ficha de jogo
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <p className="mt-3 text-sm text-fcda-navy/55">Sem jogos concluídos.</p>
+              )}
+            </div>
+            <div className="bg-white p-4 shadow-sm shadow-fcda-navy/5 md:p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-fcda-navy/45">
+                Próximo jogo
+              </p>
+              {upcomingMatch ? (
+                <>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Image
+                      src={getTeamPresentation('a').imageSrc}
+                      alt=""
+                      width={40}
+                      height={55}
+                      className="h-8 w-auto shrink-0 object-contain opacity-90"
+                      aria-hidden
+                    />
+                    <p className="text-2xl font-black tabular-nums">
+                      {new Date(upcomingMatch.date).toLocaleTimeString('pt-PT', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                    <Image
+                      src={getTeamPresentation('b').imageSrc}
+                      alt=""
+                      width={40}
+                      height={55}
+                      className="h-8 w-auto shrink-0 object-contain opacity-90"
+                      aria-hidden
+                    />
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                    <p className="text-xs text-fcda-navy/55">
+                      <span>{dateStr(upcomingMatch.date)}</span>
+                      <span className="mx-1.5 text-fcda-navy/25" aria-hidden>
+                        ·
+                      </span>
+                      <span>{upcomingMatch.location}</span>
+                    </p>
+                    <Link
+                      href={`/matches/${upcomingMatch.id}`}
+                      className="shrink-0 text-xs font-semibold text-fcda-navy underline underline-offset-2"
+                    >
+                      Ficha de jogo
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <p className="mt-3 text-sm text-fcda-navy/55">Sem próximo jogo associado.</p>
+              )}
+            </div>
+          </section>
+
+          {matchHistory.length > 0 ? (
+            <section className="bg-white p-4 shadow-sm shadow-fcda-navy/5 md:p-5">
+              <h3 className="text-xl font-black text-fcda-navy md:text-2xl">
+                Histórico de jogos
+              </h3>
+              <div className="mt-4 overflow-hidden rounded-md border border-fcda-navy/10">
+                {matchHistory.map((match, index) => {
                   const team = matchTeam(match.team)
                   const teamPresentation = team ? getTeamPresentation(team) : null
                   const result = resultForPlayer(match)
@@ -602,53 +775,97 @@ export default async function PlayerProfilePage({
                     <Link
                       key={match.game_id}
                       href={`/matches/${match.game_id}`}
-                      className="grid gap-4 p-4 transition-colors hover:bg-fcda-ice/30 md:grid-cols-[1fr_auto] md:items-center"
+                      title="Ver ficha de jogo"
+                      className={cn(
+                        'flex min-h-11 items-center gap-2 border-b border-fcda-navy/10 px-2 py-1.5 text-left transition-colors last:border-b-0 hover:bg-fcda-ice/35 sm:min-h-0 sm:gap-3 sm:px-3 sm:py-2',
+                        index % 2 === 1 && 'bg-fcda-ice/20'
+                      )}
                     >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <CalendarDays className="size-5 shrink-0 text-fcda-gold" />
-                        <div className="min-w-0">
-                          <p className="font-bold text-fcda-navy">{dateStr(match.date)}</p>
-                          <p className="truncate text-sm text-fcda-navy/55">{match.location}</p>
-                        </div>
+                      <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+                        <Image
+                          src={getTeamPresentation('a').imageSrc}
+                          alt=""
+                          width={40}
+                          height={55}
+                          className="h-6 w-auto shrink-0 object-contain opacity-90 sm:h-7"
+                          aria-hidden
+                        />
+                        <span className="text-base font-black tabular-nums sm:text-lg">
+                          {match.score_a != null && match.score_b != null
+                            ? `${match.score_a}-${match.score_b}`
+                            : '—'}
+                        </span>
+                        <Image
+                          src={getTeamPresentation('b').imageSrc}
+                          alt=""
+                          width={40}
+                          height={55}
+                          className="h-6 w-auto shrink-0 object-contain opacity-90 sm:h-7"
+                          aria-hidden
+                        />
                       </div>
-                      <div className={`grid gap-2 ${canViewRatings ? 'grid-cols-4' : 'grid-cols-3'}`}>
-                        <div className="min-w-16 bg-fcda-ice/35 px-3 py-2 text-center">
-                          {teamPresentation ? (
+                      <span className="block min-w-0 flex-1 truncate text-[11px] text-fcda-navy/55 sm:text-xs">
+                        <span>{dateStr(match.date)}</span>
+                        <span className="mx-1 text-fcda-navy/25 sm:mx-1.5" aria-hidden>
+                          ·
+                        </span>
+                        <span>{match.location}</span>
+                      </span>
+                      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                        {teamPresentation ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-fcda-navy/45 sm:gap-1.5 sm:text-[11px] sm:tracking-[0.14em]">
+                            <span className="hidden sm:inline">Equipa</span>
                             <Image
                               src={teamPresentation.imageSrc}
                               alt=""
                               width={28}
                               height={38}
-                              className="mx-auto h-7 w-auto object-contain"
+                              className="h-5 w-auto object-contain opacity-90 sm:h-6"
                               aria-hidden
                             />
-                          ) : (
-                            <span className="text-sm font-bold">—</span>
-                          )}
-                        </div>
-                        <div className="min-w-16 bg-fcda-ice/35 px-3 py-2 text-center text-sm font-bold tabular-nums">
-                          {match.score_a != null && match.score_b != null ? `${match.score_a}-${match.score_b}` : '—'}
-                        </div>
-                        <div
-                          className={cn(
-                            'min-w-16 bg-fcda-ice/35 px-3 py-2 text-center text-sm font-black uppercase',
-                            result === 'win' && 'text-emerald-700',
-                            result === 'draw' && 'text-amber-600',
-                            result === 'loss' && 'text-rose-700'
-                          )}
-                        >
-                          {result === 'win' ? 'V' : result === 'draw' ? 'E' : result === 'loss' ? 'D' : '—'}
-                        </div>
-                        {canViewRatings && (
-                          <div className="min-w-16 bg-fcda-ice/35 px-3 py-2 text-center text-sm font-bold tabular-nums">
-                            {match.rating != null ? match.rating.toFixed(1) : '—'}
-                          </div>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-fcda-navy/45">
+                            <span className="hidden sm:inline">Equipa</span>
+                            <span
+                              aria-hidden
+                              className="text-sm font-black leading-none text-fcda-navy/25 sm:text-base"
+                            >
+                              —
+                            </span>
+                          </span>
                         )}
+                        <span className="inline-flex items-center gap-1 border-l border-fcda-navy/15 pl-2 sm:gap-1.5 sm:pl-3">
+                          <span className="hidden sm:inline text-[10px] font-semibold uppercase tracking-[0.14em] text-fcda-navy/45">
+                            Estado
+                          </span>
+                          <span
+                            className={cn(
+                              'text-[11px] font-black uppercase tracking-wide sm:text-xs',
+                              result === 'win' && 'text-emerald-700',
+                              result === 'draw' && 'text-amber-600',
+                              result === 'loss' && 'text-rose-700',
+                              result == null && 'text-fcda-navy/35'
+                            )}
+                          >
+                            {result === 'win'
+                              ? 'VITORIA'
+                              : result === 'draw'
+                                ? 'EMPATE'
+                                : result === 'loss'
+                                  ? 'DERROTA'
+                                  : '—'}
+                          </span>
+                        </span>
                       </div>
                     </Link>
                   )
                 })}
               </div>
+            </section>
+          ) : (
+            <section className="bg-white p-6 shadow-sm shadow-fcda-navy/5">
+              <p className="text-sm text-fcda-navy/55">Sem jogos registados.</p>
             </section>
           )}
         </section>

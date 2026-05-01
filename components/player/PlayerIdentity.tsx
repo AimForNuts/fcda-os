@@ -20,6 +20,8 @@ function getInitials(name: string) {
 type PlayerIdentityProps = {
   name: string
   shirtNumber?: number | null
+  /** Where to show #N relative to the name (default: before the name). */
+  shirtNumberPlacement?: 'before-name' | 'after-name'
   href?: string
   avatarUrl?: string | null
   showAvatar?: boolean
@@ -31,6 +33,7 @@ type PlayerIdentityProps = {
 export function PlayerIdentity({
   name,
   shirtNumber = null,
+  shirtNumberPlacement = 'before-name',
   href,
   avatarUrl = null,
   showAvatar = true,
@@ -46,6 +49,13 @@ export function PlayerIdentity({
     <span className={cn('truncate', nameClassName)}>{name}</span>
   )
 
+  const shirtNode =
+    shirtNumber != null ? (
+      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+        #{shirtNumber}
+      </span>
+    ) : null
+
   return (
     <div className={cn('flex min-w-0 items-center gap-2', className)}>
       {showAvatar && (
@@ -56,12 +66,9 @@ export function PlayerIdentity({
           </AvatarFallback>
         </Avatar>
       )}
-      {shirtNumber != null && (
-        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-          #{shirtNumber}
-        </span>
-      )}
+      {shirtNumberPlacement === 'before-name' ? shirtNode : null}
       {nameNode}
+      {shirtNumberPlacement === 'after-name' ? shirtNode : null}
     </div>
   )
 }

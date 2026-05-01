@@ -7,7 +7,7 @@ import {
 } from '@/lib/players/avatar.server'
 import { StatsTable } from '@/components/stats/StatsTable'
 
-export const metadata = { title: 'Estatísticas — FCDA' }
+export const metadata = { title: 'Classificação — FCDA' }
 
 export default async function StatsPage() {
   const supabase = await createClient()
@@ -31,10 +31,11 @@ export default async function StatsPage() {
               Futebol Clube Dragões da Areosa
             </p>
             <h1 className="mt-3 text-5xl font-black uppercase tracking-tight md:text-7xl">
-              Estatísticas
+              Classificação
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 md:text-base">
-              Analisa jogos, vitórias e registos competitivos de cada jogador do plantel.
+              Tabela classificativa por pontos (3 por vitória, 1 por empate). Compara o
+              plantel em todos os jogos ou só nos competitivos.
             </p>
           </div>
           <Image
@@ -48,7 +49,7 @@ export default async function StatsPage() {
         </div>
       </section>
 
-      <main className="container mx-auto max-w-screen-md px-4 py-8 md:py-10">
+      <main className="container mx-auto max-w-screen-xl px-4 py-8 md:py-10">
         <StatsTable
           players={rows}
           isAnonymised={!isApproved}
