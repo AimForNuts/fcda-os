@@ -81,12 +81,11 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
 
   return (
     <header className="sticky top-0 z-50 w-full bg-fcda-navy text-white shadow-md">
-      <div className="flex h-14 w-full items-center justify-between px-6">
+      <div className="flex h-20 w-full items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-wide">
+        <Link href="/" className="flex items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/crest.png" alt="FCDA crest" className="h-8 w-8 object-contain" />
-          <span className="text-fcda-gold">FCDA</span>
+          <img src="/crest.png" alt="FCDA crest" className="h-18 w-18 object-contain" />
         </Link>
 
         {/* Desktop nav links */}
@@ -218,8 +217,9 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
             className="fixed inset-y-0 right-0 z-50 flex w-64 flex-col bg-fcda-navy shadow-xl md:hidden"
           >
             {/* Drawer header */}
-            <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
-              <span className="text-lg font-bold text-fcda-gold">FCDA</span>
+            <div className="flex h-20 items-center justify-between border-b border-white/10 px-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/crest.png" alt="FCDA crest" className="h-16 w-16 object-contain" />
               <button
                 ref={closeButtonRef}
                 type="button"
