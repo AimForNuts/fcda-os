@@ -2,12 +2,13 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
+import { fetchSessionContext, canAccessAdmin, canAccessMod } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupGrid } from '@/components/matches/LineupGrid'
 import { MatchScoreHero } from '@/components/matches/MatchScoreHero'
 import { GameDateTime } from '@/components/matches/GameDateTime'
 import { ResetTeamsButton } from '@/components/matches/ResetTeamsButton'
+import { DeleteGameButton } from '@/components/matches/DeleteGameButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { PlayerPublic, GamePlayer, Game } from '@/types'
@@ -56,6 +57,7 @@ export default async function MatchDetailPage({
     createClient(),
   ])
   const isMod = session ? canAccessMod(session.roles) : false
+  const isAdmin = session ? canAccessAdmin(session.roles) : false
   const isApproved = session?.profile?.approved ?? false
 
   const { data: game } = await supabase
@@ -171,6 +173,9 @@ export default async function MatchDetailPage({
           )}
           {game.status === 'scheduled' && hasTeamDefinitions && (
             <ResetTeamsButton gameId={id} playerIds={playerIds} />
+          )}
+          {isAdmin && game.status === 'scheduled' && (
+            <DeleteGameButton gameId={id} />
           )}
         </div>
       )}
