@@ -8,8 +8,7 @@
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
-    "admin": "Admin",
-    "mod": "Manage"
+    "admin": "Admin"
   },
   "auth": {
     "login": "Sign In",
@@ -115,8 +114,6 @@
     "saveChanges": "Save Changes",
     "editLineup": "Edit Lineup",
     "finishGame": "Finish Game",
-    "gamesNav": "Games",
-    "aiAssistantNav": "AI Assistant",
     "game": {
       "created": "Game created.",
       "updated": "Game updated.",
