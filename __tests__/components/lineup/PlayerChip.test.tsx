@@ -22,4 +22,9 @@ describe('PlayerChip', () => {
     render(<PlayerChip name="Test" status="unmatched" />)
     expect(screen.getByTestId('player-chip')).toHaveClass('text-red-800')
   })
+
+  it('renders captain marker when provided', () => {
+    render(<PlayerChip name="Test" status="matched" isCaptain />)
+    expect(screen.getByText('C')).toBeInTheDocument()
+  })
 })

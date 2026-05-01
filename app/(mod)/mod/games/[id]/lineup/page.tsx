@@ -23,8 +23,8 @@ export default async function LineupPage({
   // Fetch current game_players
   const { data: gamePlayers } = await supabase
     .from('game_players')
-    .select('player_id, team')
-    .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team'>[] | null; error: unknown }
+    .select('player_id, team, is_captain')
+    .eq('game_id', id) as { data: Pick<GamePlayer, 'player_id' | 'team' | 'is_captain'>[] | null; error: unknown }
 
   const playerIds = (gamePlayers ?? []).map((gp) => gp.player_id)
 
@@ -61,6 +61,7 @@ export default async function LineupPage({
       shirt_number: p?.shirt_number ?? null,
       avatar_url: p?.avatar_url ?? null,
       team: gp.team,
+      is_captain: gp.is_captain,
     }
   })
 
@@ -70,7 +71,7 @@ export default async function LineupPage({
 
   if (game.status !== 'scheduled') {
     return (
-      <div className="max-w-lg mx-auto space-y-4">
+      <div className="max-w-4xl mx-auto space-y-4">
         <h1 className="text-2xl font-bold text-fcda-navy">Convocados</h1>
         <p className="text-sm text-muted-foreground">
           {dateStr} · {timeStr} · {game.location}
@@ -85,7 +86,7 @@ export default async function LineupPage({
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-fcda-navy">Convocados</h1>
         <p className="text-sm text-muted-foreground mt-1">

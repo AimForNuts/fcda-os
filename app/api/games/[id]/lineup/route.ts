@@ -1,12 +1,14 @@
 import { z } from 'zod'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
+import { validateLineupCaptains } from '@/lib/games/lineup'
 
 const saveLineupSchema = z.object({
   players: z.array(
     z.object({
       player_id: z.string().uuid(),
       team: z.enum(['a', 'b']).nullable().optional(),
+      is_captain: z.boolean().optional(),
     })
   ),
 })
@@ -26,8 +28,13 @@ export async function PUT(
   if (!parsed.success) {
     return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
   }
+  const captainValidation = validateLineupCaptains(parsed.data.players)
+  if (!captainValidation.ok) {
+    return Response.json({ error: captainValidation.error }, { status: 422 })
+  }
 
   const supabase = await createClient()
+  const admin = createServiceClient()
 
   // Verify game exists
   const { data: game } = await supabase
@@ -42,34 +49,54 @@ export async function PUT(
     return Response.json({ error: 'Cannot edit lineup of a non-scheduled game' }, { status: 409 })
   }
 
-  // Replace lineup: delete all existing, then insert new
-  const { error: deleteErr } = await supabase
-    .from('game_players')
-    .delete()
-    .eq('game_id', gameId)
-
-  if (deleteErr) return Response.json({ error: 'Failed to clear lineup' }, { status: 500 })
-
   if (parsed.data.players.length > 0) {
     const rows = parsed.data.players.map((p) => ({
       game_id: gameId,
       player_id: p.player_id,
       team: p.team ?? null,
+      is_captain: p.is_captain ?? false,
     }))
 
-    const { error: insertErr } = await supabase.from('game_players').insert(rows as any)
+    const { error: upsertErr } = await admin
+      .from('game_players')
+      .upsert(rows as unknown as never[], { onConflict: 'game_id,player_id' })
 
-    if (insertErr) return Response.json({ error: 'Failed to save lineup' }, { status: 500 })
+    if (upsertErr) {
+      console.error('game_players upsert failed', upsertErr)
+      return Response.json({ error: 'Failed to save lineup' }, { status: 500 })
+    }
+
+    const playerIds = parsed.data.players.map((p) => p.player_id)
+    const { error: deleteOmittedErr } = await admin
+      .from('game_players')
+      .delete()
+      .eq('game_id', gameId)
+      .not('player_id', 'in', `(${playerIds.join(',')})`)
+
+    if (deleteOmittedErr) {
+      console.error('game_players delete omitted failed', deleteOmittedErr)
+      return Response.json({ error: 'Lineup saved, but failed to remove omitted players' }, { status: 500 })
+    }
+  } else {
+    const { error: deleteErr } = await admin
+      .from('game_players')
+      .delete()
+      .eq('game_id', gameId)
+
+    if (deleteErr) {
+      console.error('game_players clear failed', deleteErr)
+      return Response.json({ error: 'Failed to clear lineup' }, { status: 500 })
+    }
   }
 
-  const admin = createServiceClient()
-  const { error: auditErr } = await admin.from('audit_log').insert({
+  const auditRow = {
     action: 'game.lineup_saved',
     performed_by: session.userId,
     target_id: gameId,
     target_type: 'game',
-    metadata: { player_count: parsed.data.players.length },
-  } as any)
+    metadata: { player_count: parsed.data.players.length, captain_counts: captainValidation.captainCounts },
+  }
+  const { error: auditErr } = await admin.from('audit_log').insert(auditRow as unknown as never)
   if (auditErr) console.error('audit_log insert failed', auditErr)
 
   return Response.json({ ok: true })
