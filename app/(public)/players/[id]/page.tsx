@@ -364,17 +364,6 @@ export default async function PlayerProfilePage({
       year: 'numeric',
     })
 
-  const heroStats = [
-    {
-      label: 'Ranking',
-      value: playerRank != null ? `${playerRank}.º` : '—',
-      icon: Medal,
-    },
-    { label: 'Jogos', value: matchesPlayed, icon: Swords },
-    { label: 'Pontos', value: totalPoints, icon: Trophy },
-    { label: 'Vitórias', value: `${winRate}%`, icon: Target },
-  ]
-
   const shirtNumber =
     resolvedPlayer.shirt_number != null
       ? String(resolvedPlayer.shirt_number).padStart(2, '0')
@@ -392,7 +381,7 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
       <section className="overflow-hidden border-b border-fcda-navy/10 bg-white">
         <div className="mx-auto max-w-screen-2xl">
           <div className="relative lg:min-h-[520px]">
-            <div className="relative z-10 flex min-h-[500px] flex-col justify-between bg-white px-6 py-8 md:px-10 lg:min-h-[520px] lg:w-[60%] lg:py-9 lg:pl-14 lg:pr-36 lg:[clip-path:polygon(0_0,100%_0,84%_68%,84%_100%,0_100%)]">
+            <div className="relative z-10 flex flex-col gap-8 bg-white px-4 py-6 sm:px-6 md:px-10 lg:min-h-[520px] lg:w-[60%] lg:justify-center lg:py-9 lg:pl-14 lg:pr-36 lg:[clip-path:polygon(0_0,100%_0,84%_68%,84%_100%,0_100%)]">
             <div className="flex items-center gap-4">
               <Link
                 href="/players"
@@ -403,13 +392,13 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
               </Link>
             </div>
 
-            <div className="space-y-8">
-              <div className="flex items-end gap-6">
-                <p className="text-[7.5rem] font-black leading-none text-fcda-gold tabular-nums md:text-[10rem]">
+            <div className="space-y-6 lg:space-y-8">
+              <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-end sm:gap-5 lg:gap-6">
+                <p className="text-[4.5rem] font-black leading-none text-fcda-gold tabular-nums sm:text-[6rem] md:text-[8rem] lg:text-[10rem]">
                   {shirtNumber}
                 </p>
-                <div className="pb-6">
-                  <h1 className="text-5xl font-light uppercase leading-[0.95] tracking-normal text-fcda-navy md:text-6xl">
+                <div className="sm:pb-4 lg:pb-6">
+                  <h1 className="max-w-full break-words text-4xl font-light uppercase leading-[0.95] tracking-normal text-fcda-navy sm:text-5xl md:text-6xl">
                     {resolvedPlayer.display_name}
                   </h1>
                   <div className="mt-3 flex max-w-full flex-row flex-nowrap items-center gap-x-3 overflow-x-auto">
@@ -417,13 +406,13 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                       <Fragment key={`${position}-${index}`}>
                         {index > 0 ? (
                           <span
-                            className="select-none text-2xl font-light text-fcda-gold/50"
+                            className="select-none text-lg font-light text-fcda-gold/50 sm:text-2xl"
                             aria-hidden
                           >
                             ·
                           </span>
                         ) : null}
-                        <span className="text-2xl font-light uppercase tracking-wide text-fcda-gold">
+                        <span className="text-lg font-light uppercase tracking-wide text-fcda-gold sm:text-2xl">
                           {position}
                         </span>
                       </Fragment>
@@ -431,40 +420,20 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                   </div>
                 </div>
               </div>
-
-              <div className="grid max-w-xl grid-cols-2 gap-6 sm:grid-cols-4">
-                {heroStats.map((item) => {
-                  const Icon = item.icon
-
-                  return (
-                    <div key={item.label} className="space-y-2">
-                      <div className="flex size-20 items-center justify-center rounded-full border-[7px] border-fcda-navy/10 bg-white text-2xl font-light tabular-nums text-fcda-navy sm:size-24 sm:text-3xl">
-                        {item.value}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-fcda-navy/55">
-                        <Icon className="size-4" />
-                        <span className="text-xs font-light uppercase tracking-wide">
-                          {item.label}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
             </div>
             </div>
 
-            <div className="relative flex min-h-[400px] items-center justify-center overflow-hidden bg-white p-8 lg:absolute lg:inset-y-0 lg:right-0 lg:z-0 lg:min-h-0 lg:w-[54%] lg:p-12">
+            <div className="relative flex min-h-[320px] items-center justify-center overflow-hidden bg-white p-6 sm:min-h-[360px] lg:absolute lg:inset-y-0 lg:right-0 lg:z-0 lg:min-h-0 lg:w-[54%] lg:p-12">
               <Image
                 src="/crest.png"
                 alt=""
                 width={720}
                 height={720}
-                className="pointer-events-none absolute right-0 top-1/2 z-0 h-[92%] w-auto -translate-y-1/2 object-contain opacity-[0.26] grayscale mix-blend-multiply"
+                className="pointer-events-none absolute right-0 top-1/2 z-0 h-[82%] w-auto -translate-y-1/2 object-contain opacity-[0.22] grayscale mix-blend-multiply lg:h-[92%] lg:opacity-[0.26]"
                 aria-hidden
               />
               {resolvedPlayer.avatar_url ? (
-                <div className="relative z-10 flex h-[20rem] w-[14rem] items-center justify-center overflow-hidden border border-fcda-navy/[0.08] bg-white md:h-[24rem] md:w-[17rem] lg:h-[28rem] lg:w-[20rem]">
+                <div className="relative z-10 flex h-[17rem] w-[12rem] items-center justify-center overflow-hidden border border-fcda-navy/[0.08] bg-white sm:h-[20rem] sm:w-[14rem] md:h-[24rem] md:w-[17rem] lg:h-[28rem] lg:w-[20rem]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={resolvedPlayer.avatar_url}
@@ -482,7 +451,7 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
       </section>
 
       <nav className="sticky top-0 z-20 border-b border-fcda-navy/10 bg-white/95 backdrop-blur">
-        <div className="container mx-auto flex max-w-screen-xl gap-8 overflow-x-auto px-4">
+        <div className="container mx-auto flex max-w-screen-xl gap-6 overflow-x-auto px-4 sm:gap-8">
           {[
             ['Biografia', '#biografia'],
             ['Estatísticas', '#estatisticas'],
@@ -491,7 +460,7 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
             <a
               key={href}
               href={href}
-              className="inline-flex h-14 shrink-0 items-center border-b-2 border-transparent text-sm font-black uppercase tracking-[0.16em] text-fcda-navy/45 transition-colors first:border-fcda-gold first:text-fcda-navy hover:border-fcda-gold hover:text-fcda-navy"
+              className="inline-flex h-12 shrink-0 items-center border-b-2 border-transparent text-xs font-black uppercase tracking-[0.14em] text-fcda-navy/45 transition-colors first:border-fcda-gold first:text-fcda-navy hover:border-fcda-gold hover:text-fcda-navy sm:h-14 sm:text-sm sm:tracking-[0.16em]"
             >
               {label}
             </a>
@@ -499,10 +468,10 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
         </div>
       </nav>
 
-      <main className="container mx-auto max-w-screen-xl space-y-12 px-4 py-10 md:py-14">
+      <main className="container mx-auto max-w-screen-xl space-y-10 px-4 py-8 md:space-y-12 md:py-14">
         <section id="biografia" className="scroll-mt-24">
-          <article className="bg-white p-6 shadow-sm shadow-fcda-navy/5 md:p-8">
-            <h2 className="text-3xl font-black tracking-normal text-fcda-navy md:text-4xl">
+          <article className="bg-white p-5 shadow-sm shadow-fcda-navy/5 md:p-8">
+            <h2 className="text-2xl font-black tracking-normal text-fcda-navy md:text-4xl">
               Biografia
             </h2>
             <div className="mt-6 max-w-4xl">
@@ -519,7 +488,7 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
         <section id="estatisticas" className="scroll-mt-24 space-y-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-3xl font-black tracking-normal text-fcda-navy md:text-4xl">
+              <h2 className="text-2xl font-black tracking-normal text-fcda-navy md:text-4xl">
                 Estatísticas
               </h2>
               <p className="mt-2 text-sm text-fcda-navy/55">Atualizado por jogos concluídos.</p>
@@ -529,27 +498,34 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {[
-              { label: 'Jogos totais', value: statsSummary.total_all, icon: Swords },
-              { label: 'Competitivos', value: statsSummary.total_comp, icon: ShieldCheck },
-              { label: 'Vitórias', value: statsSummary.wins_all, icon: Trophy },
-              { label: 'Taxa comp.', value: `${competitiveWinRate}%`, icon: Target },
-            ].map((item) => {
-              const Icon = item.icon
+          <div className="rounded-lg bg-white p-4 shadow-sm shadow-fcda-navy/5 sm:p-5">
+            <div className="flex flex-nowrap justify-between gap-2 overflow-x-auto pb-0.5 sm:gap-4 md:gap-6">
+              {[
+                { label: 'Jogos totais', value: statsSummary.total_all, icon: Swords },
+                { label: 'Competitivos', value: statsSummary.total_comp, icon: ShieldCheck },
+                { label: 'Vitórias', value: statsSummary.wins_all, icon: Trophy },
+                { label: 'Taxa comp.', value: `${competitiveWinRate}%`, icon: Target },
+              ].map((item) => {
+                const Icon = item.icon
 
-              return (
-                <div key={item.label} className="bg-white p-5 shadow-sm shadow-fcda-navy/5">
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-fcda-navy/45">
-                      {item.label}
-                    </p>
-                    <Icon className="size-5 text-fcda-gold" />
+                return (
+                  <div
+                    key={item.label}
+                    className="flex min-w-[4.25rem] shrink-0 flex-col items-center gap-1.5 sm:min-w-0 sm:flex-1 sm:gap-2"
+                  >
+                    <div className="flex size-14 items-center justify-center rounded-full border-[4px] border-fcda-navy/10 bg-white px-1 text-center text-base font-light tabular-nums leading-none text-fcda-navy sm:size-20 sm:border-[5px] sm:text-2xl">
+                      {item.value}
+                    </div>
+                    <div className="flex max-w-full items-center justify-center gap-1 text-fcda-navy/55 sm:gap-1.5">
+                      <Icon className="size-3 shrink-0 sm:size-4" aria-hidden />
+                      <span className="truncate text-center text-[9px] font-light uppercase tracking-wide sm:text-xs">
+                        {item.label}
+                      </span>
+                    </div>
                   </div>
-                  <p className="mt-5 text-4xl font-black tabular-nums text-fcda-navy">{item.value}</p>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
 
           <section className="bg-white p-4 shadow-sm shadow-fcda-navy/5 md:p-5">
@@ -565,11 +541,12 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                 Ver classificação completa
               </Link>
             </div>
-            <table className="mt-3 w-full border-separate border-spacing-y-1 text-xs">
-              <caption className="sr-only">
-                Pré-visualização da classificação por pontos com vitórias, empates e derrotas.
-              </caption>
-              <thead>
+            <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[34rem] border-separate border-spacing-y-1 text-xs">
+                <caption className="sr-only">
+                  Pré-visualização da classificação por pontos com vitórias, empates e derrotas.
+                </caption>
+                <thead>
                 <tr className="text-left font-semibold uppercase tracking-wide text-fcda-navy/50">
                   <th scope="col" className="w-9 px-3 pb-1 align-bottom font-semibold">
                     #
@@ -590,8 +567,8 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                     Pts
                   </th>
                 </tr>
-              </thead>
-              <tbody>
+                </thead>
+                <tbody>
                 {rankingPreview.map(({ row, rank }) => {
                   const isSelf = row.id === id
                   const avatarUrl = rankingPreviewAvatarUrlById.get(row.id) ?? null
@@ -641,15 +618,16 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                     </tr>
                   )
                 })}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </section>
         </section>
 
         <section id="jogos" className="scroll-mt-24 space-y-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-3xl font-black tracking-normal text-fcda-navy md:text-4xl">
+              <h2 className="text-2xl font-black tracking-normal text-fcda-navy md:text-4xl">
                 Jogos
               </h2>
               <p className="mt-2 text-sm text-fcda-navy/55">
