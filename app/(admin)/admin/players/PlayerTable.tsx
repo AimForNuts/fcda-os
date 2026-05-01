@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import type { PlayerRow } from './page'
 
@@ -10,9 +11,14 @@ const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST'] as const
 
 type ProfileResult = { id: string; display_name: string }
 
+function normalizeSearch(value: string) {
+  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-PT')
+}
+
 export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   const { t } = useTranslation()
   const [rows, setRows] = useState<PlayerRow[]>(initial)
+  const [searchValue, setSearchValue] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState<Record<string, { sheet_name: string; shirt_number: string }>>({})
   const [aliasInput, setAliasInput] = useState<Record<string, string>>({})
@@ -26,8 +32,26 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   const [ratingInput, setRatingInput] = useState<Record<string, string>>({})
   const [editingPositionsId, setEditingPositionsId] = useState<string | null>(null)
   const [positionsInput, setPositionsInput] = useState<Record<string, string[]>>({})
+  const deferredSearchValue = useDeferredValue(searchValue)
   const userSearchAbort = useRef<AbortController | null>(null)
   const photoInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+
+  const filteredRows = useMemo(() => {
+    const query = normalizeSearch(deferredSearchValue.trim())
+    if (!query) return rows
+
+    return rows.filter((player) => {
+      const values = [
+        player.sheet_name,
+        player.shirt_number?.toString() ?? '',
+        player.profile_name ?? '',
+        ...player.preferred_positions,
+        ...player.aliases.map((alias) => alias.alias_display),
+      ]
+
+      return values.some((value) => normalizeSearch(value).includes(query))
+    })
+  }, [deferredSearchValue, rows])
 
   function setLoading(playerId: string, key: string | null) {
     setLoadingMap((prev) => {
@@ -275,8 +299,21 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   }
 
   return (
-    <div className="space-y-2">
-      {rows.map((player) => {
+    <div className="space-y-3">
+      <div className="max-w-md">
+        <label htmlFor="admin-player-search" className="sr-only">
+          {t('admin.searchPlayers')}
+        </label>
+        <Input
+          id="admin-player-search"
+          type="search"
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          placeholder={t('admin.searchPlayers')}
+        />
+      </div>
+
+      {filteredRows.map((player) => {
         const isEditing = editingId === player.id
         const isLinking = linkingPlayerId === player.id
         const isLoading = !!loadingMap[player.id]
@@ -651,9 +688,9 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
         )
       })}
 
-      {rows.length === 0 && (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          Sem jogadores registados.
+      {filteredRows.length === 0 && (
+        <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">
+          {rows.length === 0 ? 'Sem jogadores registados.' : t('admin.noPlayersFound')}
         </p>
       )}
     </div>

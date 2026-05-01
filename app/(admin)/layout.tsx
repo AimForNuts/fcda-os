@@ -40,7 +40,9 @@ export default async function AdminLayout({
       />
       <main className="flex-1 container max-w-screen-xl mx-auto px-4 py-8">
         <AdminNav />
-        {children}
+        <div className="mt-6">
+          {children}
+        </div>
       </main>
     </div>
   )
