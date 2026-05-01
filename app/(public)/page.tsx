@@ -8,13 +8,24 @@ export const metadata = { title: 'FCDA — Futebol Clube Dragões da Areosa' }
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const { data: nextGame } = await supabase
-    .from('games')
-    .select('*')
-    .eq('status', 'scheduled')
-    .order('date', { ascending: true })
-    .limit(1)
-    .maybeSingle() as { data: Game | null; error: unknown }
+  const [{ data: nextGame }, { data: completedGames }] = await Promise.all([
+    supabase
+      .from('games')
+      .select('*')
+      .eq('status', 'scheduled')
+      .order('date', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from('games')
+      .select('*')
+      .eq('status', 'finished')
+      .order('date', { ascending: false })
+      .limit(2),
+  ]) as [
+    { data: Game | null; error: unknown },
+    { data: Game[] | null; error: unknown },
+  ]
 
   return (
     <div className="flex flex-col">
@@ -62,6 +73,32 @@ export default async function HomePage() {
         ) : (
           <p className="text-sm text-muted-foreground py-4">
             Sem jogos agendados de momento.
+          </p>
+        )}
+      </section>
+
+      {/* Completed matches section */}
+      <section className="container mx-auto max-w-screen-md px-4 pb-10 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Últimos Jogos
+          </h2>
+          <Link
+            href="/matches"
+            className="text-xs text-fcda-navy underline underline-offset-2 hover:text-fcda-navy/70"
+          >
+            Ver todos
+          </Link>
+        </div>
+        {completedGames && completedGames.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {completedGames.map((game) => (
+              <MatchCard key={game.id} game={game} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground py-4">
+            Ainda não há jogos concluídos.
           </p>
         )}
       </section>
