@@ -1,141 +1,16 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { CheckCircle2, Clock3 } from 'lucide-react'
+import { Clock3 } from 'lucide-react'
+import { CompletedGamesCarousel } from '@/components/home/CompletedGamesCarousel'
+import { formatScheduleDate } from '@/lib/games/format-schedule-date'
 import { createClient } from '@/lib/supabase/server'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
-import { cn } from '@/lib/utils'
 import type { Game } from '@/types'
 
 export const metadata = { title: 'FCDA — Futebol Clube Dragões da Areosa' }
 
 const teamA = getTeamPresentation('a')
 const teamB = getTeamPresentation('b')
-
-function formatScheduleDate(date: string) {
-  const d = new Date(date)
-
-  return {
-    dayMonth: d.toLocaleDateString('pt-PT', {
-      day: 'numeric',
-      month: 'short',
-    }),
-    weekday: d.toLocaleDateString('pt-PT', { weekday: 'long' }),
-    time: d.toLocaleTimeString('pt-PT', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-  }
-}
-
-function HomeGameCard({ game }: { game: Game }) {
-  const formatted = formatScheduleDate(game.date)
-  const isFinished = game.status === 'finished'
-  const statusLabel = isFinished ? 'Concluído' : 'Agendado'
-  const score =
-    isFinished && game.score_a != null && game.score_b != null
-      ? `${game.score_a} - ${game.score_b}`
-      : formatted.time
-
-  return (
-    <article className="min-w-0">
-      <div
-        className={cn(
-          'relative overflow-hidden rounded-xl shadow-sm ring-1',
-          'bg-background',
-          isFinished ? 'ring-fcda-gold/60' : 'ring-fcda-navy/20',
-        )}
-      >
-        <div
-          className={cn(
-            'relative z-10 h-1',
-            isFinished ? 'bg-fcda-gold' : 'bg-fcda-navy',
-          )}
-        />
-        <div className="relative z-10 flex items-start justify-between gap-3 px-4 pt-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <Image
-              src="/crest.png"
-              alt=""
-              width={48}
-              height={48}
-              className="h-12 w-12 shrink-0 object-contain drop-shadow-sm"
-              aria-hidden
-            />
-            <div className="min-w-0">
-              <div
-                className={cn(
-                  'mb-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase',
-                  isFinished
-                    ? 'bg-fcda-gold text-fcda-navy ring-1 ring-fcda-gold/70'
-                    : 'bg-fcda-navy text-white',
-                )}
-              >
-                {isFinished ? (
-                  <CheckCircle2 size={12} aria-hidden />
-                ) : (
-                  <Clock3 size={12} aria-hidden />
-                )}
-                {statusLabel}
-              </div>
-              <p className="truncate text-xs text-muted-foreground">{game.location}</p>
-            </div>
-          </div>
-          <div className="shrink-0 text-right">
-            <p className="text-sm font-bold text-fcda-navy">{formatted.dayMonth}</p>
-            <p className="text-xs font-medium text-muted-foreground">{formatted.weekday}</p>
-          </div>
-        </div>
-
-        <div className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-8">
-          <div className="min-w-0 text-center">
-            <Image
-              src={teamA.imageSrc}
-              alt={teamA.imageAlt}
-              width={48}
-              height={66}
-              className="mx-auto h-12 w-auto object-contain drop-shadow-sm"
-            />
-            <p className="mt-3 truncate text-sm font-semibold text-fcda-navy">{teamA.label}</p>
-          </div>
-
-          <div
-            className={cn(
-              'flex min-w-16 items-center justify-center rounded-full border px-3 py-1 text-sm font-bold tabular-nums shadow-sm',
-              isFinished
-                ? 'border-fcda-gold bg-fcda-gold text-fcda-navy'
-                : 'border-fcda-navy bg-fcda-navy text-white',
-            )}
-          >
-            {score}
-          </div>
-
-          <div className="min-w-0 text-center">
-            <Image
-              src={teamB.imageSrc}
-              alt={teamB.imageAlt}
-              width={48}
-              height={66}
-              className="mx-auto h-12 w-auto object-contain drop-shadow-sm"
-            />
-            <p className="mt-3 truncate text-sm font-semibold text-fcda-navy">{teamB.label}</p>
-          </div>
-        </div>
-
-        <Link
-          href={`/matches/${game.id}`}
-          className={cn(
-            'relative z-10 block border-t px-4 py-3 text-center text-sm font-bold transition-colors',
-            isFinished
-              ? 'border-border/70 text-fcda-navy hover:bg-muted/50'
-              : 'border-fcda-navy bg-fcda-navy text-white hover:bg-fcda-navy/90',
-          )}
-        >
-          Detalhes
-        </Link>
-      </div>
-    </article>
-  )
-}
 
 function ScheduledGameFeature({ game }: { game: Game }) {
   const formatted = formatScheduleDate(game.date)
@@ -295,11 +170,7 @@ export default async function HomePage() {
           </div>
 
           {completedGameList.length > 0 ? (
-            <div className="-mx-4 grid auto-cols-[minmax(15rem,1fr)] grid-flow-col gap-5 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
-              {completedGameList.map((game) => (
-                <HomeGameCard key={game.id} game={game} />
-              ))}
-            </div>
+            <CompletedGamesCarousel games={completedGameList} />
           ) : (
             <p className="text-sm text-muted-foreground">
               Ainda não há jogos concluídos.
