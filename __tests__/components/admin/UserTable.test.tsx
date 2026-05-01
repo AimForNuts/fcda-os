@@ -12,18 +12,22 @@ vi.mock('react-i18next', () => ({
         'admin.actions': 'Actions',
         'admin.approved': 'Approved',
         'admin.closeItem': 'Close',
+        'admin.createAndLinkPlayer': 'Create and link',
+        'admin.createPlayer': 'Create player',
         'admin.details': 'Details',
         'admin.displayName': 'Display name',
         'admin.email': 'Email',
         'admin.feedbackComment': 'Comment',
         'admin.feedbackGame': 'Game',
         'admin.linkPlayer': 'Link player',
+        'admin.linkExistingPlayer': 'Link existing player',
         'admin.noFeedbackGames': 'No eligible finished games for this player.',
         'admin.noLinkedPlayer': 'No player is linked to this user.',
         'admin.noPlayer': '-',
         'admin.noEmail': 'No email',
         'admin.pending': 'Pending',
         'admin.playerDetails': 'Player details',
+        'admin.playerName': 'Player name',
         'admin.saveEdit': 'Save',
         'admin.searchPlayer': 'Search player...',
         'admin.searchUsers': 'Search users...',
@@ -57,6 +61,14 @@ const user: UserRow = {
     aliases: [],
     feedback_games: [],
   },
+}
+
+const unlinkedUser: UserRow = {
+  ...user,
+  id: '33333333-3333-4333-8333-333333333333',
+  display_name: 'New User',
+  email: 'new@example.com',
+  player: null,
 }
 
 describe('Admin UserTable details modal', () => {
@@ -112,6 +124,43 @@ describe('Admin UserTable details modal', () => {
             preferred_positions: ['CM', 'ST'],
             current_rating: 8.25,
           }),
+        })
+      )
+    })
+  })
+
+  it('creates and links a player when no player is associated', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: '44444444-4444-4444-8444-444444444444',
+          sheet_name: 'New User',
+        }),
+      })
+      .mockResolvedValueOnce({ ok: true })
+
+    render(<UserTable users={[unlinkedUser]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actions' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Player' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create and link' }))
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        1,
+        '/api/players',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ sheet_name: 'New User', alias_display: 'New User' }),
+        })
+      )
+      expect(mockFetch).toHaveBeenNthCalledWith(
+        2,
+        '/api/admin/players/44444444-4444-4444-8444-444444444444',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ profile_id: unlinkedUser.id }),
         })
       )
     })

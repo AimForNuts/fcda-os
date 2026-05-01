@@ -199,6 +199,10 @@
     "noEmail": "No email",
     "accountStatus": "Account status",
     "noLinkedPlayer": "No player is linked to this user.",
+    "createPlayer": "Create player",
+    "createAndLinkPlayer": "Create and link",
+    "linkExistingPlayer": "Link existing player",
+    "playerName": "Player name",
     "confirmUnapprove": "Unapprove this user? This removes all roles.",
     "confirmAddRole": "Add the {{role}} role to this user?",
     "confirmRemoveRole": "Remove the {{role}} role from this user?",
@@ -236,6 +240,7 @@
     "errors": {
       "approveFailed": "Failed to update approval.",
       "roleFailed": "Failed to update role.",
+      "playerCreateFailed": "Failed to create player.",
       "playerUpdateFailed": "Failed to update player.",
       "aliasFailed": "Failed to save alias.",
       "aliasDuplicate": "This alias already exists.",

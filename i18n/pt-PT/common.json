@@ -199,6 +199,10 @@
     "noEmail": "Sem email",
     "accountStatus": "Estado da conta",
     "noLinkedPlayer": "Nenhum jogador está associado a este utilizador.",
+    "createPlayer": "Criar jogador",
+    "createAndLinkPlayer": "Criar e associar",
+    "linkExistingPlayer": "Associar jogador existente",
+    "playerName": "Nome do jogador",
     "confirmUnapprove": "Revogar aprovação deste utilizador? Isto remove todas as funções.",
     "confirmAddRole": "Adicionar a função {{role}} a este utilizador?",
     "confirmRemoveRole": "Remover a função {{role}} deste utilizador?",
@@ -236,6 +240,7 @@
     "errors": {
       "approveFailed": "Erro ao atualizar aprovação.",
       "roleFailed": "Erro ao atualizar função.",
+      "playerCreateFailed": "Erro ao criar jogador.",
       "playerUpdateFailed": "Erro ao atualizar jogador.",
       "aliasFailed": "Erro ao guardar alias.",
       "aliasDuplicate": "Este alias já existe.",

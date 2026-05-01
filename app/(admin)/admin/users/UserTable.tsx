@@ -570,6 +570,7 @@ function UserDetailsModal({
   const [aliasInput, setAliasInput] = useState('')
   const [playerSearchQuery, setPlayerSearchQuery] = useState('')
   const [playerSearchResults, setPlayerSearchResults] = useState<SearchResult[]>([])
+  const [createPlayerName, setCreatePlayerName] = useState(user.display_name)
   const [feedbackGameId, setFeedbackGameId] = useState(player?.feedback_games[0]?.id ?? '')
   const [feedbackRating, setFeedbackRating] = useState('')
   const [feedbackText, setFeedbackText] = useState('')
@@ -587,6 +588,7 @@ function UserDetailsModal({
     setAliasInput('')
     setPlayerSearchQuery('')
     setPlayerSearchResults([])
+    setCreatePlayerName(user.display_name)
     setFeedbackGameId(player?.feedback_games[0]?.id ?? '')
     setFeedbackRating('')
     setFeedbackText('')
@@ -666,6 +668,34 @@ function UserDetailsModal({
     if (ok) {
       setPlayerSearchQuery('')
       setPlayerSearchResults([])
+    }
+  }
+
+  async function createAndLinkPlayer() {
+    const name = createPlayerName.trim()
+    if (!name) return
+
+    setFeedbackError(null)
+    try {
+      const createRes = await fetch('/api/players', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheet_name: name, alias_display: name }),
+      })
+      const created = await createRes.json().catch(() => ({}))
+      if (!createRes.ok || typeof created.id !== 'string') {
+        throw new Error(t('admin.errors.playerCreateFailed'))
+      }
+
+      const ok = await onLinkPlayer(user.id, {
+        id: created.id,
+        sheet_name: typeof created.sheet_name === 'string' ? created.sheet_name : name,
+        shirt_number: null,
+        avatar_url: null,
+      })
+      if (ok) setCreatePlayerName('')
+    } catch (err) {
+      setFeedbackError(err instanceof Error ? err.message : t('admin.errors.playerCreateFailed'))
     }
   }
 
@@ -1006,41 +1036,66 @@ function UserDetailsModal({
 
               </>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-5">
                 <p className="rounded-lg border px-4 py-6 text-center text-sm text-muted-foreground">
                   {t('admin.noLinkedPlayer')}
                 </p>
-                <label className="space-y-1.5">
-                  <span className="text-sm font-medium text-foreground">{t('admin.linkPlayer')}</span>
-                  <Input
-                    type="search"
-                    value={playerSearchQuery}
-                    onChange={(e) => searchPlayers(e.target.value)}
-                    placeholder={t('admin.searchPlayer')}
-                    disabled={isLoading}
-                  />
-                </label>
-                {playerSearchResults.length > 0 && (
-                  <ul className="max-h-52 overflow-y-auto rounded-lg border border-input bg-background text-sm divide-y">
-                    {playerSearchResults.map((result) => (
-                      <li key={result.id}>
-                        <button
-                          type="button"
-                          className="w-full px-3 py-2 text-left hover:bg-muted"
-                          onClick={() => linkPlayer(result)}
-                          disabled={isLoading}
-                        >
-                          <PlayerIdentity
-                            name={result.sheet_name}
-                            shirtNumber={result.shirt_number}
-                            avatarUrl={result.avatar_url}
-                            avatarSize="sm"
-                          />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-foreground">{t('admin.createPlayer')}</p>
+                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <Input
+                      value={createPlayerName}
+                      onChange={(e) => setCreatePlayerName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') createAndLinkPlayer()
+                      }}
+                      placeholder={t('admin.playerName')}
+                      disabled={isLoading}
+                    />
+                    <Button
+                      type="button"
+                      className="w-full sm:w-auto"
+                      onClick={createAndLinkPlayer}
+                      disabled={isLoading || !createPlayerName.trim()}
+                    >
+                      {loadingKey === 'link' ? '...' : t('admin.createAndLinkPlayer')}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-3 border-t border-border pt-5">
+                  <label className="space-y-1.5">
+                    <span className="text-sm font-medium text-foreground">{t('admin.linkExistingPlayer')}</span>
+                    <Input
+                      type="search"
+                      value={playerSearchQuery}
+                      onChange={(e) => searchPlayers(e.target.value)}
+                      placeholder={t('admin.searchPlayer')}
+                      disabled={isLoading}
+                    />
+                  </label>
+                  {playerSearchResults.length > 0 && (
+                    <ul className="max-h-52 overflow-y-auto rounded-lg border border-input bg-background text-sm divide-y">
+                      {playerSearchResults.map((result) => (
+                        <li key={result.id}>
+                          <button
+                            type="button"
+                            className="w-full px-3 py-2 text-left hover:bg-muted"
+                            onClick={() => linkPlayer(result)}
+                            disabled={isLoading}
+                          >
+                            <PlayerIdentity
+                              name={result.sheet_name}
+                              shirtNumber={result.shirt_number}
+                              avatarUrl={result.avatar_url}
+                              avatarSize="sm"
+                            />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             )}
           </section>
