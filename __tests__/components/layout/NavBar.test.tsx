@@ -40,6 +40,11 @@ describe('Navbar', () => {
     expect(playersIdx).toBeLessThan(statsIdx)
   })
 
+  it('does not render the Manage nav link for mod users', () => {
+    render(<Navbar profile={null} roles={['mod']} pendingCount={0} />)
+    expect(screen.queryByRole('link', { name: 'nav.mod' })).not.toBeInTheDocument()
+  })
+
   it('renders hamburger menu button', () => {
     render(<Navbar profile={null} roles={[]} pendingCount={0} />)
     expect(screen.getByRole('button', { name: 'Open menu' })).toBeInTheDocument()

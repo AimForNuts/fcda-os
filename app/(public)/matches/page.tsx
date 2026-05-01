@@ -1,9 +1,10 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { fetchSessionContext } from '@/lib/auth/permissions'
+import { canAccessMod, fetchSessionContext } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { MatchCard, type LineupSummary } from '@/components/matches/MatchCard'
 import { MatchesDateFilter } from '@/components/matches/MatchesDateFilter'
+import { NewGameModal } from '@/components/matches/NewGameModal'
 import { filterGamesByDateRange } from '@/lib/games/filter-by-date-range'
 import { sortGames } from '@/lib/games/sort'
 import type { Game } from '@/types'
@@ -19,6 +20,7 @@ export default async function MatchesPage({
   const supabase = await createClient()
   const session = await fetchSessionContext()
   const isApproved = session?.profile.approved ?? false
+  const canCreateGame = Boolean(session?.profile.approved && canAccessMod(session.roles))
 
   const { data: games } = await supabase
     .from('games')
@@ -88,15 +90,19 @@ export default async function MatchesPage({
 
   return (
     <div className="container mx-auto max-w-screen-md px-4 py-8">
-      <div className="mb-6 flex min-w-0 flex-nowrap items-center justify-between gap-3 sm:mb-8">
-        <h1 className="min-w-0 shrink truncate text-2xl font-bold text-fcda-navy">Jogos</h1>
+      <div className="mb-6 flex min-w-0 flex-wrap items-center gap-3 sm:mb-8">
+        <h1 className="mr-auto min-w-0 shrink truncate text-2xl font-bold text-fcda-navy">Jogos</h1>
         <Suspense
           fallback={
-            <div className="h-8 w-40 shrink-0 animate-pulse rounded-md bg-muted/50" aria-hidden />
+            <div
+              className="order-3 h-8 w-full animate-pulse rounded-md bg-muted/50 sm:order-none sm:w-40"
+              aria-hidden
+            />
           }
         >
-          <MatchesDateFilter />
+          <MatchesDateFilter className="order-3 w-full sm:order-none sm:w-auto" />
         </Suspense>
+        {canCreateGame && <NewGameModal />}
       </div>
       {noGamesInDb ? (
         <p className="text-sm text-muted-foreground">Ainda não há jogos registados.</p>
