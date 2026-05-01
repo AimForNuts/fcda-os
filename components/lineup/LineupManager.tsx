@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { WhatsAppPasteBox } from './WhatsAppPasteBox'
 import { PlayerChip } from './PlayerChip'
 import { TeamAssignmentToggle } from './TeamAssignmentToggle'
+import { AiGeneratedLineupModal, type AiGeneratedLineup } from './AiGeneratedLineupModal'
 import { Button } from '@/components/ui/button'
 import { TeamHeader } from '@/components/matches/TeamHeader'
 import type { ParsedEntry } from '@/lib/whatsapp/parser'
@@ -69,8 +70,14 @@ export function LineupManager({ gameId, currentLineup }: Props) {
   // Editable copy of the current lineup for team assignment in the paste phase
   const [editableLineup, setEditableLineup] = useState(currentLineup)
   const [isSavingTeams, setIsSavingTeams] = useState(false)
+  const [isClearingTeams, setIsClearingTeams] = useState(false)
   const [teamsError, setTeamsError] = useState<string | null>(null)
   const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null)
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false)
+  const [generatedTeams, setGeneratedTeams] = useState<AiGeneratedLineup | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
+  const [isApplyingAi, setIsApplyingAi] = useState(false)
 
   // ── Current lineup team editing ────────────────────────────────────────
   function setCurrentTeam(playerId: string, team: 'a' | 'b' | null) {
@@ -140,6 +147,108 @@ export function LineupManager({ gameId, currentLineup }: Props) {
       router.refresh()
     }
     setIsSavingTeams(false)
+  }
+
+  async function clearTeams() {
+    if (editableLineup.length === 0 || isClearingTeams) return
+    const confirmed = window.confirm(t('mod.lineup.confirmClearTeams'))
+    if (!confirmed) return
+
+    setIsClearingTeams(true)
+    setTeamsError(null)
+    const players = editableLineup.map((p) => ({
+      player_id: p.player_id,
+      team: null,
+      is_captain: false,
+    }))
+
+    const res = await fetch(`/api/games/${gameId}/lineup`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ players }),
+    })
+
+    if (!res.ok) {
+      setTeamsError(t('mod.lineup.errorSave'))
+    } else {
+      setEditableLineup((prev) => prev.map((p) => ({ ...p, team: null, is_captain: false })))
+      router.refresh()
+    }
+    setIsClearingTeams(false)
+  }
+
+  async function generateAiTeams() {
+    if (editableLineup.length === 0) return
+    setIsAiModalOpen(true)
+    setIsGeneratingAi(true)
+    setGeneratedTeams(null)
+    setAiError(null)
+    try {
+      const res = await fetch('/api/mod/ai-assistant/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const details = Array.isArray(data.details) ? ` ${data.details.join(' ')}` : ''
+        setAiError(`${data.error ?? t('mod.lineup.aiGenerateError')}${details}`)
+        return
+      }
+      setGeneratedTeams(data)
+    } catch {
+      setAiError(t('mod.lineup.aiGenerateError'))
+    } finally {
+      setIsGeneratingAi(false)
+    }
+  }
+
+  async function applyAiTeams() {
+    if (!generatedTeams) return
+    setIsApplyingAi(true)
+    setAiError(null)
+    const players = [
+      ...generatedTeams.team_a.players.map((p) => ({
+        player_id: p.player_id,
+        team: 'a' as const,
+        is_captain: p.is_captain,
+      })),
+      ...generatedTeams.team_b.players.map((p) => ({
+        player_id: p.player_id,
+        team: 'b' as const,
+        is_captain: p.is_captain,
+      })),
+    ]
+
+    try {
+      const res = await fetch(`/api/games/${gameId}/lineup`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ players }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        setAiError(data?.error ?? t('mod.lineup.errorSave'))
+        return
+      }
+
+      const generatedMap = new Map(players.map((p) => [p.player_id, p]))
+      setEditableLineup((prev) =>
+        prev.map((player) => {
+          const generated = generatedMap.get(player.player_id)
+          return generated
+            ? { ...player, team: generated.team, is_captain: generated.is_captain }
+            : { ...player, team: null, is_captain: false }
+        })
+      )
+      setIsAiModalOpen(false)
+      router.refresh()
+    } catch {
+      setAiError(t('mod.lineup.errorSave'))
+    } finally {
+      setIsApplyingAi(false)
+    }
   }
 
   // ── Parse ──────────────────────────────────────────────────────────────
@@ -308,9 +417,40 @@ export function LineupManager({ gameId, currentLineup }: Props) {
       {/* Current lineup (if set) — editable team assignments */}
       {editableLineup.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            {t('mod.lineup.current')}
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              {t('mod.lineup.current')}
+            </h2>
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                type="button"
+                size="sm"
+                className="bg-fcda-gold text-fcda-navy font-semibold hover:bg-fcda-gold/90"
+                onClick={generateAiTeams}
+                disabled={isGeneratingAi || editableLineup.length === 0}
+              >
+                {isGeneratingAi ? t('mod.lineup.aiGenerating') : t('mod.lineup.aiGenerate')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                onClick={clearTeams}
+                disabled={isClearingTeams || isSavingTeams}
+              >
+                {isClearingTeams ? t('common.loading') : t('mod.lineup.clearTeams')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={saveTeams}
+                disabled={isSavingTeams || isClearingTeams}
+                className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
+              >
+                {isSavingTeams ? t('common.loading') : t('mod.lineup.saveLineup')}
+              </Button>
+            </div>
+          </div>
           <div className="grid gap-2 md:grid-cols-2">
             {(['a', 'b'] as const).map((team) => (
               <CurrentTeamDropZone
@@ -339,15 +479,18 @@ export function LineupManager({ gameId, currentLineup }: Props) {
             title={t('mod.lineup.noTeamLabel')}
           />
           {teamsError && <p role="alert" className="text-sm text-destructive">{teamsError}</p>}
-          <Button
-            type="button"
-            size="sm"
-            onClick={saveTeams}
-            disabled={isSavingTeams}
-            className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
-          >
-            {isSavingTeams ? t('common.loading') : t('mod.lineup.saveLineup')}
-          </Button>
+          {isAiModalOpen && (
+            <AiGeneratedLineupModal
+              teams={generatedTeams}
+              playerCount={editableLineup.length}
+              isGenerating={isGeneratingAi}
+              isApplying={isApplyingAi}
+              error={aiError}
+              onApply={applyAiTeams}
+              onRegenerate={generateAiTeams}
+              onClose={() => setIsAiModalOpen(false)}
+            />
+          )}
         </div>
       )}
 
