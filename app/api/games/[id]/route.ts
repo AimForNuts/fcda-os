@@ -11,6 +11,21 @@ const updateGameSchema = z.object({
 
 type AuditLogInsert = Database['public']['Tables']['audit_log']['Insert']
 type GameUpdate = Database['public']['Tables']['games']['Update']
+type GameUpdateResult = {
+  id: string
+  date: string
+  location: string
+  counts_for_stats: boolean
+}
+type UpdateGameQuery = {
+  update(values: GameUpdate): {
+    eq(column: string, value: string): {
+      select(columns: string): {
+        single(): PromiseLike<{ data: GameUpdateResult | null; error: unknown }>
+      }
+    }
+  }
+}
 
 export async function PATCH(
   request: Request,
@@ -47,12 +62,12 @@ export async function PATCH(
     updated_at: new Date().toISOString(),
   } satisfies GameUpdate
 
-  const { data: game, error } = await supabase
-    .from('games')
+  const { data: game, error } = await (supabase
+    .from('games') as unknown as UpdateGameQuery)
     .update(updatePayload)
     .eq('id', id)
     .select('id, date, location, counts_for_stats')
-    .single() as { data: { id: string; date: string; location: string; counts_for_stats: boolean } | null; error: unknown }
+    .single()
 
   if (error || !game) {
     return Response.json({ error: 'Failed to update game' }, { status: 500 })
@@ -95,7 +110,7 @@ export async function DELETE(
 
   if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
   if (existing.status !== 'scheduled') {
-    return Response.json({ error: 'Only open games can be deleted' }, { status: 409 })
+    return Response.json({ error: 'Only games in Agendado state can be deleted' }, { status: 409 })
   }
 
   const { error } = await supabase

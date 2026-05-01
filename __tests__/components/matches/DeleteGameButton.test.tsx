@@ -45,13 +45,13 @@ describe('DeleteGameButton', () => {
   it('shows the server error when deletion fails', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      json: async () => ({ error: 'Only open games can be deleted' }),
+      json: async () => ({ error: 'Only games in Agendado state can be deleted' }),
     })
 
     render(<DeleteGameButton gameId="game-1" />)
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar jogo' }))
 
-    expect(await screen.findByText('Only open games can be deleted')).toBeInTheDocument()
+    expect(await screen.findByText('Only games in Agendado state can be deleted')).toBeInTheDocument()
     expect(push).not.toHaveBeenCalled()
   })
 })
