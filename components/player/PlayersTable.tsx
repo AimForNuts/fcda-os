@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import type { PlayerPublic } from '@/types'
 
-type PlayerRow = Omit<PlayerPublic, 'current_rating'> & {
+type PlayerRow = Omit<PlayerPublic, 'current_rating' | 'description'> & {
   avatar_url?: string | null
   preferred_positions: string[]
   total_all: number

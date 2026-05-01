@@ -1,11 +1,12 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { StatsTable } from '@/components/stats/StatsTable'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (k: string) => {
       const map: Record<string, string> = {
+        'stats.colRank': 'Pos.',
         'players.colNumber': '#',
         'players.colPlayer': 'Jogador',
         'players.nameLabel': 'Nome',
@@ -65,8 +66,9 @@ describe('StatsTable', () => {
     expect(screen.getByText('Carlos Silva')).toBeInTheDocument()
   })
 
-  it('renders stat columns Jogos, Vitórias, Empates, Derrotas, Pontos', () => {
+  it('renders stat columns Pos., Jogos, Vitórias, Empates, Derrotas, Pontos', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
+    expect(screen.getByRole('columnheader', { name: /^Pos\.$/i })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: /Jogos/i })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: /Vitórias/i })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: /Empates/i })).toBeInTheDocument()
@@ -89,9 +91,9 @@ describe('StatsTable', () => {
     expect(screen.getByText(/sem dados/i)).toBeInTheDocument()
   })
 
-  it('renders shirt number in the number column when present', () => {
+  it('renders shirt number next to the player name when present', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    expect(screen.getAllByText('10').length).toBeGreaterThan(0)
+    expect(screen.getByText('#10')).toBeInTheDocument()
   })
 
   it('renders player name as a link when not anonymised', () => {
@@ -124,10 +126,10 @@ describe('StatsTable', () => {
     expect(screen.getAllByText('10').length).toBeGreaterThan(0)
   })
 
-  it('shows sort indicator on active column', () => {
+  it('shows sort indicator on Pontos column by default', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    const gamesHeader = screen.getByRole('columnheader', { name: /Jogos/i })
-    expect(gamesHeader).toHaveAttribute('aria-sort', 'descending')
+    const pointsHeader = screen.getByRole('columnheader', { name: /Pontos/i })
+    expect(pointsHeader).toHaveAttribute('aria-sort', 'descending')
   })
 
   it('filters players by name', () => {
@@ -135,6 +137,26 @@ describe('StatsTable', () => {
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Carlos' } })
     expect(screen.getByText('Carlos Silva')).toBeInTheDocument()
     expect(screen.queryByText('Jogador 2')).not.toBeInTheDocument()
+  })
+
+  it('shows points-based standing when filtering, not the visible row index', () => {
+    render(<StatsTable players={players} isAnonymised={false} />)
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Jogador 2' } })
+    const row = screen.getByText('Jogador 2').closest('tr')
+    expect(row).toBeTruthy()
+    const cells = within(row!).getAllByRole('cell')
+    expect(cells[0]).toHaveTextContent('2')
+  })
+
+  it('keeps points-based standing when sorting by another column', () => {
+    render(<StatsTable players={players} isAnonymised={false} />)
+    fireEvent.click(screen.getByRole('columnheader', { name: /Jogos/i }))
+    const carlosRow = screen.getByText('Carlos Silva').closest('tr')
+    const jogadorRow = screen.getByText('Jogador 2').closest('tr')
+    expect(carlosRow).toBeTruthy()
+    expect(jogadorRow).toBeTruthy()
+    expect(within(carlosRow!).getAllByRole('cell')[0]).toHaveTextContent('1')
+    expect(within(jogadorRow!).getAllByRole('cell')[0]).toHaveTextContent('2')
   })
 
   it('highlights the linked player row', () => {
