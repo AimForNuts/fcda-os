@@ -105,23 +105,38 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
-      {/* Hero — icy blue background echoing the match card */}
-      <section className="relative flex flex-col items-center justify-center gap-2 px-4 py-16 text-center bg-fcda-ice">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+      {/* Hero */}
+      <section className="relative isolate flex min-h-[30rem] flex-col items-center justify-center gap-2 overflow-hidden bg-fcda-navy px-4 py-16 text-center text-white">
+        <Image
+          src="/areosa_dragon.webp"
+          alt=""
+          fill
+          preload
+          sizes="100vw"
+          className="absolute inset-0 -z-20 object-cover object-center"
+          aria-hidden
+        />
+        <div className="absolute inset-0 -z-10 bg-fcda-navy/82" aria-hidden />
+        <div
+          className="absolute inset-0 -z-10 bg-gradient-to-b from-black/20 via-black/10 to-fcda-navy/50"
+          aria-hidden
+        />
+        <Image
           src="/crest.png"
           alt="Futebol Clube Dragões da Areosa"
+          width={320}
+          height={480}
           className="-mb-12 h-64 w-64 object-contain drop-shadow-lg md:-mb-16 md:h-80 md:w-80"
         />
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-fcda-navy/60">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/70">
             Futebol Clube
           </p>
-          <h1 className="mt-1 text-3xl font-extrabold uppercase tracking-tight text-fcda-navy md:text-5xl">
+          <h1 className="mt-1 text-3xl font-extrabold uppercase tracking-tight text-white md:text-5xl">
             Dragões da Areosa
           </h1>
         </div>
-        <p className="max-w-md text-fcda-navy/70">
+        <p className="max-w-md text-white/75">
           Acompanha os jogos, vê as estatísticas e gere a equipa.
         </p>
         <div className="flex items-center gap-3 text-fcda-gold">
