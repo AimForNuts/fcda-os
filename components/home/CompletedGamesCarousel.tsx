@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
 import { formatScheduleDate } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { cn } from '@/lib/utils'
@@ -12,7 +12,15 @@ import type { Game } from '@/types'
 const teamA = getTeamPresentation('a')
 const teamB = getTeamPresentation('b')
 
-function HomeGameCard({ game, className }: { game: Game; className?: string }) {
+function HomeGameCard({
+  game,
+  className,
+  commentCount = 0,
+}: {
+  game: Game
+  className?: string
+  commentCount?: number
+}) {
   const formatted = formatScheduleDate(game.date)
   const score =
     game.score_a != null && game.score_b != null
@@ -42,8 +50,20 @@ function HomeGameCard({ game, className }: { game: Game; className?: string }) {
             </div>
           </div>
           <div className="shrink-0 text-right">
-            <p className="text-sm font-bold text-fcda-navy">{formatted.dayMonth}</p>
-            <p className="text-xs font-medium text-muted-foreground">{formatted.weekday}</p>
+            <div className="flex items-start justify-end gap-2">
+              <span
+                className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground"
+                aria-label={`${commentCount} comentários`}
+                title={`${commentCount} comentários`}
+              >
+                <MessageCircle size={14} aria-hidden />
+                <span className="tabular-nums">{commentCount}</span>
+              </span>
+              <div>
+                <p className="text-sm font-bold text-fcda-navy">{formatted.dayMonth}</p>
+                <p className="text-xs font-medium text-muted-foreground">{formatted.weekday}</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -86,7 +106,13 @@ function HomeGameCard({ game, className }: { game: Game; className?: string }) {
   )
 }
 
-export function CompletedGamesCarousel({ games }: { games: Game[] }) {
+export function CompletedGamesCarousel({
+  games,
+  commentCounts = {},
+}: {
+  games: Game[]
+  commentCounts?: Record<string, number>
+}) {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -149,6 +175,7 @@ export function CompletedGamesCarousel({ games }: { games: Game[] }) {
           <HomeGameCard
             key={game.id}
             game={game}
+            commentCount={commentCounts[game.id] ?? 0}
             className="w-[calc(100vw-3rem)] max-w-sm shrink-0 snap-start md:w-auto md:max-w-none md:shrink"
           />
         ))}

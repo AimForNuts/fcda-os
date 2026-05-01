@@ -4,6 +4,7 @@ import { Navbar } from '@/components/layout/Navbar'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => '/matches',
 }))
 
 vi.mock('react-i18next', () => ({

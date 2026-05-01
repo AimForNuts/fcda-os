@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, MessageCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
@@ -34,7 +34,12 @@ function toTitleCase(name: string): string {
     .join(' ')
 }
 
-type Props = { game: Game; lineup?: LineupSummary; showAvatars?: boolean }
+type Props = {
+  game: Game
+  lineup?: LineupSummary
+  showAvatars?: boolean
+  commentCount?: number
+}
 
 function PlayerSummaryRow({
   player,
@@ -65,7 +70,7 @@ function PlayerSummaryRow({
   )
 }
 
-export function MatchCard({ game, lineup, showAvatars = false }: Props) {
+export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 }: Props) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(
     game.status === 'finished' || game.status === 'cancelled'
@@ -101,6 +106,14 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
               <p className="text-sm text-muted-foreground">{game.location}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
+              <span
+                className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground"
+                aria-label={`${commentCount} comentários`}
+                title={`${commentCount} comentários`}
+              >
+                <MessageCircle size={15} aria-hidden />
+                <span className="tabular-nums">{commentCount}</span>
+              </span>
               {game.status === 'finished' &&
                 game.score_a != null &&
                 game.score_b != null && (
