@@ -4,10 +4,18 @@ import { Hash, ShieldAlert, Sparkles } from 'lucide-react'
 import { signPlayerAvatarPath } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { PlayerPhotoZoom } from '@/components/player/PlayerPhotoZoom'
 import { ProfileForm } from '@/components/profile/ProfileForm'
 import { Card, CardContent } from '@/components/ui/card'
 
 export const metadata: Metadata = { title: 'O meu perfil — FCDA' }
+
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return '?'
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase()
+}
 
 export default async function ProfilePage() {
   const session = await fetchSessionContext()
@@ -64,7 +72,16 @@ export default async function ProfilePage() {
               </h1>
             </div>
             {player ? (
-              <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[28rem]">
+              <div className="grid items-stretch gap-3 sm:grid-cols-[auto_1fr_1fr] lg:min-w-[38rem]">
+                <div className="flex items-center justify-center sm:justify-start">
+                  <PlayerPhotoZoom
+                    avatarUrl={avatarUrl}
+                    displayName={player.sheet_name}
+                    fallback={getInitials(player.sheet_name)}
+                    avatarClassName="size-16 border-0 shadow-sm ring-4 ring-background sm:size-16 lg:size-16"
+                    fallbackClassName="text-lg sm:text-lg"
+                  />
+                </div>
                 {profileStats.map((item) => {
                   const Icon = item.icon
                   return (

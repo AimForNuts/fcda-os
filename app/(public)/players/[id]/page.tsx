@@ -1,11 +1,13 @@
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShieldCheck, Star, Swords, Target, Trophy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
+import { PlayerPhotoZoom } from '@/components/player/PlayerPhotoZoom'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Game, PlayerPublic, PlayerStats } from '@/types'
@@ -42,10 +44,9 @@ function getInitials(name: string) {
   return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase()
 }
 
-function teamLabel(team: string | null) {
-  if (team === 'a') return 'Branca'
-  if (team === 'b') return 'Preta'
-  return '—'
+function matchTeam(team: string | null): MatchTeam | null {
+  if (team === 'a' || team === 'b') return team
+  return null
 }
 
 export async function generateMetadata({
@@ -176,80 +177,77 @@ export default async function PlayerProfilePage({
     })
 
   return (
-    <div className="container mx-auto max-w-5xl space-y-8 px-4 py-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-fcda-navy/10 bg-gradient-to-br from-fcda-navy via-fcda-navy to-fcda-navy/90 text-white shadow-xl shadow-fcda-navy/10">
+    <div className="container mx-auto max-w-5xl space-y-4 px-3 py-4 sm:space-y-8 sm:px-4 sm:py-8">
+      <section className="relative overflow-hidden rounded-3xl border border-fcda-navy/10 bg-gradient-to-br from-fcda-navy via-fcda-navy to-fcda-navy/90 text-white shadow-lg shadow-fcda-navy/10 sm:rounded-[2rem] sm:shadow-xl">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.12),transparent_28%)]" />
-        <div className="relative flex flex-col gap-8 px-6 py-8 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-10">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-            <Avatar className="size-28 border-4 border-white/25 shadow-2xl shadow-black/15 sm:size-36 lg:size-44">
-              {resolvedPlayer.avatar_url ? (
-                <AvatarImage src={resolvedPlayer.avatar_url} alt={resolvedPlayer.display_name} />
-              ) : null}
-              <AvatarFallback className="bg-fcda-gold text-3xl font-semibold text-fcda-navy sm:text-4xl">
-                {getInitials(resolvedPlayer.display_name)}
-              </AvatarFallback>
-            </Avatar>
+        <div className="relative flex flex-col gap-5 px-4 py-5 sm:gap-8 sm:px-8 sm:py-8 lg:flex-row lg:items-end lg:justify-between lg:px-10">
+          <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:gap-6 sm:text-left">
+            <PlayerPhotoZoom
+              avatarUrl={resolvedPlayer.avatar_url}
+              displayName={resolvedPlayer.display_name}
+              fallback={getInitials(resolvedPlayer.display_name)}
+            />
 
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-0 space-y-2 sm:space-y-4">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                 {isOwnProfile && (
-                  <Badge className="border-white/15 bg-fcda-gold text-fcda-navy hover:bg-fcda-gold">
+                  <Badge className="border-white/15 bg-fcda-gold px-2 py-0.5 text-[10px] text-fcda-navy hover:bg-fcda-gold sm:text-xs">
                     Perfil pessoal
                   </Badge>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <h1 className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+              <div>
+                <h1 className="flex min-w-0 flex-wrap items-baseline justify-center gap-x-2 gap-y-0.5 text-3xl font-black tracking-tight text-white sm:justify-start sm:gap-x-3 sm:text-4xl lg:text-5xl">
                   {resolvedPlayer.shirt_number != null && (
-                    <span className="text-xl font-semibold tracking-[0.12em] text-white/65 sm:text-2xl lg:text-3xl">
+                    <span className="text-base font-semibold tracking-[0.08em] text-white/65 sm:text-2xl sm:tracking-[0.12em] lg:text-3xl">
                       #{resolvedPlayer.shirt_number}
                     </span>
                   )}
-                  <span>{resolvedPlayer.display_name}</span>
+                  <span className="min-w-0 truncate">{resolvedPlayer.display_name}</span>
                 </h1>
               </div>
             </div>
           </div>
 
-          <div className={`grid gap-3 ${canViewRatings ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <div className={`grid gap-2 sm:gap-3 ${canViewRatings ? 'grid-cols-4 lg:grid-cols-2' : 'grid-cols-3'}`}>
             {canViewRatings && (
-              <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
-                <div className="flex items-center gap-2 text-white/75">
-                  <Star className="size-4" />
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em]">Nota</span>
+              <div className="rounded-xl border border-white/12 bg-white/10 p-2 backdrop-blur-sm sm:rounded-2xl sm:p-4">
+                <div className="flex items-center gap-1 text-white/75 sm:gap-2">
+                  <Star className="size-3 sm:size-4" />
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.2em]">Nota</span>
                 </div>
-                <p className="mt-3 text-3xl font-black">
+                <p className="mt-1 text-xl font-black sm:mt-3 sm:text-3xl">
                   {resolvedPlayer.current_rating != null ? resolvedPlayer.current_rating.toFixed(1) : '—'}
                 </p>
               </div>
             )}
-            <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
-              <div className="flex items-center gap-2 text-white/75">
-                <Swords className="size-4" />
-                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Jogos</span>
+            <div className="rounded-xl border border-white/12 bg-white/10 p-2 backdrop-blur-sm sm:rounded-2xl sm:p-4">
+              <div className="flex items-center gap-1 text-white/75 sm:gap-2">
+                <Swords className="size-3 sm:size-4" />
+                <span className="text-[9px] font-semibold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.2em]">Jogos</span>
               </div>
-              <p className="mt-3 text-3xl font-black">{matchesPlayed}</p>
+              <p className="mt-1 text-xl font-black sm:mt-3 sm:text-3xl">{matchesPlayed}</p>
             </div>
-            <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
-              <div className="flex items-center gap-2 text-white/75">
-                <Trophy className="size-4" />
-                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Pontos</span>
+            <div className="rounded-xl border border-white/12 bg-white/10 p-2 backdrop-blur-sm sm:rounded-2xl sm:p-4">
+              <div className="flex items-center gap-1 text-white/75 sm:gap-2">
+                <Trophy className="size-3 sm:size-4" />
+                <span className="text-[9px] font-semibold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.2em]">Pontos</span>
               </div>
-              <p className="mt-3 text-3xl font-black">{totalPoints}</p>
+              <p className="mt-1 text-xl font-black sm:mt-3 sm:text-3xl">{totalPoints}</p>
             </div>
-            <div className="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur-sm">
-              <div className="flex items-center gap-2 text-white/75">
-                <Target className="size-4" />
-                <span className="text-xs font-semibold uppercase tracking-[0.2em]">Vitórias</span>
+            <div className="rounded-xl border border-white/12 bg-white/10 p-2 backdrop-blur-sm sm:rounded-2xl sm:p-4">
+              <div className="flex items-center gap-1 text-white/75 sm:gap-2">
+                <Target className="size-3 sm:size-4" />
+                <span className="text-[9px] font-semibold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.2em]">Vitórias</span>
               </div>
-              <p className="mt-3 text-3xl font-black">{winRate}%</p>
+              <p className="mt-1 text-xl font-black sm:mt-3 sm:text-3xl">{winRate}%</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid grid-cols-3 gap-2 sm:gap-4">
         {[
           {
             label: 'Jogos totais',
@@ -275,28 +273,28 @@ export default async function PlayerProfilePage({
           return (
             <Card
               key={item.label}
-              className="gap-0 rounded-3xl border-fcda-navy/10 bg-white/90 shadow-sm shadow-fcda-navy/5"
+              className="gap-0 rounded-2xl border-fcda-navy/10 bg-white/90 shadow-sm shadow-fcda-navy/5 sm:rounded-3xl"
             >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <CardContent className="p-2.5 sm:p-5">
+                <div className="flex items-start justify-between gap-2 sm:gap-4">
+                  <div className="min-w-0 space-y-1 sm:space-y-2">
+                    <p className="text-[9px] font-semibold uppercase leading-tight tracking-[0.08em] text-muted-foreground sm:text-xs sm:tracking-[0.2em]">
                       {item.label}
                     </p>
-                    <p className="text-3xl font-black tracking-tight text-fcda-navy">{item.value}</p>
+                    <p className="text-xl font-black tracking-tight text-fcda-navy sm:text-3xl">{item.value}</p>
                   </div>
-                  <div className="rounded-2xl bg-fcda-ice p-3 text-fcda-navy">
-                    <Icon className="size-5" />
+                  <div className="hidden rounded-xl bg-fcda-ice p-2 text-fcda-navy min-[430px]:block sm:rounded-2xl sm:p-3">
+                    <Icon className="size-3.5 sm:size-5" />
                   </div>
                 </div>
-                <p className="mt-4 text-sm text-muted-foreground">{item.detail}</p>
+                <p className="mt-4 hidden text-sm text-muted-foreground sm:block">{item.detail}</p>
               </CardContent>
             </Card>
           )
         })}
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-3 sm:gap-4 lg:grid-cols-2">
         {[
           {
             title: 'Registo total',
@@ -319,23 +317,23 @@ export default async function PlayerProfilePage({
         ].map((section) => (
           <Card
             key={section.title}
-            className="rounded-3xl border-fcda-navy/10 bg-gradient-to-br from-white to-fcda-ice/30 shadow-sm shadow-fcda-navy/5"
+            className="rounded-2xl border-fcda-navy/10 bg-gradient-to-br from-white to-fcda-ice/30 shadow-sm shadow-fcda-navy/5 sm:rounded-3xl"
           >
-            <CardContent className="space-y-5 p-6">
+            <CardContent className="space-y-4 p-4 sm:space-y-5 sm:p-6">
               <div className="space-y-1">
-                <h2 className="text-lg font-bold text-fcda-navy">{section.title}</h2>
-                <p className="text-sm text-muted-foreground">{section.subtitle}</p>
+                <h2 className="text-base font-bold text-fcda-navy sm:text-lg">{section.title}</h2>
+                <p className="text-xs text-muted-foreground sm:text-sm">{section.subtitle}</p>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {section.values.map((value) => (
                   <div
                     key={value.label}
-                    className="rounded-2xl border border-border bg-background/90 p-4 text-center"
+                    className="rounded-xl border border-border bg-background/90 p-3 text-center sm:rounded-2xl sm:p-4"
                   >
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">
                       {value.label}
                     </p>
-                    <p className={cn('mt-2 text-3xl font-black tabular-nums', value.className)}>
+                    <p className={cn('mt-1.5 text-2xl font-black tabular-nums sm:mt-2 sm:text-3xl', value.className)}>
                       {value.value}
                     </p>
                   </div>
@@ -364,51 +362,72 @@ export default async function PlayerProfilePage({
           </Card>
         ) : (
           <div className="grid gap-3">
-            {matchHistory.map((match) => (
-              <Link
-                key={match.game_id}
-                href={`/matches/${match.game_id}`}
-                className="block focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-3xl"
-              >
-                <Card className="rounded-3xl border-fcda-navy/10 bg-white/95 shadow-sm shadow-fcda-navy/5 transition-all hover:-translate-y-0.5 hover:border-fcda-navy/25 hover:shadow-md">
-                  <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-fcda-navy">{dateStr(match.date)}</p>
-                      <p className="text-xs text-muted-foreground sm:text-sm">{match.location}</p>
-                    </div>
+            {matchHistory.map((match) => {
+              const team = matchTeam(match.team)
+              const teamPresentation = team ? getTeamPresentation(team) : null
 
-                    <div className={`grid gap-2 ${canViewRatings ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                      <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Equipa
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-fcda-navy">{teamLabel(match.team)}</p>
+              return (
+                <Link
+                  key={match.game_id}
+                  href={`/matches/${match.game_id}`}
+                  className="block focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded-3xl"
+                >
+                  <Card className="rounded-3xl border-fcda-navy/10 bg-white/95 shadow-sm shadow-fcda-navy/5 transition-all hover:-translate-y-0.5 hover:border-fcda-navy/25 hover:shadow-md">
+                    <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-fcda-navy">{dateStr(match.date)}</p>
+                        <p className="text-xs text-muted-foreground sm:text-sm">{match.location}</p>
                       </div>
-                      <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Resultado
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-fcda-navy">
-                          {match.score_a != null && match.score_b != null
-                            ? `${match.score_a}–${match.score_b}`
-                            : '—'}
-                        </p>
-                      </div>
-                      {canViewRatings && (
+
+                      <div className={`grid gap-2 ${canViewRatings ? 'grid-cols-3' : 'grid-cols-2'}`}>
                         <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            Nota
+                            Equipa
+                          </p>
+                          <div className="mt-1 flex min-h-7 items-center justify-center">
+                            {teamPresentation ? (
+                              <>
+                                <Image
+                                  src={teamPresentation.imageSrc}
+                                  alt=""
+                                  width={32}
+                                  height={44}
+                                  className="h-7 w-auto object-contain drop-shadow-sm"
+                                  aria-hidden
+                                />
+                                <span className="sr-only">{teamPresentation.label}</span>
+                              </>
+                            ) : (
+                              <span className="text-sm font-semibold text-fcda-navy">—</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            Resultado
                           </p>
                           <p className="mt-1 text-sm font-semibold text-fcda-navy">
-                            {match.rating != null ? match.rating.toFixed(1) : '—'}
+                            {match.score_a != null && match.score_b != null
+                              ? `${match.score_a}–${match.score_b}`
+                              : '—'}
                           </p>
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                        {canViewRatings && (
+                          <div className="rounded-2xl bg-muted/40 px-2.5 py-2 text-center">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                              Nota
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-fcda-navy">
+                              {match.rating != null ? match.rating.toFixed(1) : '—'}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )
+            })}
           </div>
         )}
       </section>
