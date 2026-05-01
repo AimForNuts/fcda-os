@@ -33,8 +33,16 @@ const baseGame: Game = {
 }
 
 const lineup: LineupSummary = {
-  teamA: [{ id: 'p1', name: 'SELAS', avatar_url: null, shirt_number: 7 }],
-  teamB: [{ id: 'p2', name: 'andre monforte', avatar_url: null, shirt_number: null }],
+  teamA: [{ id: 'p1', name: 'SELAS', avatar_url: null, shirt_number: 7, is_captain: true }],
+  teamB: [
+    {
+      id: 'p2',
+      name: 'andre monforte',
+      avatar_url: null,
+      shirt_number: null,
+      is_captain: false,
+    },
+  ],
   unassigned: [],
 }
 
@@ -116,6 +124,11 @@ describe('MatchCard', () => {
   it('shows shirt number when provided', () => {
     render(<MatchCard game={baseGame} lineup={lineup} />)
     expect(screen.getByText('#7')).toBeInTheDocument()
+  })
+
+  it('shows captain marker for captain players', () => {
+    render(<MatchCard game={baseGame} lineup={lineup} />)
+    expect(screen.getByText('C')).toBeInTheDocument()
   })
 
   it('cancelled game starts collapsed — player names are not visible', () => {

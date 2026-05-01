@@ -1,7 +1,8 @@
 'use client'
 
-import { useDeferredValue, useMemo, useRef, useState } from 'react'
+import { type FormEvent, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { MessageSquare, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
@@ -13,6 +14,16 @@ type ProfileResult = { id: string; display_name: string }
 
 function normalizeSearch(value: string) {
   return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-PT')
+}
+
+function formatGameOption(game: { date: string; location: string }) {
+  const date = new Date(game.date)
+  const dateLabel = date.toLocaleDateString('pt-PT', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+  return `${dateLabel} · ${game.location}`
 }
 
 export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
@@ -32,6 +43,13 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   const [ratingInput, setRatingInput] = useState<Record<string, string>>({})
   const [editingPositionsId, setEditingPositionsId] = useState<string | null>(null)
   const [positionsInput, setPositionsInput] = useState<Record<string, string[]>>({})
+  const [feedbackTarget, setFeedbackTarget] = useState<PlayerRow | null>(null)
+  const [feedbackGameId, setFeedbackGameId] = useState('')
+  const [feedbackRating, setFeedbackRating] = useState('')
+  const [feedbackText, setFeedbackText] = useState('')
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false)
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
+  const [feedbackError, setFeedbackError] = useState<string | null>(null)
   const deferredSearchValue = useDeferredValue(searchValue)
   const userSearchAbort = useRef<AbortController | null>(null)
   const photoInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
@@ -298,6 +316,59 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
     }
   }
 
+  function openFeedbackModal(player: PlayerRow) {
+    setFeedbackTarget(player)
+    setFeedbackGameId(player.feedback_games[0]?.id ?? '')
+    setFeedbackRating('')
+    setFeedbackText('')
+    setFeedbackSubmitted(false)
+    setFeedbackError(null)
+  }
+
+  function closeFeedbackModal() {
+    if (feedbackSubmitting) return
+    setFeedbackTarget(null)
+    setFeedbackGameId('')
+    setFeedbackRating('')
+    setFeedbackText('')
+    setFeedbackSubmitted(false)
+    setFeedbackError(null)
+  }
+
+  async function submitFeedback(e: FormEvent) {
+    e.preventDefault()
+    if (!feedbackTarget) return
+
+    const rating = parseFloat(feedbackRating)
+    if (!feedbackGameId || isNaN(rating) || rating < 0 || rating > 10) {
+      setFeedbackError(t('admin.errors.feedbackFailed'))
+      return
+    }
+
+    setFeedbackSubmitting(true)
+    setFeedbackError(null)
+    try {
+      const res = await fetch(`/api/admin/players/${feedbackTarget.id}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game_id: feedbackGameId,
+          rating,
+          feedback: feedbackText.trim() || null,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : t('admin.errors.feedbackFailed'))
+      }
+      setFeedbackSubmitted(true)
+    } catch (err) {
+      setFeedbackError(err instanceof Error ? err.message : t('admin.errors.feedbackFailed'))
+    } finally {
+      setFeedbackSubmitting(false)
+    }
+  }
+
   return (
     <div className="space-y-3">
       <div className="max-w-md">
@@ -542,6 +613,16 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     size="sm"
                     variant="outline"
                     className="text-xs"
+                    onClick={() => openFeedbackModal(player)}
+                    disabled={isLoading}
+                  >
+                    <MessageSquare data-icon="inline-start" />
+                    {t('admin.addPlayerFeedback')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
                     onClick={() => setShowAliasInput((prev) => { const s = new Set(prev); s.add(player.id); return s })}
                     disabled={isLoading}
                   >
@@ -692,6 +773,126 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
         <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">
           {rows.length === 0 ? 'Sem jogadores registados.' : t('admin.noPlayersFound')}
         </p>
+      )}
+
+      {feedbackTarget && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-player-feedback-title"
+            className="max-h-[92vh] w-full max-w-lg overflow-hidden rounded-t-xl border border-border bg-background shadow-xl sm:rounded-xl"
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
+              <div className="min-w-0 space-y-1">
+                <h2 id="admin-player-feedback-title" className="text-lg font-bold text-foreground">
+                  {t('admin.addPlayerFeedback')}
+                </h2>
+                <PlayerIdentity
+                  name={feedbackTarget.sheet_name}
+                  shirtNumber={feedbackTarget.shirt_number}
+                  avatarUrl={feedbackTarget.avatar_url}
+                  avatarSize="sm"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={closeFeedbackModal}
+                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label={t('common.cancel')}
+                disabled={feedbackSubmitting}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="max-h-[62vh] overflow-y-auto px-4 py-4 sm:px-5">
+              {feedbackSubmitted ? (
+                <p className="text-sm text-muted-foreground">{t('admin.playerFeedbackSubmitted')}</p>
+              ) : feedbackTarget.feedback_games.length === 0 ? (
+                <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">
+                  {t('admin.noFeedbackGames')}
+                </p>
+              ) : (
+                <form id="admin-player-feedback-form" onSubmit={submitFeedback} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="admin-feedback-game" className="text-sm font-medium text-foreground">
+                      {t('admin.feedbackGame')}
+                    </label>
+                    <select
+                      id="admin-feedback-game"
+                      value={feedbackGameId}
+                      onChange={(e) => setFeedbackGameId(e.target.value)}
+                      disabled={feedbackSubmitting}
+                      className="h-9 w-full rounded-lg border border-input bg-background px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+                    >
+                      {feedbackTarget.feedback_games.map((game) => (
+                        <option key={game.id} value={game.id}>
+                          {formatGameOption(game)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="admin-feedback-rating" className="text-sm font-medium text-foreground">
+                      Nota (0-10)
+                    </label>
+                    <input
+                      id="admin-feedback-rating"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="10"
+                      value={feedbackRating}
+                      onChange={(e) => {
+                        const raw = e.target.value
+                        const n = parseFloat(raw)
+                        const clamped = !isNaN(n) ? String(Math.min(10, Math.max(0, n))) : raw
+                        setFeedbackRating(clamped)
+                      }}
+                      disabled={feedbackSubmitting}
+                      className="h-9 w-28 rounded-lg border border-input bg-background px-2.5 py-1 text-right text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="admin-feedback-text" className="text-sm font-medium text-foreground">
+                      {t('admin.feedbackComment')}
+                    </label>
+                    <textarea
+                      id="admin-feedback-text"
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      placeholder="Comentário (opcional)"
+                      disabled={isNaN(parseFloat(feedbackRating)) || feedbackSubmitting}
+                      maxLength={300}
+                      rows={4}
+                      className="w-full resize-none rounded-lg border border-input bg-background px-2.5 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-40"
+                    />
+                  </div>
+
+                  {feedbackError && <p role="alert" className="text-sm text-destructive">{feedbackError}</p>}
+                </form>
+              )}
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-3 border-t border-border px-4 py-4 sm:px-5">
+              <Button type="button" variant="outline" onClick={closeFeedbackModal} disabled={feedbackSubmitting}>
+                {feedbackSubmitted ? t('admin.closeItem') : t('common.cancel')}
+              </Button>
+              {!feedbackSubmitted && feedbackTarget.feedback_games.length > 0 && (
+                <Button
+                  type="submit"
+                  form="admin-player-feedback-form"
+                  disabled={feedbackSubmitting}
+                >
+                  {feedbackSubmitting ? t('matches.ratingSubmitting') : t('matches.ratingSubmit')}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
