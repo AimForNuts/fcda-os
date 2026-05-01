@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import type { UserRole } from '@/types'
 import type { UserRow } from './page'
@@ -15,15 +16,39 @@ type SearchResult = {
   avatar_url: string | null
 }
 
+function normalizeSearch(value: string) {
+  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-PT')
+}
+
 export function UserTable({ users: initial }: { users: UserRow[] }) {
   const { t } = useTranslation()
   const [rows, setRows] = useState<UserRow[]>(initial)
+  const [listSearchValue, setListSearchValue] = useState('')
   const [loadingMap, setLoadingMap] = useState<Record<string, string>>({})
   const [errorMap, setErrorMap] = useState<Record<string, string>>({})
   const [linkingUserId, setLinkingUserId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const deferredListSearchValue = useDeferredValue(listSearchValue)
   const searchAbort = useRef<AbortController | null>(null)
+
+  const filteredRows = useMemo(() => {
+    const query = normalizeSearch(deferredListSearchValue.trim())
+    if (!query) return rows
+
+    return rows.filter((user) => {
+      const values = [
+        user.display_name,
+        user.approved ? t('admin.approved') : t('admin.pending'),
+        ...user.roles,
+        user.player?.sheet_name ?? '',
+        user.player?.shirt_number?.toString() ?? '',
+        ...(user.player?.aliases.map((alias) => alias.alias_display) ?? []),
+      ]
+
+      return values.some((value) => normalizeSearch(value).includes(query))
+    })
+  }, [deferredListSearchValue, rows, t])
 
   function setLoading(userId: string, key: string | null) {
     setLoadingMap((prev) => {
@@ -187,19 +212,33 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
   }
 
   return (
-    <div className="rounded-lg border overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium">Nome</th>
-            <th className="px-4 py-3 text-left font-medium">Estado</th>
-            <th className="px-4 py-3 text-left font-medium">Papéis</th>
-            <th className="px-4 py-3 text-left font-medium">Jogador / Aliases</th>
-            <th className="px-4 py-3 text-right font-medium">Ações</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {rows.map((user) => {
+    <div className="space-y-3">
+      <div className="max-w-md">
+        <label htmlFor="admin-user-search" className="sr-only">
+          {t('admin.searchUsers')}
+        </label>
+        <Input
+          id="admin-user-search"
+          type="search"
+          value={listSearchValue}
+          onChange={(e) => setListSearchValue(e.target.value)}
+          placeholder={t('admin.searchUsers')}
+        />
+      </div>
+
+      <div className="rounded-lg border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3 text-left font-medium">Nome</th>
+              <th className="px-4 py-3 text-left font-medium">Estado</th>
+              <th className="px-4 py-3 text-left font-medium">Papéis</th>
+              <th className="px-4 py-3 text-left font-medium">Jogador / Aliases</th>
+              <th className="px-4 py-3 text-right font-medium">Ações</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {filteredRows.map((user) => {
             const isLoading = !!loadingMap[user.id]
             const error = errorMap[user.id]
             const hasPlayer = user.roles.includes('player')
@@ -389,15 +428,16 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                 </td>
               </tr>
             )
-          })}
-        </tbody>
-      </table>
+            })}
+          </tbody>
+        </table>
 
-      {rows.length === 0 && (
-        <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-          Sem utilizadores registados.
-        </p>
-      )}
+        {filteredRows.length === 0 && (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            {rows.length === 0 ? 'Sem utilizadores registados.' : t('admin.noUsersFound')}
+          </p>
+        )}
+      </div>
     </div>
   )
 }
