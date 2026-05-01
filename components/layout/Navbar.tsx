@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -35,6 +35,7 @@ type NavbarProps = {
 export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: NavbarProps) {
   const { t } = useTranslation()
   const router = useRouter()
+  const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const hamburgerRef = useRef<HTMLButtonElement>(null)
@@ -77,6 +78,20 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
 
   const drawerLinkClass =
     'block px-2 py-3 text-white/70 hover:text-white transition-colors text-sm border-b border-white/10 last:border-0'
+  const mainNavItems = [
+    { href: '/matches', label: t('nav.matches') },
+    { href: '/players', label: t('nav.players') },
+    { href: '/stats', label: t('nav.stats') },
+  ]
+  const isActiveHref = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+  const mainNavLinkClass = (active: boolean) =>
+    `border-b-2 py-7 text-sm font-black uppercase transition-colors ${
+      active
+        ? 'border-fcda-gold text-fcda-gold'
+        : 'border-transparent text-white/70 hover:text-white'
+    }`
+  const drawerNavLinkClass = (active = false) =>
+    `${drawerLinkClass} ${active ? 'border-b-fcda-gold text-fcda-gold' : ''}`
 
   return (
     <header className="sticky top-0 z-50 w-full bg-fcda-navy text-white shadow-md">
@@ -88,20 +103,22 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm">
-          <Link href="/matches" className="text-white/70 hover:text-white transition-colors">
-            {t('nav.matches')}
-          </Link>
-          <Link href="/players" className="text-white/70 hover:text-white transition-colors">
-            {t('nav.players')}
-          </Link>
-          <Link href="/stats" className="text-white/70 hover:text-white transition-colors">
-            {t('nav.stats')}
-          </Link>
+        <nav className="hidden h-full items-center gap-7 md:flex">
+          {mainNavItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={mainNavLinkClass(isActiveHref(item.href))}
+              aria-current={isActiveHref(item.href) ? 'page' : undefined}
+            >
+              {item.label}
+            </Link>
+          ))}
           {isAdmin && (
             <Link
               href="/admin/users"
-              className="relative flex items-center gap-1 text-white/70 hover:text-white transition-colors"
+              className={`relative flex items-center gap-1 ${mainNavLinkClass(isActiveHref('/admin'))}`}
+              aria-current={isActiveHref('/admin') ? 'page' : undefined}
             >
               <ShieldCheck className="h-3.5 w-3.5" />
               {t('nav.admin')}
@@ -223,23 +240,26 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
 
             {/* Drawer nav links */}
             <nav className="flex flex-col overflow-y-auto px-4 py-2">
-              <Link href="/" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
+              <Link href="/" onClick={() => setIsOpen(false)} className={drawerNavLinkClass(pathname === '/')}>
                 {t('nav.home')}
               </Link>
-              <Link href="/matches" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
-                {t('nav.matches')}
-              </Link>
-              <Link href="/players" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
-                {t('nav.players')}
-              </Link>
-              <Link href="/stats" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
-                {t('nav.stats')}
-              </Link>
+              {mainNavItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={drawerNavLinkClass(isActiveHref(item.href))}
+                  aria-current={isActiveHref(item.href) ? 'page' : undefined}
+                >
+                  {item.label}
+                </Link>
+              ))}
               {isAdmin && (
                 <Link
                   href="/admin/users"
                   onClick={() => setIsOpen(false)}
-                  className={drawerLinkClass}
+                  className={drawerNavLinkClass(isActiveHref('/admin'))}
+                  aria-current={isActiveHref('/admin') ? 'page' : undefined}
                 >
                   <span className="flex items-center gap-2">
                     <ShieldCheck className="h-3.5 w-3.5" />
