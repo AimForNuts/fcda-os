@@ -5,10 +5,15 @@ import { cn } from '@/lib/utils'
 
 type SortDirection = 'asc' | 'desc'
 
+export type DataTableCellContext = {
+  /** Zero-based index in the currently sorted (or original) row order */
+  rowIndex: number
+}
+
 type DataTableColumn<Row> = {
   id: string
   header: ReactNode
-  cell: (row: Row) => ReactNode
+  cell: (row: Row, context: DataTableCellContext) => ReactNode
   sortable?: boolean
   sortValue?: (row: Row) => number | string | null | undefined
   sortComparator?: (a: Row, b: Row) => number
@@ -228,7 +233,7 @@ export function DataTable<Row>({
                         column.cellClassName
                       )}
                     >
-                      {column.cell(row)}
+                      {column.cell(row, { rowIndex: index })}
                     </td>
                   )
                 })}

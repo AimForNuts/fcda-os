@@ -20,6 +20,16 @@ type StatsRow = (PlayerStats & { avatar_url?: string | null }) & {
   draws: number
   losses: number
   points: number
+  standing: number
+}
+
+function comparePointsStanding(
+  a: { points: number; wins: number; total: number },
+  b: { points: number; wins: number; total: number },
+): number {
+  if (b.points !== a.points) return b.points - a.points
+  if (b.wins !== a.wins) return b.wins - a.wins
+  return b.total - a.total
 }
 
 export function StatsTable({
@@ -37,19 +47,27 @@ export function StatsTable({
       s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-PT')
     const query = normalize(deferredSearchValue.trim())
 
-    return players
-      .map((player) => {
-        const total = mode === 'all' ? player.total_all : player.total_comp
-        const wins = mode === 'all' ? player.wins_all : player.wins_comp
-        const draws = mode === 'all' ? player.draws_all : player.draws_comp
-        const losses = mode === 'all' ? player.losses_all : player.losses_comp
-        const points = 3 * wins + draws
+    const withStats = players.map((player) => {
+      const total = mode === 'all' ? player.total_all : player.total_comp
+      const wins = mode === 'all' ? player.wins_all : player.wins_comp
+      const draws = mode === 'all' ? player.draws_all : player.draws_comp
+      const losses = mode === 'all' ? player.losses_all : player.losses_comp
+      const points = 3 * wins + draws
 
-        return { ...player, total, wins, draws, losses, points }
-      })
+      return { ...player, total, wins, draws, losses, points }
+    })
+
+    const sortedForStanding = [...withStats].sort(comparePointsStanding)
+    const standingById = new Map<string, number>()
+    sortedForStanding.forEach((row, index) => {
+      standingById.set(row.id, index + 1)
+    })
+
+    return withStats
       .filter((player) => {
         return !query || normalize(player.display_name).includes(query)
       })
+      .map((row) => ({ ...row, standing: standingById.get(row.id) ?? 0 }))
   }, [deferredSearchValue, mode, players])
 
   if (players.length === 0) {
@@ -62,14 +80,12 @@ export function StatsTable({
 
   const columns: Array<DataTableColumn<StatsRow>> = [
     {
-      id: 'shirt_number',
-      header: t('players.colNumber'),
-      sortable: true,
-      sortValue: (player) => player.shirt_number,
+      id: 'rank',
+      header: t('stats.colRank'),
+      sortable: false,
+      align: 'center',
       cell: (player) => (
-        <span className="text-muted-foreground tabular-nums">
-          {player.shirt_number ?? '—'}
-        </span>
+        <span className="tabular-nums font-semibold text-fcda-navy">{player.standing}</span>
       ),
     },
     {
@@ -80,6 +96,8 @@ export function StatsTable({
       cell: (player) => (
         <PlayerIdentity
           name={player.display_name}
+          shirtNumber={player.shirt_number}
+          shirtNumberPlacement="after-name"
           href={!isAnonymised ? `/players/${player.id}` : undefined}
           avatarUrl={player.avatar_url ?? null}
           showAvatar={!isAnonymised}
@@ -124,8 +142,17 @@ export function StatsTable({
       header: t('stats.colPoints'),
       sortable: true,
       sortValue: (player) => player.points,
+      sortComparator: (a, b) => {
+        if (a.points !== b.points) return a.points - b.points
+        if (a.wins !== b.wins) return a.wins - b.wins
+        return a.total - b.total
+      },
       align: 'right',
-      cell: (player) => <span className="tabular-nums font-medium">{player.points}</span>,
+      headerClassName: 'text-fcda-gold/95',
+      cellClassName: 'bg-fcda-navy/[0.03]',
+      cell: (player) => (
+        <span className="tabular-nums text-base font-bold text-fcda-navy">{player.points}</span>
+      ),
     },
   ]
 
@@ -176,7 +203,8 @@ export function StatsTable({
           </p>
         }
         banner={isAnonymised ? t('stats.anonymisedNote') : undefined}
-        defaultSort={{ columnId: 'games', direction: 'desc' }}
+        defaultSort={{ columnId: 'points', direction: 'desc' }}
+        tableClassName="min-w-[36rem]"
       />
     </div>
   )
