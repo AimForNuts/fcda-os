@@ -9,7 +9,6 @@ vi.mock('react-i18next', () => ({
         'players.colNumber': '#',
         'players.colPlayer': 'Jogador',
         'players.colGames': 'Jogos',
-        'players.colRating': 'Nota',
         'players.nameLabel': 'Nome',
         'players.searchPlaceholder': 'Procurar jogador...',
         'stats.noPlayers': 'Ainda sem dados de jogadores.',
@@ -24,35 +23,27 @@ const players = [
     id: '1',
     display_name: 'André Monforte',
     shirt_number: 29,
-    current_rating: 7.5,
     profile_id: null,
     avatar_path: null,
     avatar_url: null,
+    preferred_positions: ['CB', 'CM'],
     total_all: 2,
   },
 ]
 
 describe('PlayersTable', () => {
-  it('shows the Nota column when canViewRatings is true', () => {
-    render(
-      <PlayersTable players={players} isApproved={true} canViewRatings={true} />
-    )
-    expect(screen.getByRole('columnheader', { name: 'Nota' })).toBeInTheDocument()
-    expect(screen.getByText('7.5')).toBeInTheDocument()
+  it('does not render rating details on player cards', () => {
+    render(<PlayersTable players={players} isApproved={true} />)
+    expect(screen.queryByText('Nota')).not.toBeInTheDocument()
   })
 
-  it('hides the Nota column when canViewRatings is false', () => {
-    render(
-      <PlayersTable players={players} isApproved={true} canViewRatings={false} />
-    )
-    expect(screen.queryByRole('columnheader', { name: 'Nota' })).not.toBeInTheDocument()
-    expect(screen.queryByText('7.5')).not.toBeInTheDocument()
-  })
-
-  it('shows player name regardless of canViewRatings', () => {
-    render(
-      <PlayersTable players={players} isApproved={true} canViewRatings={false} />
-    )
+  it('renders player cards as links to profiles', () => {
+    render(<PlayersTable players={players} isApproved={true} />)
     expect(screen.getByText('André Monforte')).toBeInTheDocument()
+    expect(screen.getByText('Defesa')).toBeInTheDocument()
+    expect(screen.getByText('Médio')).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Ver perfil de André Monforte' })
+    ).toHaveAttribute('href', '/players/1')
   })
 })
