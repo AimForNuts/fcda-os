@@ -36,9 +36,14 @@ export default async function MatchesPage({
 
     const { data: allGamePlayers } = await supabase
       .from('game_players')
-      .select('game_id, player_id, team')
+      .select('game_id, player_id, team, is_captain')
       .in('game_id', gameIds) as {
-        data: Array<{ game_id: string; player_id: string; team: 'a' | 'b' | null }> | null
+        data: Array<{
+          game_id: string
+          player_id: string
+          team: 'a' | 'b' | null
+          is_captain: boolean
+        }> | null
         error: unknown
       }
 
@@ -70,6 +75,7 @@ export default async function MatchesPage({
         name: player.display_name,
         avatar_url: player.avatar_url,
         shirt_number: player.shirt_number,
+        is_captain: gp.is_captain,
       }
       if (gp.team === 'a') entry.teamA.push(identity)
       else if (gp.team === 'b') entry.teamB.push(identity)

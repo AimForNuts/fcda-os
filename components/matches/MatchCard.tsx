@@ -12,10 +12,18 @@ import { useTranslation } from 'react-i18next'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import type { Game } from '@/types'
 
+type LineupSummaryPlayer = {
+  id: string
+  name: string
+  avatar_url: string | null
+  shirt_number: number | null
+  is_captain: boolean
+}
+
 export type LineupSummary = {
-  teamA: Array<{ id: string; name: string; avatar_url: string | null; shirt_number: number | null }>
-  teamB: Array<{ id: string; name: string; avatar_url: string | null; shirt_number: number | null }>
-  unassigned: Array<{ id: string; name: string; avatar_url: string | null; shirt_number: number | null }>
+  teamA: LineupSummaryPlayer[]
+  teamB: LineupSummaryPlayer[]
+  unassigned: LineupSummaryPlayer[]
 }
 
 function toTitleCase(name: string): string {
@@ -27,6 +35,35 @@ function toTitleCase(name: string): string {
 }
 
 type Props = { game: Game; lineup?: LineupSummary; showAvatars?: boolean }
+
+function PlayerSummaryRow({
+  player,
+  showAvatars,
+  muted = false,
+}: {
+  player: LineupSummaryPlayer
+  showAvatars: boolean
+  muted?: boolean
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <PlayerIdentity
+        name={toTitleCase(player.name)}
+        shirtNumber={player.shirt_number}
+        avatarUrl={player.avatar_url}
+        showAvatar={showAvatars}
+        avatarSize="sm"
+        className={muted ? 'min-w-0 flex-1 text-xs text-muted-foreground' : 'min-w-0 flex-1 text-xs'}
+        nameClassName="text-xs"
+      />
+      {player.is_captain && (
+        <span className="shrink-0 rounded bg-fcda-gold/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-fcda-navy">
+          C
+        </span>
+      )}
+    </div>
+  )
+}
 
 export function MatchCard({ game, lineup, showAvatars = false }: Props) {
   const { t } = useTranslation()
@@ -123,15 +160,10 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
                 <TeamHeader team="a" />
                 <div className="space-y-1">
                   {lineup!.teamA.map((player) => (
-                    <PlayerIdentity
+                    <PlayerSummaryRow
                       key={player.id}
-                      name={toTitleCase(player.name)}
-                      shirtNumber={player.shirt_number}
-                      avatarUrl={player.avatar_url}
-                      showAvatar={showAvatars}
-                      avatarSize="sm"
-                      className="text-xs"
-                      nameClassName="text-xs"
+                      player={player}
+                      showAvatars={showAvatars}
                     />
                   ))}
                 </div>
@@ -140,15 +172,10 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
                 <TeamHeader team="b" />
                 <div className="space-y-1">
                   {lineup!.teamB.map((player) => (
-                    <PlayerIdentity
+                    <PlayerSummaryRow
                       key={player.id}
-                      name={toTitleCase(player.name)}
-                      shirtNumber={player.shirt_number}
-                      avatarUrl={player.avatar_url}
-                      showAvatar={showAvatars}
-                      avatarSize="sm"
-                      className="text-xs"
-                      nameClassName="text-xs"
+                      player={player}
+                      showAvatars={showAvatars}
                     />
                   ))}
                 </div>
@@ -159,15 +186,11 @@ export function MatchCard({ game, lineup, showAvatars = false }: Props) {
           {!collapsed && hasUnassigned && (
             <div className="space-y-1 border-t border-border/50 pt-1">
               {lineup!.unassigned.map((player) => (
-                <PlayerIdentity
+                <PlayerSummaryRow
                   key={player.id}
-                  name={toTitleCase(player.name)}
-                  shirtNumber={player.shirt_number}
-                  avatarUrl={player.avatar_url}
-                  showAvatar={showAvatars}
-                  avatarSize="sm"
-                  className="text-xs text-muted-foreground"
-                  nameClassName="text-xs"
+                  player={player}
+                  showAvatars={showAvatars}
+                  muted
                 />
               ))}
             </div>

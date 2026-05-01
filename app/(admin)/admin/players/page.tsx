@@ -12,6 +12,7 @@ export type PlayerRow = {
   profile_name: string | null
   avatar_url: string | null
   aliases: Array<{ id: string; alias_display: string }>
+  feedback_games: Array<{ id: string; date: string; location: string }>
 }
 
 export default async function PlayersPage() {
@@ -74,6 +75,47 @@ export default async function PlayersPage() {
     aliasesByPlayer.get(a.player_id)!.push({ id: a.id, alias_display: a.alias_display })
   }
 
+  // 4. Eligible finished games for admin feedback, grouped by player
+  const feedbackGamesByPlayer = new Map<string, Array<{ id: string; date: string; location: string }>>()
+  if (playerIds.length > 0) {
+    const { data: participation } = await admin
+      .from('game_players')
+      .select('player_id, game_id')
+      .in('player_id', playerIds) as {
+        data: Array<{ player_id: string; game_id: string }> | null
+        error: unknown
+      }
+
+    const gameIds = [...new Set((participation ?? []).map((gp) => gp.game_id))]
+
+    if (gameIds.length > 0) {
+      const { data: games } = await admin
+        .from('games')
+        .select('id, date, location')
+        .in('id', gameIds)
+        .eq('status', 'finished')
+        .eq('counts_for_stats', true)
+        .order('date', { ascending: false }) as {
+          data: Array<{ id: string; date: string; location: string }> | null
+          error: unknown
+        }
+
+      const gameMap = new Map((games ?? []).map((game) => [game.id, game]))
+      const gameOrder = new Map((games ?? []).map((game, index) => [game.id, index]))
+
+      for (const gp of participation ?? []) {
+        const game = gameMap.get(gp.game_id)
+        if (!game) continue
+        if (!feedbackGamesByPlayer.has(gp.player_id)) feedbackGamesByPlayer.set(gp.player_id, [])
+        feedbackGamesByPlayer.get(gp.player_id)!.push(game)
+      }
+
+      for (const options of feedbackGamesByPlayer.values()) {
+        options.sort((a, b) => (gameOrder.get(a.id) ?? 0) - (gameOrder.get(b.id) ?? 0))
+      }
+    }
+  }
+
   const rows: PlayerRow[] = playerList.map((p) => ({
     id: p.id,
     sheet_name: p.sheet_name,
@@ -84,6 +126,7 @@ export default async function PlayersPage() {
     profile_name: p.profile_id ? (profileNames.get(p.profile_id) ?? null) : null,
     avatar_url: p.avatar_url,
     aliases: aliasesByPlayer.get(p.id) ?? [],
+    feedback_games: feedbackGamesByPlayer.get(p.id) ?? [],
   }))
 
   return (
