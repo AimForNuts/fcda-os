@@ -8,8 +8,7 @@
     "login": "Entrar",
     "register": "Registar",
     "logout": "Sair",
-    "admin": "Admin",
-    "mod": "Gerir"
+    "admin": "Admin"
   },
   "auth": {
     "login": "Entrar",
@@ -115,8 +114,6 @@
     "saveChanges": "Guardar Alterações",
     "editLineup": "Editar Convocados",
     "finishGame": "Terminar Jogo",
-    "gamesNav": "Jogos",
-    "aiAssistantNav": "Assistente IA",
     "game": {
       "created": "Jogo criado.",
       "updated": "Jogo atualizado.",

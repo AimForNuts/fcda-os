@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { Navbar } from '@/components/layout/Navbar'
-import { ModSubNav } from '@/components/mod/ModSubNav'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import { resolveLinkedPlayerIdentity } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -41,7 +40,6 @@ export default async function ModLayout({
         pendingCount={count ?? 0}
         linkedPlayer={linkedPlayer}
       />
-      <ModSubNav />
       <main className="flex-1 container max-w-screen-xl mx-auto px-4 py-8">
         {children}
       </main>

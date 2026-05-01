@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Globe, ShieldCheck, Settings, Menu, X } from 'lucide-react'
+import { Globe, ShieldCheck, Menu, X } from 'lucide-react'
 import type { Profile, UserRole } from '@/types'
 import i18n from '@/i18n/config'
 import { ThemeToggle } from './ThemeToggle'
@@ -38,7 +38,6 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
   const [isOpen, setIsOpen] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const hamburgerRef = useRef<HTMLButtonElement>(null)
-  const isMod = roles.includes('mod') || roles.includes('admin')
   const isAdmin = roles.includes('admin')
 
   async function handleLogout() {
@@ -99,15 +98,6 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
           <Link href="/stats" className="text-white/70 hover:text-white transition-colors">
             {t('nav.stats')}
           </Link>
-          {isMod && (
-            <Link
-              href="/mod/games/new"
-              className="flex items-center gap-1 text-white/70 hover:text-white transition-colors"
-            >
-              <Settings className="h-3.5 w-3.5" />
-              {t('nav.mod')}
-            </Link>
-          )}
           {isAdmin && (
             <Link
               href="/admin/users"
@@ -245,18 +235,6 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
               <Link href="/stats" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
                 {t('nav.stats')}
               </Link>
-              {isMod && (
-                <Link
-                  href="/mod/games/new"
-                  onClick={() => setIsOpen(false)}
-                  className={drawerLinkClass}
-                >
-                  <span className="flex items-center gap-2">
-                    <Settings className="h-3.5 w-3.5" />
-                    {t('nav.mod')}
-                  </span>
-                </Link>
-              )}
               {isAdmin && (
                 <Link
                   href="/admin/users"
