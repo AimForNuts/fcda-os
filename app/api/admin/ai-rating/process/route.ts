@@ -1,9 +1,20 @@
 import OpenAI from 'openai'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessAdmin } from '@/lib/auth/permissions'
-import { buildAiRatingPrompt } from '@/lib/ai-rating/prompt'
+import { buildAiRatingPrompt, sanitizeAiRatingSuggestion } from '@/lib/ai-rating/prompt'
 
-const SYSTEM_PROMPT = `You are a football coach assistant. Given each player's current rating and their recent match ratings with optional feedback text, suggest a new overall rating between 0 and 10 (one decimal place). Consider both the numeric ratings and any feedback text. For players with no new ratings, keep their current rating unchanged. Respond ONLY with a valid JSON object in this exact format, no explanations:
+const SYSTEM_PROMPT = `You are a football coach assistant. Given each player's current rating and their unprocessed approved match ratings with optional feedback text, suggest a new overall rating between 0 and 10 (one decimal place).
+
+Rules:
+- The current rating is the long-term baseline.
+- The unprocessed ratings are new evidence to incorporate into the baseline.
+- First compare the unprocessed average with the current rating.
+- If the unprocessed average is lower than the current rating, the suggested rating must not increase. A very low rating, such as 1.0 for a 9.0 player, should pull the suggestion down, never up.
+- If the unprocessed average is higher than the current rating, the suggested rating must not decrease.
+- Feedback text may affect the size of the change, but it must not reverse the numeric direction.
+- For players with no unprocessed ratings, keep their current rating unchanged.
+
+Respond ONLY with a valid JSON object in this exact format, no explanations:
 {"ratings": [{"player_id": "...", "suggested_rating": 7.5}]}`
 
 export async function POST() {
@@ -60,7 +71,7 @@ export async function POST() {
   let ratings: Array<{ player_id: string; suggested_rating: number }> = []
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.4',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: prompt },
@@ -88,7 +99,11 @@ export async function POST() {
     player_id: p.id,
     player_name: p.sheet_name,
     current_rating: p.current_rating,
-    suggested_rating: ratingMap.get(p.id) ?? p.current_rating ?? 0,
+    suggested_rating: sanitizeAiRatingSuggestion({
+      current_rating: p.current_rating,
+      approved_ratings: submissionsByPlayer.get(p.id)?.ratings ?? [],
+      suggested_rating: ratingMap.get(p.id),
+    }),
     pending_ratings: submissionsByPlayer.get(p.id)?.ratings ?? [],
     pending_count: submissionsByPlayer.get(p.id)?.ratings.length ?? 0,
   }))
