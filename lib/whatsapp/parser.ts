@@ -10,6 +10,7 @@ export type ParsedEntry = {
     id: string
     sheet_name: string
     shirt_number: number | null
+    nationality: string
     avatar_url: string | null
   }>
 }

@@ -13,6 +13,7 @@ export type UserRow = {
     id: string
     sheet_name: string
     shirt_number: number | null
+    nationality: string
     current_rating: number | null
     preferred_positions: string[]
     avatar_url: string | null
@@ -73,6 +74,7 @@ export default async function UsersPage() {
     id: string
     sheet_name: string
     shirt_number: number | null
+    nationality: string
     current_rating: number | null
     preferred_positions: string[]
     profile_id: string
@@ -81,12 +83,13 @@ export default async function UsersPage() {
   if (profileIds.length > 0) {
     const { data } = await admin
       .from('players')
-      .select('id, sheet_name, shirt_number, current_rating, preferred_positions, profile_id, avatar_path')
+      .select('id, sheet_name, shirt_number, nationality, current_rating, preferred_positions, profile_id, avatar_path')
       .in('profile_id', profileIds) as {
         data: Array<{
           id: string
           sheet_name: string
           shirt_number: number | null
+          nationality: string
           current_rating: number | null
           preferred_positions: string[]
           profile_id: string
@@ -179,6 +182,7 @@ export default async function UsersPage() {
             id: player.id,
             sheet_name: player.sheet_name,
             shirt_number: player.shirt_number,
+            nationality: player.nationality,
             current_rating: player.current_rating,
             preferred_positions: player.preferred_positions ?? [],
             avatar_url: player.avatar_url,

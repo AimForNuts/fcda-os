@@ -9,6 +9,7 @@ import {
 
 const basePlayer = {
   shirt_number: null,
+  nationality: 'PT',
   profile_id: null,
   avatar_path: null,
   total_comp: 0,

@@ -33,17 +33,19 @@ export default async function LineupPage({
     id: string
     sheet_name: string
     shirt_number: number | null
+    nationality: string
     avatar_url: string | null
   }> = []
   if (playerIds.length > 0) {
     const { data } = await supabase
       .from('players')
-      .select('id, sheet_name, shirt_number, avatar_path')
+      .select('id, sheet_name, shirt_number, nationality, avatar_path')
       .in('id', playerIds) as {
         data: Array<{
           id: string
           sheet_name: string
           shirt_number: number | null
+          nationality: string
           avatar_path: string | null
         }> | null
         error: unknown
@@ -59,6 +61,7 @@ export default async function LineupPage({
       player_id: gp.player_id,
       sheet_name: p?.sheet_name ?? '?',
       shirt_number: p?.shirt_number ?? null,
+      nationality: p?.nationality ?? 'PT',
       avatar_url: p?.avatar_url ?? null,
       team: gp.team,
       is_captain: gp.is_captain,

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { NationalityFlag } from '@/components/player/NationalityFlag'
 import { cn } from '@/lib/utils'
 
 function getInitials(name: string) {
@@ -24,6 +25,7 @@ type PlayerIdentityProps = {
   shirtNumberPlacement?: 'before-name' | 'after-name'
   href?: string
   avatarUrl?: string | null
+  nationality?: string | null
   showAvatar?: boolean
   avatarSize?: 'sm' | 'default' | 'lg'
   className?: string
@@ -36,6 +38,7 @@ export function PlayerIdentity({
   shirtNumberPlacement = 'before-name',
   href,
   avatarUrl = null,
+  nationality = null,
   showAvatar = true,
   avatarSize = 'default',
   className,
@@ -51,10 +54,13 @@ export function PlayerIdentity({
 
   const shirtNode =
     shirtNumber != null ? (
-      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-        #{shirtNumber}
+      <span className="shrink-0 text-base font-semibold tabular-nums leading-none text-slate-500">
+        {shirtNumber}
       </span>
     ) : null
+  const nationalityNode = nationality ? (
+    <NationalityFlag nationality={nationality} className="h-3.5 w-5" />
+  ) : null
 
   return (
     <div className={cn('flex min-w-0 items-center gap-2', className)}>
@@ -67,6 +73,7 @@ export function PlayerIdentity({
         </Avatar>
       )}
       {shirtNumberPlacement === 'before-name' ? shirtNode : null}
+      {nationalityNode}
       {nameNode}
       {shirtNumberPlacement === 'after-name' ? shirtNode : null}
     </div>

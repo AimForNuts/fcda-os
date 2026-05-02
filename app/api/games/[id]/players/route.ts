@@ -5,6 +5,7 @@ import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 type PlayerRow = {
   id: string
   sheet_name: string
+  nationality: string
   current_rating: number | null
   preferred_positions: string[]
   avatar_path: string | null
@@ -45,7 +46,7 @@ export async function GET(
 
   const { data: players, error: playersError } = await supabase
     .from('players')
-    .select('id, sheet_name, current_rating, preferred_positions, avatar_path')
+    .select('id, sheet_name, nationality, current_rating, preferred_positions, avatar_path')
     .in('id', playerIds)
     .order('sheet_name') as {
       data: PlayerRow[] | null

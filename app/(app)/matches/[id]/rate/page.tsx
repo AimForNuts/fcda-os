@@ -69,7 +69,7 @@ export default async function RatePage({
   if (teammateIds.length > 0) {
     const { data } = await supabase
       .from('players_public')
-      .select('id, display_name, shirt_number, current_rating, profile_id, avatar_path, description')
+      .select('id, display_name, shirt_number, nationality, current_rating, profile_id, avatar_path, description')
       .in('id', teammateIds) as { data: PlayerPublic[] | null; error: unknown }
     teammates = await signPlayerAvatarRecords(data ?? [], true)
   }

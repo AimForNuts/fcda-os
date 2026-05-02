@@ -6,6 +6,7 @@ export type PlayerRow = {
   id: string
   sheet_name: string
   shirt_number: number | null
+  nationality: string
   current_rating: number | null
   preferred_positions: string[]
   profile_id: string | null
@@ -21,12 +22,13 @@ export default async function PlayersPage() {
   // 1. All players sorted alphabetically
   const { data: players } = await admin
     .from('players')
-    .select('id, sheet_name, shirt_number, current_rating, preferred_positions, profile_id, avatar_path')
+    .select('id, sheet_name, shirt_number, nationality, current_rating, preferred_positions, profile_id, avatar_path')
     .order('sheet_name') as {
       data: Array<{
         id: string
         sheet_name: string
         shirt_number: number | null
+        nationality: string
         current_rating: number | null
         preferred_positions: string[]
         profile_id: string | null
@@ -120,6 +122,7 @@ export default async function PlayersPage() {
     id: p.id,
     sheet_name: p.sheet_name,
     shirt_number: p.shirt_number,
+    nationality: p.nationality,
     current_rating: p.current_rating,
     preferred_positions: p.preferred_positions ?? [],
     profile_id: p.profile_id,

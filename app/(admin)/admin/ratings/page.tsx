@@ -34,13 +34,13 @@ export default async function AdminRatingsPage() {
   const [gamesRes, submittersRes, playersRes] = await Promise.all([
     admin.from('games').select('id, date, location').in('id', gameIds),
     admin.from('profiles').select('id, display_name').in('id', submitterIds),
-    admin.from('players').select('id, sheet_name, avatar_path').in('id', playerIds),
+    admin.from('players').select('id, sheet_name, nationality, avatar_path').in('id', playerIds),
   ])
 
   const games = gamesRes.data as Array<{ id: string; date: string; location: string }> | null
   const submitters = submittersRes.data as Array<{ id: string; display_name: string }> | null
   const players = await signPlayerAvatarRecords(
-    (playersRes.data as Array<{ id: string; sheet_name: string; avatar_path: string | null }> | null) ?? [],
+    (playersRes.data as Array<{ id: string; sheet_name: string; nationality: string; avatar_path: string | null }> | null) ?? [],
     true
   )
 
@@ -65,6 +65,7 @@ export default async function AdminRatingsPage() {
     batchMap.get(key)!.items.push({
       playerId: row.rated_player_id,
       playerName: playerMap.get(row.rated_player_id)?.sheet_name ?? row.rated_player_id,
+      playerNationality: playerMap.get(row.rated_player_id)?.nationality ?? 'PT',
       playerAvatarUrl: playerMap.get(row.rated_player_id)?.avatar_url ?? null,
       rating: row.rating,
       feedback: row.feedback,

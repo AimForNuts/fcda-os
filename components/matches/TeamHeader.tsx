@@ -5,10 +5,28 @@ import { cn } from '@/lib/utils'
 type Props = {
   team: MatchTeam
   className?: string
+  variant?: 'surface' | 'plain'
 }
 
-export function TeamHeader({ team, className }: Props) {
+export function TeamHeader({ team, className, variant = 'surface' }: Props) {
   const presentation = getTeamPresentation(team)
+
+  if (variant === 'plain') {
+    return (
+      <div className={cn('flex h-12 min-w-0 items-center gap-3', className)}>
+        <Image
+          src={presentation.imageSrc}
+          alt={presentation.imageAlt}
+          width={36}
+          height={50}
+          className="h-10 w-auto shrink-0 object-contain drop-shadow-sm"
+        />
+        <h3 className="min-w-0 truncate text-sm font-black text-foreground">
+          {presentation.label}
+        </h3>
+      </div>
+    )
+  }
 
   return (
     <div

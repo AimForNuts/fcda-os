@@ -23,6 +23,7 @@ const players = [
     id: '1',
     display_name: 'André Monforte',
     shirt_number: 29,
+    nationality: 'PT',
     profile_id: null,
     avatar_path: null,
     avatar_url: null,

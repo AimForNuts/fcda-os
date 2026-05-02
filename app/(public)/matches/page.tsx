@@ -239,13 +239,13 @@ export default async function MatchesPage({
 
     const playerIds = [...new Set((allGamePlayers ?? []).map((gp) => gp.player_id))]
 
-    const playersById = new Map<string, { id: string; display_name: string; avatar_url: string | null; shirt_number: number | null }>()
+    const playersById = new Map<string, { id: string; display_name: string; avatar_url: string | null; shirt_number: number | null; nationality: string }>()
     if (playerIds.length > 0) {
       const { data: players } = await supabase
         .from('players_public')
-        .select('id, display_name, avatar_path, shirt_number')
+        .select('id, display_name, avatar_path, shirt_number, nationality')
         .in('id', playerIds) as {
-          data: Array<{ id: string; display_name: string; avatar_path: string | null; shirt_number: number | null }> | null
+          data: Array<{ id: string; display_name: string; avatar_path: string | null; shirt_number: number | null; nationality: string }> | null
           error: unknown
         }
       for (const p of await signPlayerAvatarRecords(players ?? [], isApproved)) {
@@ -265,6 +265,7 @@ export default async function MatchesPage({
         name: player.display_name,
         avatar_url: player.avatar_url,
         shirt_number: player.shirt_number,
+        nationality: player.nationality,
         is_captain: gp.is_captain,
       }
       if (gp.team === 'a') entry.teamA.push(identity)

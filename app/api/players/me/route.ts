@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { Database } from '@/types/database'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { normalizeNationality } from '@/lib/nationality'
 
 type PlayerUpdate = Database['public']['Tables']['players']['Update']
 
@@ -10,6 +11,7 @@ const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST'] as const
 const schema = z.object({
   sheet_name: z.string().min(1).max(100),
   shirt_number: z.number().int().min(1).max(99).nullable().optional(),
+  nationality: z.string().trim().length(2).optional(),
   preferred_positions: z.array(z.enum(POSITIONS)).max(5).optional(),
 })
 
@@ -39,6 +41,9 @@ export async function PATCH(request: Request) {
   }
   if ('shirt_number' in parsed.data) {
     updates.shirt_number = parsed.data.shirt_number ?? null
+  }
+  if ('nationality' in parsed.data) {
+    updates.nationality = normalizeNationality(parsed.data.nationality)
   }
   if ('preferred_positions' in parsed.data) {
     updates.preferred_positions = parsed.data.preferred_positions
