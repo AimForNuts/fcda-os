@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import { TriangleAlertIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
@@ -11,12 +12,14 @@ import { filterGamesByDateRange } from '@/lib/games/filter-by-date-range'
 import { sortGames } from '@/lib/games/sort'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
+import { cn } from '@/lib/utils'
 import type { Game } from '@/types'
 
 export const metadata = { title: 'Jogos — FCDA' }
 
 const teamA = getTeamPresentation('a')
 const teamB = getTeamPresentation('b')
+type MatchesView = 'calendar' | 'results'
 
 function formatHeroDate(iso: string) {
   const d = new Date(iso)
@@ -126,12 +129,73 @@ function MatchesHero({ game }: { game: Game | null }) {
   )
 }
 
+function buildMatchesHref(view: MatchesView, from?: string, to?: string) {
+  const params = new URLSearchParams()
+  params.set('view', view)
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
+  return `/matches?${params.toString()}`
+}
+
+function MatchesViewTabs({
+  activeView,
+  from,
+  to,
+  calendarCount,
+  resultsCount,
+}: {
+  activeView: MatchesView
+  from?: string
+  to?: string
+  calendarCount: number
+  resultsCount: number
+}) {
+  const tabs: Array<{ view: MatchesView; label: string; count: number }> = [
+    { view: 'calendar', label: 'Calendário', count: calendarCount },
+    { view: 'results', label: 'Resultados', count: resultsCount },
+  ]
+
+  return (
+    <nav className="flex min-w-0 items-center gap-1" aria-label="Tipo de jogos">
+      {tabs.map((tab) => {
+        const active = activeView === tab.view
+
+        return (
+          <Link
+            key={tab.view}
+            href={buildMatchesHref(tab.view, from, to)}
+            scroll={false}
+            aria-current={active ? 'page' : undefined}
+            className={cn(
+              'inline-flex h-11 min-w-0 items-center gap-2 border-b-2 px-3 text-sm font-black uppercase tracking-normal transition-colors sm:px-5',
+              active
+                ? 'border-fcda-blue text-fcda-blue'
+                : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
+            )}
+          >
+            <span>{tab.label}</span>
+            <span
+              className={cn(
+                'rounded-full px-2 py-0.5 text-xs font-bold tabular-nums',
+                active ? 'bg-fcda-blue/10 text-fcda-blue' : 'bg-muted text-muted-foreground',
+              )}
+            >
+              {tab.count}
+            </span>
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
+
 export default async function MatchesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>
+  searchParams: Promise<{ from?: string; to?: string; view?: string }>
 }) {
-  const { from, to } = await searchParams
+  const { from, to, view } = await searchParams
+  const activeView: MatchesView = view === 'results' ? 'results' : 'calendar'
   const supabase = await createClient()
   const session = await fetchSessionContext()
   const isApproved = session?.profile.approved ?? false
@@ -143,14 +207,17 @@ export default async function MatchesPage({
 
   const sorted = sortGames(games ?? [])
   const gameList = filterGamesByDateRange(sorted, from, to)
+  const calendarGames = gameList.filter((game) => game.status === 'scheduled')
+  const resultsGames = gameList.filter((game) => game.status !== 'scheduled')
+  const visibleGames = activeView === 'calendar' ? calendarGames : resultsGames
   const hasDateFilter = Boolean(from || to)
-  const commentCounts = await fetchMatchCommentCounts(supabase, gameList.map((game) => game.id))
+  const commentCounts = await fetchMatchCommentCounts(supabase, visibleGames.map((game) => game.id))
 
   // Batch-fetch all game_players and player names for the listed games
   const lineupsByGame = new Map<string, LineupSummary>()
 
-  if (gameList.length > 0) {
-    const gameIds = gameList.map((g) => g.id)
+  if (visibleGames.length > 0) {
+    const gameIds = visibleGames.map((g) => g.id)
 
     const { data: allGamePlayers } = await supabase
       .from('game_players')
@@ -203,35 +270,82 @@ export default async function MatchesPage({
 
   const noGamesInDb = sorted.length === 0
   const emptyAfterFilter = !noGamesInDb && gameList.length === 0 && hasDateFilter
+  const emptyVisibleList = !noGamesInDb && gameList.length > 0 && visibleGames.length === 0
   const heroGame = sorted.find((game) => game.status === 'scheduled') ?? sorted[0] ?? null
+  const emptyTabMessage = activeView === 'calendar'
+    ? 'Não há jogos agendados neste intervalo.'
+    : 'Ainda não há resultados neste intervalo.'
 
   return (
     <div className="bg-white">
       <MatchesHero game={heroGame} />
 
-      <main id="matches-list" className="container mx-auto max-w-screen-md px-4 py-8 md:py-10">
-        <div className="mb-6 flex min-w-0 flex-wrap items-center justify-end gap-3 sm:mb-8">
-          <Suspense
-            fallback={
-              <div
-                className="order-3 h-8 w-full animate-pulse rounded-md bg-muted/50 sm:order-none sm:w-40"
-                aria-hidden
-              />
-            }
-          >
-            <MatchesDateFilter className="order-3 w-full sm:order-none sm:w-auto" />
-          </Suspense>
-          {canCreateGame && <NewGameModal />}
+      <main id="matches-list" className="container mx-auto max-w-screen-xl px-4 py-8 md:py-10">
+        <div className="mb-8 border-b border-border">
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-bold uppercase text-fcda-blue">Jogos</p>
+              <h2 className="mt-1 text-2xl font-black tracking-tight text-foreground sm:text-3xl">
+                Calendário e resultados
+              </h2>
+            </div>
+            <div className="flex min-w-0 flex-wrap items-center gap-3 sm:justify-end">
+              <Suspense
+                fallback={
+                  <div
+                    className="h-8 w-full animate-pulse rounded-md bg-muted/50 sm:w-40"
+                    aria-hidden
+                  />
+                }
+              >
+                <MatchesDateFilter className="w-full sm:w-auto" />
+              </Suspense>
+              {canCreateGame && <NewGameModal />}
+            </div>
+          </div>
+          <div className="mt-5 overflow-x-auto">
+            <MatchesViewTabs
+              activeView={activeView}
+              from={from}
+              to={to}
+              calendarCount={calendarGames.length}
+              resultsCount={resultsGames.length}
+            />
+          </div>
         </div>
-        {noGamesInDb ? (
-          <p className="text-sm text-muted-foreground">Ainda não há jogos registados.</p>
-        ) : emptyAfterFilter ? (
-          <p className="text-sm text-muted-foreground">
-            Nenhum jogo neste intervalo de datas. Ajusta as datas ou limpa o filtro.
-          </p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {gameList.map((g) => (
+
+        <div className="mb-5 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-muted-foreground">
+              {activeView === 'calendar' ? 'Próximos jogos' : 'Últimos resultados'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {visibleGames.length} {visibleGames.length === 1 ? 'jogo' : 'jogos'}
+            </p>
+          </div>
+        </div>
+
+        <div className="hidden lg:grid lg:grid-cols-[minmax(8rem,14rem)_1fr_minmax(10rem,14rem)] lg:gap-6 lg:border-y lg:border-border lg:bg-muted/20 lg:px-5 lg:py-3 lg:text-xs lg:font-black lg:uppercase lg:text-muted-foreground">
+          <span>Data</span>
+          <span aria-hidden />
+          <span className="text-right">Detalhes</span>
+        </div>
+
+        <div className="flex flex-col gap-3 pt-3 lg:gap-0 lg:pt-0">
+          {noGamesInDb ? (
+            <p className="rounded-lg border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
+              Ainda não há jogos registados.
+            </p>
+          ) : emptyAfterFilter ? (
+            <p className="rounded-lg border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
+              Nenhum jogo neste intervalo de datas. Ajusta as datas ou limpa o filtro.
+            </p>
+          ) : emptyVisibleList ? (
+            <p className="rounded-lg border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
+              {emptyTabMessage}
+            </p>
+          ) : (
+            visibleGames.map((g) => (
               <MatchCard
                 key={g.id}
                 game={g}
@@ -239,9 +353,9 @@ export default async function MatchesPage({
                 showAvatars={isApproved}
                 commentCount={commentCounts.get(g.id) ?? 0}
               />
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </main>
     </div>
   )

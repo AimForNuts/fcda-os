@@ -145,8 +145,8 @@ describe('MatchCard', () => {
   it('renders team headers with kit images when lineup teams are present', () => {
     render(<MatchCard game={baseGame} lineup={lineup} />)
 
-    expect(screen.getByText('Equipa Branca')).toBeInTheDocument()
-    expect(screen.getByText('Equipa Azul')).toBeInTheDocument()
+    expect(screen.getAllByText('Equipa Branca').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Equipa Azul').length).toBeGreaterThan(0)
     expect(screen.getByAltText('Kit da Equipa Branca')).toBeInTheDocument()
     expect(screen.getByAltText('Kit da Equipa Azul')).toBeInTheDocument()
   })
