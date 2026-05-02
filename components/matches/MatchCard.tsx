@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronDown, ChevronUp, MessageCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronUp, MessageCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
@@ -77,15 +77,21 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
   )
 
   const d = new Date(game.date)
-  const dateStr = d.toLocaleDateString('pt-PT', {
+  const fullDateStr = d.toLocaleDateString('pt-PT', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
   })
+  const dayStr = d.toLocaleDateString('pt-PT', { day: '2-digit' })
+  const monthStr = d.toLocaleDateString('pt-PT', { month: 'short' }).replace('.', '')
+  const weekdayStr = d.toLocaleDateString('pt-PT', { weekday: 'short' }).replace('.', '')
   const timeStr = d.toLocaleTimeString('pt-PT', {
     hour: '2-digit',
     minute: '2-digit',
   })
+  const scoreStr = game.status === 'finished' && game.score_a != null && game.score_b != null
+    ? `${game.score_a} – ${game.score_b}`
+    : null
 
   const hasTeams = lineup && (lineup.teamA.length > 0 || lineup.teamB.length > 0)
   const hasUnassigned = lineup && lineup.unassigned.length > 0 && !hasTeams
@@ -95,61 +101,98 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
   const kitB = getTeamPresentation('b')
 
   return (
-    <Link href={`/matches/${game.id}`} className="block" aria-label={`${game.location} — ${dateStr}`}>
-      <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-        <CardContent className="py-4 space-y-2">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex flex-col gap-0.5">
-              <p className="text-sm font-medium">
-                {dateStr} · {timeStr}
-              </p>
-              <p className="text-sm text-muted-foreground">{game.location}</p>
+    <Link href={`/matches/${game.id}`} className="block" aria-label={`${game.location} — ${fullDateStr}`}>
+      <Card className="cursor-pointer rounded-lg border-0 bg-white py-0 shadow-none ring-1 ring-border transition-colors hover:bg-muted/30 lg:rounded-none lg:ring-0 lg:ring-inset lg:hover:bg-muted/20">
+        <CardContent className="px-0 py-0">
+          <div className="grid min-h-32 gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(8rem,14rem)_1fr_minmax(10rem,14rem)] lg:items-center lg:gap-6 lg:border-b lg:border-border">
+            <div className="flex items-center justify-between gap-4 lg:justify-start">
+              <div>
+                <p className="text-xs font-black uppercase text-muted-foreground">{monthStr}</p>
+                <p className="mt-0.5 text-4xl font-black leading-none text-fcda-blue tabular-nums">
+                  {dayStr}
+                </p>
+                <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">{weekdayStr}</p>
+              </div>
+              <div className="min-w-0 text-right lg:text-left">
+                <p className="truncate text-sm font-bold text-foreground">{timeStr}</p>
+                <p className="mt-1 truncate text-sm text-muted-foreground">{game.location}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <span
-                className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground"
-                aria-label={`${commentCount} comentários`}
-                title={`${commentCount} comentários`}
-              >
-                <MessageCircle size={15} aria-hidden />
-                <span className="tabular-nums">{commentCount}</span>
-              </span>
-              {game.status === 'finished' &&
-                game.score_a != null &&
-                game.score_b != null && (
-                  <span className="flex items-center gap-1.5">
-                    <Image
-                      src={kitA.imageSrc}
-                      alt=""
-                      width={40}
-                      height={55}
-                      className="h-7 w-auto shrink-0 object-contain opacity-90"
-                      aria-hidden
-                    />
-                    <span className="text-lg font-bold tabular-nums">
-                      {game.score_a} – {game.score_b}
-                    </span>
-                    <Image
-                      src={kitB.imageSrc}
-                      alt=""
-                      width={40}
-                      height={55}
-                      className="h-7 w-auto shrink-0 object-contain opacity-90"
-                      aria-hidden
-                    />
+
+            <div className="min-w-0">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
+                <div className="flex min-w-0 items-center justify-end gap-3 text-right">
+                  <span className="truncate text-sm font-black text-foreground sm:text-base">
+                    Equipa Branca
                   </span>
-                )}
-              <Badge
-                variant={
-                  game.status === 'finished'
-                    ? 'default'
-                    : game.status === 'cancelled'
-                      ? 'destructive'
-                      : 'secondary'
-                }
-              >
-                {t(`matches.status.${game.status}`)}
-              </Badge>
+                  <Image
+                    src={kitA.imageSrc}
+                    alt=""
+                    width={44}
+                    height={61}
+                    className="h-12 w-auto shrink-0 object-contain sm:h-14"
+                    aria-hidden
+                  />
+                </div>
+
+                <div className="flex min-w-[5.25rem] justify-center">
+                  {scoreStr ? (
+                    <span className="text-3xl font-black leading-none text-foreground tabular-nums sm:text-4xl">
+                      {scoreStr}
+                    </span>
+                  ) : game.status === 'cancelled' ? (
+                    <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-black uppercase text-destructive">
+                      Sem jogo
+                    </span>
+                  ) : (
+                    <span className="text-3xl font-black leading-none text-foreground tabular-nums sm:text-4xl">
+                      {timeStr}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex min-w-0 items-center gap-3">
+                  <Image
+                    src={kitB.imageSrc}
+                    alt=""
+                    width={44}
+                    height={61}
+                    className="h-12 w-auto shrink-0 object-contain sm:h-14"
+                    aria-hidden
+                  />
+                  <span className="truncate text-sm font-black text-foreground sm:text-base">
+                    Equipa Azul
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex min-w-0 items-center justify-between gap-3 border-t border-border pt-4 lg:justify-end lg:border-t-0 lg:pt-0">
+              <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+                <Badge
+                  variant={
+                    game.status === 'finished'
+                      ? 'default'
+                      : game.status === 'cancelled'
+                        ? 'destructive'
+                        : 'secondary'
+                  }
+                >
+                  {t(`matches.status.${game.status}`)}
+                </Badge>
+                <span
+                  className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground"
+                  aria-label={`${commentCount} comentários`}
+                  title={`${commentCount} comentários`}
+                >
+                  <MessageCircle size={15} aria-hidden />
+                  <span className="tabular-nums">{commentCount}</span>
+                </span>
+                <span className="inline-flex items-center gap-1 text-sm font-bold text-fcda-blue">
+                  Ver jogo
+                  <ChevronRight className="size-4" aria-hidden />
+                </span>
+              </div>
               {hasPlayers && (
                 <button
                   type="button"
@@ -159,16 +202,16 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                     e.stopPropagation()
                     setCollapsed((c) => !c)
                   }}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
-                  {collapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                  {collapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                 </button>
               )}
             </div>
           </div>
 
           {!collapsed && hasTeams && (
-            <div className="grid gap-3 border-t border-border/50 pt-2 sm:grid-cols-2">
+            <div className="grid gap-4 border-b border-border bg-muted/20 p-4 sm:grid-cols-2 sm:p-5">
               <div className="space-y-2">
                 <TeamHeader team="a" />
                 <div className="space-y-1">
@@ -197,7 +240,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
           )}
 
           {!collapsed && hasUnassigned && (
-            <div className="space-y-1 border-t border-border/50 pt-1">
+            <div className="space-y-1 border-b border-border bg-muted/20 p-4 sm:p-5">
               {lineup!.unassigned.map((player) => (
                 <PlayerSummaryRow
                   key={player.id}
