@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import { TeamHeader } from '@/components/matches/TeamHeader'
 import { useTranslation } from 'react-i18next'
+import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import type { Game } from '@/types'
 
@@ -81,13 +82,15 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    timeZone: GAME_TIME_ZONE,
   })
-  const dayStr = d.toLocaleDateString('pt-PT', { day: '2-digit' })
-  const monthStr = d.toLocaleDateString('pt-PT', { month: 'short' }).replace('.', '')
-  const weekdayStr = d.toLocaleDateString('pt-PT', { weekday: 'short' }).replace('.', '')
+  const dayStr = d.toLocaleDateString('pt-PT', { day: '2-digit', timeZone: GAME_TIME_ZONE })
+  const monthStr = d.toLocaleDateString('pt-PT', { month: 'short', timeZone: GAME_TIME_ZONE }).replace('.', '')
+  const weekdayStr = d.toLocaleDateString('pt-PT', { weekday: 'short', timeZone: GAME_TIME_ZONE }).replace('.', '')
   const timeStr = d.toLocaleTimeString('pt-PT', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: GAME_TIME_ZONE,
   })
   const scoreStr = game.status === 'finished' && game.score_a != null && game.score_b != null
     ? `${game.score_a} – ${game.score_b}`

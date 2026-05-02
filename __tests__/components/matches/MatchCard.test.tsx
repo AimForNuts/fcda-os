@@ -74,6 +74,11 @@ describe('MatchCard', () => {
     expect(screen.getByText('Agendado')).toBeInTheDocument()
   })
 
+  it('formats scheduled game time in Portugal time', () => {
+    render(<MatchCard game={baseGame} />)
+    expect(screen.getAllByText('11:00').length).toBeGreaterThan(0)
+  })
+
   it('shows Terminado badge for finished game', () => {
     const finished: Game = { ...baseGame, status: 'finished', score_a: 1, score_b: 0 }
     render(<MatchCard game={finished} />)
