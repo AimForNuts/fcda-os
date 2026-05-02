@@ -82,8 +82,10 @@ function renderMentionedText(text: string, users: MentionableUser[]) {
       )
       index += mention.length
     } else {
-      nodes.push(text[index])
-      index += 1
+      const codePoint = text.codePointAt(index)
+      const character = codePoint == null ? text[index] : String.fromCodePoint(codePoint)
+      nodes.push(character)
+      index += character.length
     }
   }
 
