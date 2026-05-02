@@ -182,7 +182,7 @@ describe('LineupManager', () => {
               average_rating: 7,
             },
             team_b: {
-              label: 'Equipa Preta',
+              label: 'Equipa Azul',
               players: [{
                 player_id: playerB,
                 sheet_name: 'João',

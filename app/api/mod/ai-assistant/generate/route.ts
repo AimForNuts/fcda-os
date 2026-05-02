@@ -53,7 +53,7 @@ Rule 6: Equal playtime weighting
 
 4. Output
 - Return one JSON object with team_a and team_b attributes.
-- team_a = Team White (Equipa Branca), team_b = Team Black (Equipa Preta).
+- team_a = Team White (Equipa Branca), team_b = Team Blue (Equipa Azul).
 - Each team object must contain a label and a players array.
 - Every player object must contain player_id and is_captain.
 - Mark exactly one player per team with is_captain: true.

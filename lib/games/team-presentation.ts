@@ -20,9 +20,9 @@ export const TEAM_PRESENTATIONS: Record<MatchTeam, TeamPresentation> = {
   },
   b: {
     team: 'b',
-    label: 'Equipa Preta',
+    label: 'Equipa Azul',
     imageSrc: '/kit_black.png',
-    imageAlt: 'Kit da Equipa Preta',
+    imageAlt: 'Kit da Equipa Azul',
     headerSurfaceClassName:
       'border-fcda-navy/10 bg-fcda-navy/[0.05] dark:border-white/10 dark:bg-white/5',
     headerLabelClassName: 'text-fcda-navy dark:text-white',

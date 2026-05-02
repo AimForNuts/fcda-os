@@ -70,7 +70,7 @@
       "cancelled": "Cancelado"
     },
     "teamA": "Equipa Branca",
-    "teamB": "Equipa Preta",
+    "teamB": "Equipa Azul",
     "lineup": "Convocatória",
     "noLineup": "Convocatória não disponível.",
     "rate": "Avaliar",
@@ -182,7 +182,7 @@
       "title": "Terminar Jogo",
       "score": "Resultado Final",
       "scoreA": "Equipa Branca",
-      "scoreB": "Equipa Preta",
+      "scoreB": "Equipa Azul",
       "warning": "Esta ação não pode ser desfeita.",
       "confirm": "Confirmar e Terminar",
       "alreadyFinished": "Este jogo já foi terminado.",
