@@ -6,6 +6,12 @@ import { MessageSquare, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
+import {
+  DEFAULT_NATIONALITY,
+  NATIONALITY_OPTIONS,
+  getNationalityLabel,
+  normalizeNationality,
+} from '@/lib/nationality'
 import type { PlayerRow } from './page'
 
 const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST'] as const
@@ -31,7 +37,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   const [rows, setRows] = useState<PlayerRow[]>(initial)
   const [searchValue, setSearchValue] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editValues, setEditValues] = useState<Record<string, { sheet_name: string; shirt_number: string }>>({})
+  const [editValues, setEditValues] = useState<Record<string, { sheet_name: string; shirt_number: string; nationality: string }>>({})
   const [aliasInput, setAliasInput] = useState<Record<string, string>>({})
   const [showAliasInput, setShowAliasInput] = useState<Set<string>>(new Set())
   const [linkingPlayerId, setLinkingPlayerId] = useState<string | null>(null)
@@ -62,6 +68,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
       const values = [
         player.sheet_name,
         player.shirt_number?.toString() ?? '',
+        player.nationality,
         player.profile_name ?? '',
         ...player.preferred_positions,
         ...player.aliases.map((alias) => alias.alias_display),
@@ -115,6 +122,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
       [player.id]: {
         sheet_name: player.sheet_name,
         shirt_number: player.shirt_number?.toString() ?? '',
+        nationality: normalizeNationality(player.nationality),
       },
     }))
   }
@@ -126,6 +134,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
     const ok = await patchPlayer(playerId, 'edit', {
       sheet_name: vals.sheet_name,
       shirt_number: isNaN(shirtNum as number) ? null : shirtNum,
+      nationality: normalizeNationality(vals.nationality),
     })
     if (ok) {
       setRows((prev) =>
@@ -135,6 +144,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                 ...r,
                 sheet_name: vals.sheet_name,
                 shirt_number: isNaN(shirtNum as number) ? null : shirtNum,
+                nationality: normalizeNationality(vals.nationality),
               }
             : r
         )
@@ -382,6 +392,13 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
           onChange={(e) => setSearchValue(e.target.value)}
           placeholder={t('admin.searchPlayers')}
         />
+        <datalist id="admin-player-nationality-options">
+          {NATIONALITY_OPTIONS.map((code) => (
+            <option key={code} value={code}>
+              {getNationalityLabel(code)}
+            </option>
+          ))}
+        </datalist>
       </div>
 
       {filteredRows.map((player) => {
@@ -431,6 +448,36 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                         if (e.key === 'Escape') setEditingId(null)
                       }}
                     />
+                    <input
+                      type="text"
+                      list="admin-player-nationality-options"
+                      placeholder={DEFAULT_NATIONALITY}
+                      className="w-20 rounded border border-input bg-background px-2 py-1 text-sm uppercase"
+                      value={vals?.nationality ?? DEFAULT_NATIONALITY}
+                      maxLength={2}
+                      onChange={(e) =>
+                        setEditValues((prev) => ({
+                          ...prev,
+                          [player.id]: {
+                            ...prev[player.id],
+                            nationality: e.target.value.toUpperCase().slice(0, 2),
+                          },
+                        }))
+                      }
+                      onBlur={() =>
+                        setEditValues((prev) => ({
+                          ...prev,
+                          [player.id]: {
+                            ...prev[player.id],
+                            nationality: normalizeNationality(prev[player.id]?.nationality),
+                          },
+                        }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveEdit(player.id)
+                        if (e.key === 'Escape') setEditingId(null)
+                      }}
+                    />
                     <Button size="sm" className="bg-fcda-navy text-white hover:bg-fcda-navy/90 text-xs" onClick={() => saveEdit(player.id)} disabled={isLoading}>
                       {loadingMap[player.id] === 'edit' ? '...' : t('admin.saveEdit')}
                     </Button>
@@ -442,6 +489,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                   <PlayerIdentity
                     name={player.sheet_name}
                     shirtNumber={player.shirt_number}
+                    nationality={player.nationality}
                     avatarUrl={player.avatar_url}
                     avatarSize="sm"
                     nameClassName="font-medium text-fcda-navy"
@@ -791,6 +839,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                 <PlayerIdentity
                   name={feedbackTarget.sheet_name}
                   shirtNumber={feedbackTarget.shirt_number}
+                  nationality={feedbackTarget.nationality}
                   avatarUrl={feedbackTarget.avatar_url}
                   avatarSize="sm"
                 />

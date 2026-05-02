@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { Hash, ShieldAlert, Sparkles } from 'lucide-react'
+import { Flag, Hash, ShieldAlert, Sparkles } from 'lucide-react'
 import { signPlayerAvatarPath } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
 import { PlayerPhotoZoom } from '@/components/player/PlayerPhotoZoom'
 import { ProfileForm } from '@/components/profile/ProfileForm'
 import { Card, CardContent } from '@/components/ui/card'
+import { NationalityFlag } from '@/components/player/NationalityFlag'
+import { getNationalityLabel } from '@/lib/nationality'
 
 export const metadata: Metadata = { title: 'O meu perfil — FCDA' }
 
@@ -24,12 +26,13 @@ export default async function ProfilePage() {
   const admin = createServiceClient()
   const { data: player, error: playerError } = await admin
     .from('players')
-    .select('sheet_name, shirt_number, preferred_positions, avatar_path')
+    .select('sheet_name, shirt_number, nationality, preferred_positions, avatar_path')
     .eq('profile_id', session.userId)
     .maybeSingle() as {
       data: {
         sheet_name: string
         shirt_number: number | null
+        nationality: string
         preferred_positions: string[]
         avatar_path: string | null
       } | null
@@ -47,6 +50,16 @@ export default async function ProfilePage() {
           label: 'Número',
           value: player.shirt_number != null ? `#${player.shirt_number}` : 'Por definir',
           icon: Hash,
+        },
+        {
+          label: 'Nacionalidade',
+          value: (
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <NationalityFlag nationality={player.nationality} />
+              <span className="truncate">{getNationalityLabel(player.nationality)}</span>
+            </span>
+          ),
+          icon: Flag,
         },
         {
           label: 'Posições',
@@ -72,7 +85,7 @@ export default async function ProfilePage() {
               </h1>
             </div>
             {player ? (
-              <div className="grid items-stretch gap-3 sm:grid-cols-[auto_1fr_1fr] lg:min-w-[38rem]">
+              <div className="grid items-stretch gap-3 sm:grid-cols-[auto_1fr_1fr_1fr] lg:min-w-[48rem]">
                 <div className="flex items-center justify-center sm:justify-start">
                   <PlayerPhotoZoom
                     avatarUrl={avatarUrl}
@@ -111,6 +124,7 @@ export default async function ProfilePage() {
             playerName={player.sheet_name}
             sheetName={player.sheet_name}
             shirtNumber={player.shirt_number}
+            nationality={player.nationality}
             preferredPositions={preferredPositions}
             avatarUrl={avatarUrl}
           />

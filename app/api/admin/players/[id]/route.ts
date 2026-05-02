@@ -1,12 +1,14 @@
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessAdmin } from '@/lib/auth/permissions'
+import { normalizeNationality } from '@/lib/nationality'
 
 const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST'] as const
 
 const schema = z.object({
   sheet_name: z.string().min(1).max(100).optional(),
   shirt_number: z.number().int().min(1).max(99).nullable().optional(),
+  nationality: z.string().trim().length(2).optional(),
   profile_id: z.string().uuid().nullable().optional(),
   current_rating: z.number().min(0).max(10).optional(),
   preferred_positions: z.array(z.enum(POSITIONS)).optional(),
@@ -33,6 +35,9 @@ export async function PATCH(
   }
 
   const admin = createServiceClient()
+  if ('nationality' in parsed.data) {
+    parsed.data.nationality = normalizeNationality(parsed.data.nationality)
+  }
 
   if (parsed.data.profile_id != null) {
     const { data: existing } = await admin
@@ -78,9 +83,11 @@ export async function PATCH(
       ? 'rating.override'
       : 'preferred_positions' in parsed.data
         ? 'player.positions_updated'
-        : 'profile_id' in parsed.data
-          ? parsed.data.profile_id != null ? 'player.linked' : 'player.unlinked'
-          : 'player.updated'
+        : 'nationality' in parsed.data
+          ? 'player.nationality_updated'
+          : 'profile_id' in parsed.data
+            ? parsed.data.profile_id != null ? 'player.linked' : 'player.unlinked'
+            : 'player.updated'
 
   const { error: auditErr } = await admin.from('audit_log').insert({
     action,

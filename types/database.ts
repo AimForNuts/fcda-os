@@ -46,6 +46,7 @@ export type Database = {
           id: string
           sheet_name: string
           shirt_number: number | null
+          nationality: string
           current_rating: number | null
           preferred_positions: string[]
           description: string | null
@@ -59,6 +60,7 @@ export type Database = {
           id?: string
           sheet_name: string
           shirt_number?: number | null
+          nationality?: string
           current_rating?: number | null
           preferred_positions?: string[]
           description?: string | null
@@ -71,6 +73,7 @@ export type Database = {
         Update: {
           sheet_name?: string
           shirt_number?: number | null
+          nationality?: string
           current_rating?: number | null
           preferred_positions?: string[]
           description?: string | null
@@ -298,6 +301,7 @@ export type Database = {
         Row: {
           id: string
           shirt_number: number | null
+          nationality: string
           display_name: string
           current_rating: number | null
           profile_id: string | null
@@ -311,6 +315,7 @@ export type Database = {
           id: string
           display_name: string
           shirt_number: number | null
+          nationality: string
           profile_id: string | null
           avatar_path: string | null
           total_all: number

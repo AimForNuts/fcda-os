@@ -7,6 +7,7 @@ import { ArrowRight, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { NationalityFlag } from '@/components/player/NationalityFlag'
 import { cn } from '@/lib/utils'
 import type { PlayerPublic } from '@/types'
 
@@ -124,6 +125,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
                         {label}
                       </span>
                     ))}
+                    <NationalityFlag nationality={player.nationality} className="mt-1 h-4 w-6" />
                   </div>
                   {isHighlighted && (
                     <Badge className="mt-4 bg-fcda-gold text-fcda-navy hover:bg-fcda-gold">

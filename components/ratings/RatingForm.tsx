@@ -82,6 +82,7 @@ export function RatingForm({ gameId, teammates, existingRatings, existingFeedbac
                       shirtNumber={p.shirt_number}
                       href={`/players/${p.id}`}
                       avatarUrl={p.avatar_url ?? null}
+                      nationality={p.nationality}
                       avatarSize="sm"
                     />
                   </td>
@@ -123,6 +124,7 @@ export function RatingForm({ gameId, teammates, existingRatings, existingFeedbac
                     shirtNumber={p.shirt_number}
                     href={`/players/${p.id}`}
                     avatarUrl={p.avatar_url ?? null}
+                    nationality={p.nationality}
                     avatarSize="sm"
                   />
                 </td>

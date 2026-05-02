@@ -29,6 +29,7 @@ export type PlayerPreview = {
   player_id: string
   sheet_name: string
   shirt_number: number | null
+  nationality: string
   current_rating: number | null
   preferred_positions: string[]
   avatar_url: string | null
@@ -195,6 +196,7 @@ function TeamPreviewPanel({ team, preview }: { team: 'a' | 'b'; preview: TeamPre
               <PlayerIdentity
                 name={player.sheet_name}
                 shirtNumber={player.shirt_number}
+                nationality={player.nationality}
                 avatarUrl={player.avatar_url}
                 avatarSize="sm"
                 className="min-w-0 text-sm"

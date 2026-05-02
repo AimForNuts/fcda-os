@@ -6,7 +6,8 @@ import Image from 'next/image'
 import { ChevronDown, ChevronRight, ChevronUp, MessageCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { PlayerIdentity } from '@/components/player/PlayerIdentity'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { NationalityFlag } from '@/components/player/NationalityFlag'
 import { TeamHeader } from '@/components/matches/TeamHeader'
 import { useTranslation } from 'react-i18next'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
@@ -18,6 +19,7 @@ type LineupSummaryPlayer = {
   name: string
   avatar_url: string | null
   shirt_number: number | null
+  nationality: string
   is_captain: boolean
 }
 
@@ -33,6 +35,13 @@ function toTitleCase(name: string): string {
     .split(/\s+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
+}
+
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return '?'
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase()
 }
 
 type Props = {
@@ -51,22 +60,34 @@ function PlayerSummaryRow({
   showAvatars: boolean
   muted?: boolean
 }) {
+  const displayName = toTitleCase(player.name)
+
   return (
-    <div className="flex min-w-0 items-center gap-2">
-      <PlayerIdentity
-        name={toTitleCase(player.name)}
-        shirtNumber={player.shirt_number}
-        avatarUrl={player.avatar_url}
-        showAvatar={showAvatars}
-        avatarSize="sm"
-        className={muted ? 'min-w-0 flex-1 text-xs text-muted-foreground' : 'min-w-0 flex-1 text-xs'}
-        nameClassName="text-xs"
-      />
-      {player.is_captain && (
-        <span className="shrink-0 rounded bg-fcda-gold/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-fcda-navy">
-          C
-        </span>
-      )}
+    <div
+      className={[
+        'grid min-h-9 items-center gap-2 py-1.5 text-[1.05rem] leading-tight sm:text-lg',
+        showAvatars
+          ? 'grid-cols-[2.25rem_1.75rem_2rem_minmax(0,1fr)]'
+          : 'grid-cols-[2.25rem_2rem_minmax(0,1fr)]',
+        muted ? 'text-muted-foreground' : '',
+      ].join(' ')}
+    >
+      <span className="text-right font-medium tabular-nums text-slate-500">
+        {player.shirt_number ?? '–'}
+      </span>
+      {showAvatars ? (
+        <Avatar size="sm" className="size-7">
+          {player.avatar_url ? <AvatarImage src={player.avatar_url} alt="" aria-hidden /> : null}
+          <AvatarFallback className="bg-muted text-[0.65rem] font-semibold text-slate-500">
+            {getInitials(displayName)}
+          </AvatarFallback>
+        </Avatar>
+      ) : null}
+      <NationalityFlag nationality={player.nationality} className="h-4 w-6" />
+      <span className="flex min-w-0 items-baseline gap-1.5 font-normal text-slate-700">
+        <span className="min-w-0 truncate">{displayName}</span>
+        {player.is_captain ? <span className="shrink-0 text-current">(C)</span> : null}
+      </span>
     </div>
   )
 }
@@ -216,7 +237,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
           {!collapsed && hasTeams && (
             <div className="grid gap-4 border-b border-border bg-muted/20 p-4 sm:grid-cols-2 sm:p-5">
               <div className="space-y-2">
-                <TeamHeader team="a" />
+                <TeamHeader team="a" variant="plain" />
                 <div className="space-y-1">
                   {lineup!.teamA.map((player) => (
                     <PlayerSummaryRow
@@ -228,7 +249,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                 </div>
               </div>
               <div className="space-y-2">
-                <TeamHeader team="b" />
+                <TeamHeader team="b" variant="plain" />
                 <div className="space-y-1">
                   {lineup!.teamB.map((player) => (
                     <PlayerSummaryRow

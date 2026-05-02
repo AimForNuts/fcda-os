@@ -222,6 +222,7 @@ export function FeedbackInbox({ items: initialItems }: Props) {
                       <PlayerIdentity
                         name={c.playerName}
                         avatarUrl={c.playerAvatarUrl}
+                        nationality={c.playerNationality}
                         avatarSize="sm"
                         nameClassName="font-medium"
                       />
@@ -253,6 +254,7 @@ export function FeedbackInbox({ items: initialItems }: Props) {
                         <PlayerIdentity
                           name={c.playerName}
                           avatarUrl={c.playerAvatarUrl}
+                          nationality={c.playerNationality}
                           avatarSize="sm"
                           nameClassName="font-medium"
                         />
