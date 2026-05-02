@@ -1,4 +1,5 @@
 import { Navbar } from '@/components/layout/Navbar'
+import { SiteFooter } from '@/components/layout/SiteFooter'
 import { fetchSessionContext } from '@/lib/auth/permissions'
 import { resolveLinkedPlayerIdentity } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -30,6 +31,7 @@ export default async function PublicLayout({
         linkedPlayer={linkedPlayer}
       />
       <main className="flex-1">{children}</main>
+      <SiteFooter />
     </div>
   )
 }

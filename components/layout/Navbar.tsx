@@ -97,9 +97,13 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
     <header className="sticky top-0 z-50 w-full bg-fcda-navy text-white shadow-md">
       <div className="flex h-20 w-full items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/crest.png" alt="FCDA crest" className="h-18 w-18 object-contain" />
+          <span className="hidden text-lg tracking-normal text-white md:inline">
+            <span className="font-light">FC </span>
+            <span className="font-extrabold">Dragões da Areosa</span>
+          </span>
         </Link>
 
         {/* Desktop nav links */}
@@ -114,23 +118,26 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
               {item.label}
             </Link>
           ))}
-          {isAdmin && (
-            <Link
-              href="/admin/users"
-              className={`relative flex items-center gap-1 ${mainNavLinkClass(isActiveHref('/admin'))}`}
-              aria-current={isActiveHref('/admin') ? 'page' : undefined}
-            >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              {t('nav.admin')}
-              {pendingCount > 0 && (
-                <span className="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-red-500" />
-              )}
-            </Link>
-          )}
         </nav>
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Link
+              href="/admin/users"
+              className={`relative hidden h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-white/10 hover:text-white md:inline-flex ${
+                isActiveHref('/admin') ? 'text-fcda-gold' : 'text-white/70'
+              }`}
+              aria-label={t('nav.admin')}
+              aria-current={isActiveHref('/admin') ? 'page' : undefined}
+              title={t('nav.admin')}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-red-500" />
+              )}
+            </Link>
+          )}
           <Button
             variant="ghost"
             size="sm"

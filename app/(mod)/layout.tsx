@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Navbar } from '@/components/layout/Navbar'
+import { SiteFooter } from '@/components/layout/SiteFooter'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import { resolveLinkedPlayerIdentity } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -43,6 +44,7 @@ export default async function ModLayout({
       <main className="flex-1 container max-w-screen-xl mx-auto px-4 py-8">
         {children}
       </main>
+      <SiteFooter />
     </div>
   )
 }

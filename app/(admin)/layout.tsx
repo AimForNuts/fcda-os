@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Navbar } from '@/components/layout/Navbar'
+import { SiteFooter } from '@/components/layout/SiteFooter'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { fetchSessionContext, canAccessAdmin } from '@/lib/auth/permissions'
 import { resolveLinkedPlayerIdentity } from '@/lib/players/avatar.server'
@@ -44,6 +45,7 @@ export default async function AdminLayout({
           {children}
         </div>
       </main>
+      <SiteFooter />
     </div>
   )
 }
