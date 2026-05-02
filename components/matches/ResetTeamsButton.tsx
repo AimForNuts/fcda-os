@@ -2,14 +2,19 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 type Props = {
   gameId: string
   playerIds: string[]
+  className?: string
+  buttonClassName?: string
+  size?: 'sm' | 'lg'
 }
 
-export function ResetTeamsButton({ gameId, playerIds }: Props) {
+export function ResetTeamsButton({ gameId, playerIds, className, buttonClassName, size = 'sm' }: Props) {
   const router = useRouter()
   const [isResetting, setIsResetting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,14 +52,16 @@ export function ResetTeamsButton({ gameId, playerIds }: Props) {
   }
 
   return (
-    <span className="inline-flex items-center gap-2">
+    <span className={cn('inline-flex items-center gap-2', className)}>
       <Button
         type="button"
-        size="sm"
+        size={size}
         variant="destructive"
+        className={buttonClassName}
         onClick={handleReset}
         disabled={isResetting || playerIds.length === 0}
       >
+        <RotateCcw aria-hidden="true" />
         {isResetting ? 'A limpar…' : 'Limpar equipas'}
       </Button>
       {error && <span className="text-xs text-destructive">{error}</span>}

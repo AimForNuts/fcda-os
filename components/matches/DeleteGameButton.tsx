@@ -4,12 +4,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 type Props = {
   gameId: string
+  className?: string
+  buttonClassName?: string
+  size?: 'sm' | 'lg'
 }
 
-export function DeleteGameButton({ gameId }: Props) {
+export function DeleteGameButton({ gameId, className, buttonClassName, size = 'sm' }: Props) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,11 +42,12 @@ export function DeleteGameButton({ gameId }: Props) {
   }
 
   return (
-    <span className="inline-flex items-center gap-2">
+    <span className={cn('inline-flex items-center gap-2', className)}>
       <Button
         type="button"
-        size="sm"
+        size={size}
         variant="destructive"
+        className={buttonClassName}
         onClick={handleDelete}
         disabled={isDeleting}
       >

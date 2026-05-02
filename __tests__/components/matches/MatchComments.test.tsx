@@ -99,6 +99,29 @@ describe('MatchComments', () => {
     expect(refresh).toHaveBeenCalled()
   })
 
+  it('renders emoji comments without splitting characters', () => {
+    render(
+      <MatchComments
+        gameId="game-1"
+        comments={[
+          {
+            id: 'comment-1',
+            author_id: mentionableUsers[1].id,
+            author_name: mentionableUsers[1].display_name,
+            author_avatar_url: null,
+            content: 'Bom jogo 💪',
+            mention_user_ids: [],
+            created_at: '2026-05-01T12:00:00.000Z',
+          },
+        ]}
+        mentionableUsers={mentionableUsers}
+        currentUser={mentionableUsers[1]}
+      />
+    )
+
+    expect(screen.getByText('Bom jogo 💪')).toBeInTheDocument()
+  })
+
   it('edits an owned comment', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
