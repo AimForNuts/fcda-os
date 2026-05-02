@@ -9,6 +9,7 @@ import { MatchCard, type LineupSummary } from '@/components/matches/MatchCard'
 import { MatchesDateFilter } from '@/components/matches/MatchesDateFilter'
 import { NewGameModal } from '@/components/matches/NewGameModal'
 import { filterGamesByDateRange } from '@/lib/games/filter-by-date-range'
+import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { sortGames } from '@/lib/games/sort'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
@@ -28,14 +29,17 @@ function formatHeroDate(iso: string) {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
+    timeZone: GAME_TIME_ZONE,
   })
   const time = d.toLocaleTimeString('pt-PT', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: GAME_TIME_ZONE,
   })
   const openingTime = gates.toLocaleTimeString('pt-PT', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: GAME_TIME_ZONE,
   })
 
   return {
@@ -43,6 +47,7 @@ function formatHeroDate(iso: string) {
     date: d.toLocaleDateString('pt-PT', {
       day: 'numeric',
       month: 'long',
+      timeZone: GAME_TIME_ZONE,
     }),
     time,
     openingTime,
