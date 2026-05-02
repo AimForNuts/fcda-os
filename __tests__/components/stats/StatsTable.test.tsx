@@ -4,7 +4,7 @@ import { StatsTable } from '@/components/stats/StatsTable'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (k: string) => {
+    t: (k: string, options?: Record<string, number>) => {
       const map: Record<string, string> = {
         'stats.colRank': 'Pos.',
         'players.colNumber': '#',
@@ -16,8 +16,25 @@ vi.mock('react-i18next', () => ({
         'stats.colDraws': 'Empates',
         'stats.colLosses': 'Derrotas',
         'stats.colPoints': 'Pontos',
+        'stats.colForm': 'Forma',
+        'stats.colPointsPerGame': 'Pts/Jogo',
+        'stats.colWinRate': 'Vit. %',
         'stats.modeAll': 'Todos',
         'stats.modeCompetitive': 'Competitivos',
+        'stats.modeLabel': 'Modo da classificação',
+        'stats.leadersTitle': 'Líderes atuais',
+        'stats.leadersSubtitle': 'Top três por pontos no modo selecionado.',
+        'stats.tableTitle': 'Classificação completa',
+        'stats.yourRank': 'A tua posição',
+        'stats.recordLabel': `${options?.wins}V ${options?.draws}E ${options?.losses}D`,
+        'stats.formWin': 'Vitória',
+        'stats.formDraw': 'Empate',
+        'stats.formLoss': 'Derrota',
+        'stats.formWinShort': 'V',
+        'stats.formDrawShort': 'E',
+        'stats.formLossShort': 'D',
+        'stats.noForm': '-',
+        'stats.tiebreakerNote': 'A classificação ordena por pontos.',
         'stats.noPlayers': 'Ainda sem dados de jogadores.',
         'stats.anonymisedNote': 'Inicia sessão para ver os nomes dos jogadores.',
       }
@@ -26,6 +43,7 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 import type { PlayerStats } from '@/types'
+import type { LeaderboardFormByPlayerId } from '@/lib/stats/leaderboard'
 
 const players: PlayerStats[] = [
   {
@@ -60,20 +78,46 @@ const players: PlayerStats[] = [
   },
 ]
 
+const formByPlayerId: LeaderboardFormByPlayerId = {
+  '1': {
+    all: ['win', 'draw', 'loss'],
+    competitive: ['win'],
+  },
+  '2': {
+    all: ['loss'],
+    competitive: ['loss'],
+  },
+}
+
+function getTableBody() {
+  return within(screen.getByRole('table'))
+}
+
+function getTableRowForPlayer(name: string) {
+  const table = getTableBody()
+  const cell = table.queryByRole('link', { name }) ?? table.getByText(name)
+  const row = cell.closest('tr')
+  expect(row).toBeTruthy()
+  return row!
+}
+
 describe('StatsTable', () => {
   it('renders player names', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    expect(screen.getByText('Carlos Silva')).toBeInTheDocument()
+    expect(screen.getAllByText('Carlos Silva').length).toBeGreaterThan(0)
   })
 
-  it('renders stat columns Pos., Jogos, Vitórias, Empates, Derrotas, Pontos', () => {
+  it('renders leaderboard columns', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
     expect(screen.getByRole('columnheader', { name: /^Pos\.$/i })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /Forma/i })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /Pontos/i })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /Pts\/Jogo/i })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /Vit\. %/i })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: /Jogos/i })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: /Vitórias/i })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: /Empates/i })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: /Derrotas/i })).toBeInTheDocument()
-    expect(screen.getByRole('columnheader', { name: /Pontos/i })).toBeInTheDocument()
   })
 
   it('shows anonymised note when isAnonymised is true', () => {
@@ -93,12 +137,12 @@ describe('StatsTable', () => {
 
   it('renders shirt number next to the player name when present', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    expect(screen.getByText('#10')).toBeInTheDocument()
+    expect(screen.getAllByText('#10').length).toBeGreaterThan(0)
   })
 
   it('renders player name as a link when not anonymised', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    const link = screen.getByRole('link', { name: 'Carlos Silva' })
+    const link = screen.getAllByRole('link', { name: 'Carlos Silva' })[0]
     expect(link).toHaveAttribute('href', '/players/1')
   })
 
@@ -115,15 +159,29 @@ describe('StatsTable', () => {
 
   it('displays all-mode totals by default', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    // Carlos has total_all=20; check it appears
-    expect(screen.getByText('20')).toBeInTheDocument()
+    const carlosRow = getTableRowForPlayer('Carlos Silva')
+    expect(within(carlosRow).getAllByRole('cell')[6]).toHaveTextContent('20')
   })
 
   it('switches to competitive totals when Competitivos is clicked', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
     fireEvent.click(screen.getByRole('button', { name: 'Competitivos' }))
-    expect(screen.queryByText('20')).not.toBeInTheDocument()
-    expect(screen.getAllByText('10').length).toBeGreaterThan(0)
+    const carlosRow = getTableRowForPlayer('Carlos Silva')
+    expect(within(carlosRow).getAllByRole('cell')[6]).toHaveTextContent('10')
+  })
+
+  it('renders recent form and switches it with the mode', () => {
+    render(
+      <StatsTable
+        players={players}
+        formByPlayerId={formByPlayerId}
+        isAnonymised={false}
+      />
+    )
+
+    expect(screen.getAllByLabelText('Forma: Vitória, Empate, Derrota').length).toBeGreaterThan(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Competitivos' }))
+    expect(screen.getAllByLabelText('Forma: Vitória').length).toBeGreaterThan(0)
   })
 
   it('shows sort indicator on Pontos column by default', () => {
@@ -135,15 +193,15 @@ describe('StatsTable', () => {
   it('filters players by name', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Carlos' } })
-    expect(screen.getByText('Carlos Silva')).toBeInTheDocument()
-    expect(screen.queryByText('Jogador 2')).not.toBeInTheDocument()
+    const table = getTableBody()
+    expect(table.getByText('Carlos Silva')).toBeInTheDocument()
+    expect(table.queryByText('Jogador 2')).not.toBeInTheDocument()
   })
 
   it('shows points-based standing when filtering, not the visible row index', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
     fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Jogador 2' } })
-    const row = screen.getByText('Jogador 2').closest('tr')
-    expect(row).toBeTruthy()
+    const row = getTableRowForPlayer('Jogador 2')
     const cells = within(row!).getAllByRole('cell')
     expect(cells[0]).toHaveTextContent('2')
   })
@@ -151,10 +209,8 @@ describe('StatsTable', () => {
   it('keeps points-based standing when sorting by another column', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
     fireEvent.click(screen.getByRole('columnheader', { name: /Jogos/i }))
-    const carlosRow = screen.getByText('Carlos Silva').closest('tr')
-    const jogadorRow = screen.getByText('Jogador 2').closest('tr')
-    expect(carlosRow).toBeTruthy()
-    expect(jogadorRow).toBeTruthy()
+    const carlosRow = getTableRowForPlayer('Carlos Silva')
+    const jogadorRow = getTableRowForPlayer('Jogador 2')
     expect(within(carlosRow!).getAllByRole('cell')[0]).toHaveTextContent('1')
     expect(within(jogadorRow!).getAllByRole('cell')[0]).toHaveTextContent('2')
   })
@@ -168,7 +224,8 @@ describe('StatsTable', () => {
       />
     )
 
-    expect(screen.getByText('Carlos Silva').closest('tr')).toHaveClass('bg-fcda-gold/10')
-    expect(screen.getByText('Carlos Silva').closest('tr')).toHaveClass('font-semibold')
+    const row = getTableRowForPlayer('Carlos Silva')
+    expect(row).toHaveClass('bg-fcda-gold/10')
+    expect(row).toHaveClass('font-semibold')
   })
 })
