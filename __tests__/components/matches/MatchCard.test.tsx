@@ -146,9 +146,9 @@ describe('MatchCard', () => {
     render(<MatchCard game={baseGame} lineup={lineup} />)
 
     expect(screen.getByText('Equipa Branca')).toBeInTheDocument()
-    expect(screen.getByText('Equipa Preta')).toBeInTheDocument()
+    expect(screen.getByText('Equipa Azul')).toBeInTheDocument()
     expect(screen.getByAltText('Kit da Equipa Branca')).toBeInTheDocument()
-    expect(screen.getByAltText('Kit da Equipa Preta')).toBeInTheDocument()
+    expect(screen.getByAltText('Kit da Equipa Azul')).toBeInTheDocument()
   })
 
   it('shows the comment count', () => {

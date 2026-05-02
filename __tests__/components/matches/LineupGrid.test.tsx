@@ -35,9 +35,9 @@ describe('LineupGrid', () => {
     const b = [makePlayer('2', 'João', 5)]
     render(<LineupGrid teamA={a} teamB={b} unassigned={[]} />)
     expect(screen.getByText('Equipa Branca')).toBeInTheDocument()
-    expect(screen.getByText('Equipa Preta')).toBeInTheDocument()
+    expect(screen.getByText('Equipa Azul')).toBeInTheDocument()
     expect(screen.getByAltText('Kit da Equipa Branca')).toBeInTheDocument()
-    expect(screen.getByAltText('Kit da Equipa Preta')).toBeInTheDocument()
+    expect(screen.getByAltText('Kit da Equipa Azul')).toBeInTheDocument()
     expect(screen.getByText('Carlos')).toBeInTheDocument()
     expect(screen.getByText('João')).toBeInTheDocument()
   })

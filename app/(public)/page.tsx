@@ -102,7 +102,7 @@ function SquadSeparator() {
       aria-labelledby="squad-separator-title"
     >
       <Image
-        src="/william_fcda.webp"
+        src="/miguel_gomes.jpeg"
         alt=""
         fill
         sizes="100vw"

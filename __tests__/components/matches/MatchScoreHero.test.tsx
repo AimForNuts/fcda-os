@@ -7,7 +7,7 @@ describe('MatchScoreHero', () => {
     render(<MatchScoreHero scoreA={3} scoreB={2} />)
 
     expect(screen.getByAltText('Kit da Equipa Branca')).toBeInTheDocument()
-    expect(screen.getByAltText('Kit da Equipa Preta')).toBeInTheDocument()
+    expect(screen.getByAltText('Kit da Equipa Azul')).toBeInTheDocument()
     expect(screen.getByText('3')).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
   })

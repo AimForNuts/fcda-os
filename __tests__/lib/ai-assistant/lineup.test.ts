@@ -19,7 +19,7 @@ function lineup(overrides: Partial<AiLineup> = {}): AiLineup {
       ],
     },
     team_b: {
-      label: 'Equipa Preta',
+      label: 'Equipa Azul',
       players: [
         { player_id: p3, is_captain: true },
         { player_id: p4, is_captain: false },
@@ -64,7 +64,7 @@ describe('validateAiLineup', () => {
     const result = validateAiLineup(
       lineup({
         team_b: {
-          label: 'Equipa Preta',
+          label: 'Equipa Azul',
           players: [
             { player_id: p1, is_captain: true },
             { player_id: p4, is_captain: false },
@@ -82,7 +82,7 @@ describe('validateAiLineup', () => {
     const result = validateAiLineup(
       lineup({
         team_b: {
-          label: 'Equipa Preta',
+          label: 'Equipa Azul',
           players: [
             { player_id: p3, is_captain: true },
             { player_id: outsider, is_captain: false },
@@ -118,7 +118,7 @@ describe('validateAiLineup', () => {
     const result = validateAiLineup(
       lineup({
         team_b: {
-          label: 'Equipa Preta',
+          label: 'Equipa Azul',
           players: [
             { player_id: p3, is_captain: true },
             { player_id: p4, is_captain: true },
@@ -129,6 +129,6 @@ describe('validateAiLineup', () => {
     )
 
     expect(result.ok).toBe(false)
-    expect(result.errors).toContain('Team Black must have exactly one captain')
+    expect(result.errors).toContain('Team Blue must have exactly one captain')
   })
 })
