@@ -19,6 +19,7 @@ const makePlayer = (id: string, name: string, shirt?: number): PlayerPublic => (
   id,
   display_name: name,
   shirt_number: shirt ?? null,
+  nationality: 'PT',
   current_rating: null,
   profile_id: null,
   avatar_path: null,
@@ -53,13 +54,13 @@ describe('LineupGrid', () => {
   it('renders shirt number when present', () => {
     const a = [makePlayer('1', 'Nuno', 7)]
     render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
-    expect(screen.getByText('#7')).toBeInTheDocument()
+    expect(screen.getByText('7')).toBeInTheDocument()
   })
 
-  it('does not render shirt number when absent', () => {
+  it('renders a placeholder when shirt number is absent', () => {
     const a = [makePlayer('1', 'Rui')]  // makePlayer without shirt arg → shirt_number: null
     render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
-    expect(screen.queryByText(/^#\d+$/)).not.toBeInTheDocument()
+    expect(screen.getByText('–')).toBeInTheDocument()
   })
 
   it('renders player name as a link when isApproved is true', () => {
@@ -78,6 +79,6 @@ describe('LineupGrid', () => {
   it('renders a captain marker when a player is captain', () => {
     const a = [{ ...makePlayer('1', 'Carlos', 10), is_captain: true }]
     render(<LineupGrid teamA={a} teamB={[]} unassigned={[]} />)
-    expect(screen.getByText('C')).toBeInTheDocument()
+    expect(screen.getByText('(C)')).toBeInTheDocument()
   })
 })

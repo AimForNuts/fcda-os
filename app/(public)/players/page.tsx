@@ -25,7 +25,8 @@ export default async function PlayersPage() {
   const playersQuery = isApproved
     ? supabase
         .from('players')
-        .select('id, sheet_name, shirt_number, preferred_positions, profile_id, avatar_path')
+        .select('id, sheet_name, shirt_number, nationality, preferred_positions, profile_id, avatar_path')
+        .not('profile_id', 'is', null)
         .order('shirt_number', { ascending: true, nullsFirst: false })
         .order('sheet_name', { ascending: true })
         .overrideTypes<
@@ -35,6 +36,7 @@ export default async function PlayersPage() {
               | 'id'
               | 'sheet_name'
               | 'shirt_number'
+              | 'nationality'
               | 'preferred_positions'
               | 'profile_id'
               | 'avatar_path'
@@ -44,7 +46,8 @@ export default async function PlayersPage() {
         >()
     : supabase
         .from('players_public')
-        .select('id, display_name, shirt_number, profile_id, avatar_path')
+        .select('id, display_name, shirt_number, nationality, profile_id, avatar_path')
+        .not('profile_id', 'is', null)
         .order('shirt_number', { ascending: true, nullsFirst: false })
         .order('display_name', { ascending: true })
         .overrideTypes<
@@ -54,6 +57,7 @@ export default async function PlayersPage() {
               | 'id'
               | 'display_name'
               | 'shirt_number'
+              | 'nationality'
               | 'profile_id'
               | 'avatar_path'
             >
@@ -76,6 +80,7 @@ export default async function PlayersPage() {
           id: player.id,
           display_name: player.sheet_name,
           shirt_number: player.shirt_number,
+          nationality: player.nationality,
           profile_id: player.profile_id,
           avatar_path: player.avatar_path,
           preferred_positions: player.preferred_positions ?? [],

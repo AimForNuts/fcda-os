@@ -5,6 +5,7 @@ import { FeedbackInbox } from './FeedbackInbox'
 export type PlayerComment = {
   id: string
   playerName: string
+  playerNationality: string
   playerAvatarUrl: string | null
   content: string
 }
@@ -62,7 +63,7 @@ export default async function AdminFeedbackPage() {
   const [gamesRes, profilesRes, playersRes] = await Promise.all([
     admin.from('games').select('id, date, location').in('id', gameIds),
     admin.from('profiles').select('id, display_name').in('id', submitterIds),
-    admin.from('players').select('id, sheet_name, profile_id, avatar_path').or(
+    admin.from('players').select('id, sheet_name, nationality, profile_id, avatar_path').or(
       `id.in.(${playerIds.join(',')}),profile_id.in.(${submitterIds.join(',')})`
     ),
   ])
@@ -70,7 +71,7 @@ export default async function AdminFeedbackPage() {
   const games = gamesRes.data as Array<{ id: string; date: string; location: string }> | null
   const profiles = profilesRes.data as Array<{ id: string; display_name: string }> | null
   const players = await signPlayerAvatarRecords(
-    (playersRes.data as Array<{ id: string; sheet_name: string; profile_id: string | null; avatar_path: string | null }> | null) ?? [],
+    (playersRes.data as Array<{ id: string; sheet_name: string; nationality: string; profile_id: string | null; avatar_path: string | null }> | null) ?? [],
     true
   )
 
@@ -92,6 +93,7 @@ export default async function AdminFeedbackPage() {
       comments: group.map((r) => ({
         id: r.id,
         playerName: playerMap.get(r.rated_player_id)?.sheet_name ?? r.rated_player_id,
+        playerNationality: playerMap.get(r.rated_player_id)?.nationality ?? 'PT',
         playerAvatarUrl: playerMap.get(r.rated_player_id)?.avatar_url ?? null,
         content: r.feedback,
       })),

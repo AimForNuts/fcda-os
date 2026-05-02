@@ -8,6 +8,7 @@ type PlayerChipProps = {
   status: ChipStatus
   shirtNumber?: number | null
   avatarUrl?: string | null
+  nationality?: string | null
   isCaptain?: boolean
   className?: string
 }
@@ -29,6 +30,7 @@ export function PlayerChip({
   status,
   shirtNumber = null,
   avatarUrl = null,
+  nationality = null,
   isCaptain = false,
   className,
 }: PlayerChipProps) {
@@ -49,6 +51,7 @@ export function PlayerChip({
         name={name}
         shirtNumber={shirtNumber}
         avatarUrl={avatarUrl}
+        nationality={nationality}
         avatarSize="sm"
         className="min-w-0 gap-1.5"
         nameClassName="hover:no-underline"

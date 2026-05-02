@@ -206,6 +206,7 @@ function LeaderCard({
         shirtNumberPlacement="after-name"
         href={!isAnonymised ? `/players/${player.id}` : undefined}
         avatarUrl={player.avatar_url ?? null}
+        nationality={player.nationality}
         showAvatar={!isAnonymised}
         avatarSize="sm"
         nameClassName="font-bold text-fcda-navy"
@@ -263,6 +264,7 @@ function MobileLeaderboardRow({
             shirtNumberPlacement="after-name"
             href={!isAnonymised ? `/players/${player.id}` : undefined}
             avatarUrl={player.avatar_url ?? null}
+            nationality={player.nationality}
             showAvatar={!isAnonymised}
             avatarSize="sm"
             nameClassName="font-bold text-fcda-navy"
@@ -359,6 +361,7 @@ export function StatsTable({
           shirtNumberPlacement="after-name"
           href={!isAnonymised ? `/players/${player.id}` : undefined}
           avatarUrl={player.avatar_url ?? null}
+          nationality={player.nationality}
           showAvatar={!isAnonymised}
           avatarSize="sm"
         />

@@ -1,10 +1,12 @@
 'use client'
 
-import Image from 'next/image'
+import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import type { PlayerPublic } from '@/types'
-import { PlayerIdentity } from '@/components/player/PlayerIdentity'
-import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
+import { NationalityFlag } from '@/components/player/NationalityFlag'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { TeamHeader } from '@/components/matches/TeamHeader'
+import type { MatchTeam } from '@/lib/games/team-presentation'
 import { cn } from '@/lib/utils'
 
 type LineupPlayer = PlayerPublic & { avatar_url?: string | null; is_captain?: boolean }
@@ -16,6 +18,13 @@ type Props = {
   isApproved?: boolean
 }
 
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return '?'
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase()
+}
+
 function PlayerRow({
   player,
   isApproved,
@@ -25,43 +34,47 @@ function PlayerRow({
   isApproved?: boolean
   muted?: boolean
 }) {
-  return (
-    <div className="grid min-h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border/70 py-2.5 text-sm last:border-b-0">
-      <PlayerIdentity
-        name={player.display_name}
-        shirtNumber={player.shirt_number}
-        shirtNumberPlacement="after-name"
-        href={isApproved ? `/players/${player.id}` : undefined}
-        avatarUrl={player.avatar_url ?? null}
-        showAvatar={!!isApproved}
-        avatarSize="sm"
-        className={cn('min-w-0 font-medium', muted && 'text-muted-foreground')}
-        nameClassName="min-w-0"
-      />
-      {player.is_captain && (
-        <span className="rounded bg-fcda-gold/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-fcda-navy">
-          C
-        </span>
-      )}
-    </div>
+  const name = (
+    <span className={cn('min-w-0 truncate', muted && 'text-muted-foreground')}>
+      {player.display_name}
+    </span>
   )
-}
-
-function TeamLineupHeader({ team }: { team: MatchTeam }) {
-  const presentation = getTeamPresentation(team)
+  const nameNode = isApproved ? (
+    <Link
+      href={`/players/${player.id}`}
+      className="min-w-0 truncate hover:underline"
+    >
+      {name}
+    </Link>
+  ) : (
+    name
+  )
 
   return (
-    <div className="flex h-12 min-w-0 items-center gap-3">
-      <Image
-        src={presentation.imageSrc}
-        alt={presentation.imageAlt}
-        width={36}
-        height={50}
-        className="h-10 w-auto shrink-0 object-contain drop-shadow-sm"
-      />
-      <h3 className="min-w-0 truncate text-sm font-black text-foreground">
-        {presentation.label}
-      </h3>
+    <div
+      className={cn(
+        'grid min-h-9 grid-cols-[2.25rem_1.75rem_2rem_minmax(0,1fr)] items-center gap-2 py-1.5 text-[1.05rem] leading-tight sm:text-lg',
+        muted && 'text-muted-foreground'
+      )}
+    >
+      <span className="text-right font-medium tabular-nums text-slate-500">
+        {player.shirt_number ?? '–'}
+      </span>
+      <Avatar size="sm" className="size-7">
+        {isApproved && player.avatar_url ? (
+          <AvatarImage src={player.avatar_url} alt="" aria-hidden />
+        ) : null}
+        <AvatarFallback className="bg-muted text-[0.65rem] font-semibold text-slate-500">
+          {getInitials(player.display_name)}
+        </AvatarFallback>
+      </Avatar>
+      <NationalityFlag nationality={player.nationality} className="h-4 w-6" />
+      <span className="flex min-w-0 items-baseline gap-1.5 font-normal text-slate-700">
+        {nameNode}
+        {player.is_captain ? (
+          <span className="shrink-0 text-current">(C)</span>
+        ) : null}
+      </span>
     </div>
   )
 }
@@ -77,8 +90,8 @@ function TeamLineupColumn({
 }) {
   return (
     <section className="min-w-0 space-y-3">
-      <TeamLineupHeader team={team} />
-      <div className="border-y border-border">
+      <TeamHeader team={team} variant="plain" />
+      <div className="space-y-0.5">
         {players.length > 0 ? (
           players.map((p) => (
             <PlayerRow key={p.id} player={p} isApproved={isApproved} />
@@ -118,7 +131,7 @@ export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
       <h3 className="text-sm font-black text-foreground">
         {t('matches.lineup')}
       </h3>
-      <div className="border-y border-border">
+      <div className="space-y-0.5">
         {unassigned.map((p) => (
           <PlayerRow key={p.id} player={p} isApproved={isApproved} muted />
         ))}

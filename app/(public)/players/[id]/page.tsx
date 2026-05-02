@@ -16,6 +16,7 @@ import { canAccessAdmin, fetchSessionContext } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
 import { PlayerDescriptionEditor } from '@/components/player/PlayerDescriptionEditor'
+import { NationalityFlag } from '@/components/player/NationalityFlag'
 import type { Game, Player, PlayerPublic, PlayerStats } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -59,7 +60,7 @@ type PublicPlayerStats = Pick<
 
 type PlayerProfileRecord = Pick<
   PlayerPublic,
-  'id' | 'display_name' | 'shirt_number' | 'profile_id' | 'avatar_path' | 'description'
+  'id' | 'display_name' | 'shirt_number' | 'nationality' | 'profile_id' | 'avatar_path' | 'description'
 > & {
   preferred_positions: string[]
 }
@@ -206,7 +207,7 @@ export default async function PlayerProfilePage({
   if (isApproved) {
     const { data } = await supabase
       .from('players')
-      .select('id, sheet_name, shirt_number, preferred_positions, profile_id, avatar_path, description')
+      .select('id, sheet_name, shirt_number, nationality, preferred_positions, profile_id, avatar_path, description')
       .eq('id', id)
       .single() as {
         data:
@@ -215,6 +216,7 @@ export default async function PlayerProfilePage({
               | 'id'
               | 'sheet_name'
               | 'shirt_number'
+              | 'nationality'
               | 'preferred_positions'
               | 'profile_id'
               | 'avatar_path'
@@ -229,6 +231,7 @@ export default async function PlayerProfilePage({
           id: data.id,
           display_name: data.sheet_name,
           shirt_number: data.shirt_number,
+          nationality: data.nationality,
           preferred_positions: data.preferred_positions ?? [],
           profile_id: data.profile_id,
           avatar_path: data.avatar_path,
@@ -238,12 +241,12 @@ export default async function PlayerProfilePage({
   } else {
     const { data } = await supabase
       .from('players_public')
-      .select('id, display_name, shirt_number, profile_id, avatar_path, description')
+      .select('id, display_name, shirt_number, nationality, profile_id, avatar_path, description')
       .eq('id', id)
       .single() as {
         data: Pick<
           PlayerPublic,
-          'id' | 'display_name' | 'shirt_number' | 'profile_id' | 'avatar_path' | 'description'
+          'id' | 'display_name' | 'shirt_number' | 'nationality' | 'profile_id' | 'avatar_path' | 'description'
         > | null
         error: unknown
       }
@@ -402,6 +405,10 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                     {resolvedPlayer.display_name}
                   </h1>
                   <div className="mt-3 flex max-w-full flex-row flex-nowrap items-center gap-x-3 overflow-x-auto">
+                    <NationalityFlag
+                      nationality={resolvedPlayer.nationality}
+                      className="h-5 w-8 sm:h-6 sm:w-9"
+                    />
                     {positionLabels.map((position, index) => (
                       <Fragment key={`${position}-${index}`}>
                         {index > 0 ? (

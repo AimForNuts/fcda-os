@@ -1,11 +1,13 @@
 import { z } from 'zod'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
+import { DEFAULT_NATIONALITY, normalizeNationality } from '@/lib/nationality'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { normaliseAlias } from '@/lib/whatsapp/parser'
 
 const createPlayerSchema = z.object({
   sheet_name: z.string().min(1, 'Name is required').max(100),
+  nationality: z.string().trim().length(2).optional(),
   // raw name used for alias creation (defaults to sheet_name if omitted)
   alias_display: z.string().optional(),
 })
@@ -28,6 +30,7 @@ export async function GET(request: Request) {
         id: string
         sheet_name: string
         shirt_number: number | null
+        nationality: string
         avatar_path: string | null
       }> | null
       error: unknown
@@ -53,9 +56,12 @@ export async function POST(request: Request) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: player, error: playerErr } = await (supabase as any).from('players')
-    .insert({ sheet_name: parsed.data.sheet_name })
-    .select('id, sheet_name')
-    .single() as { data: { id: string; sheet_name: string } | null; error: unknown }
+    .insert({
+      sheet_name: parsed.data.sheet_name,
+      nationality: normalizeNationality(parsed.data.nationality ?? DEFAULT_NATIONALITY),
+    })
+    .select('id, sheet_name, nationality')
+    .single() as { data: { id: string; sheet_name: string; nationality: string } | null; error: unknown }
 
   if (playerErr || !player) {
     return Response.json({ error: 'Failed to create player' }, { status: 500 })
@@ -80,5 +86,8 @@ export async function POST(request: Request) {
   })
   if (auditErr) console.error('audit_log insert failed', auditErr)
 
-  return Response.json({ id: player.id, sheet_name: player.sheet_name }, { status: 201 })
+  return Response.json(
+    { id: player.id, sheet_name: player.sheet_name, nationality: player.nationality },
+    { status: 201 }
+  )
 }

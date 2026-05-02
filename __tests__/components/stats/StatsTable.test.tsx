@@ -137,7 +137,7 @@ describe('StatsTable', () => {
 
   it('renders shirt number next to the player name when present', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    expect(screen.getAllByText('#10').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('10').length).toBeGreaterThan(0)
   })
 
   it('renders player name as a link when not anonymised', () => {

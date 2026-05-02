@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
+import {
+  DEFAULT_NATIONALITY,
+  NATIONALITY_OPTIONS,
+  getNationalityLabel,
+  normalizeNationality,
+} from '@/lib/nationality'
 import type { UserRole } from '@/types'
 import type { UserRow } from './page'
 
@@ -14,6 +20,7 @@ type SearchResult = {
   id: string
   sheet_name: string
   shirt_number: number | null
+  nationality: string
   avatar_url: string | null
 }
 
@@ -61,6 +68,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
         ...user.roles,
         user.player?.sheet_name ?? '',
         user.player?.shirt_number?.toString() ?? '',
+        user.player?.nationality ?? '',
         ...(user.player?.aliases.map((alias) => alias.alias_display) ?? []),
       ]
 
@@ -337,6 +345,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                   id: player.id,
                   sheet_name: player.sheet_name,
                   shirt_number: player.shirt_number,
+                  nationality: player.nationality,
                   current_rating: null,
                   preferred_positions: [],
                   avatar_url: player.avatar_url,
@@ -418,6 +427,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                         <PlayerIdentity
                           name={user.player.sheet_name}
                           shirtNumber={user.player.shirt_number}
+                          nationality={user.player.nationality}
                           avatarUrl={user.player.avatar_url}
                           avatarSize="sm"
                           nameClassName="font-medium text-fcda-navy"
@@ -565,6 +575,7 @@ function UserDetailsModal({
   const [displayName, setDisplayName] = useState(user.display_name)
   const [sheetName, setSheetName] = useState(player?.sheet_name ?? '')
   const [shirtNumber, setShirtNumber] = useState(player?.shirt_number?.toString() ?? '')
+  const [nationality, setNationality] = useState(normalizeNationality(player?.nationality))
   const [rating, setRating] = useState(player?.current_rating?.toString() ?? '')
   const [positions, setPositions] = useState<string[]>(player?.preferred_positions ?? [])
   const [aliasInput, setAliasInput] = useState('')
@@ -583,6 +594,7 @@ function UserDetailsModal({
     setDisplayName(user.display_name)
     setSheetName(player?.sheet_name ?? '')
     setShirtNumber(player?.shirt_number?.toString() ?? '')
+    setNationality(normalizeNationality(player?.nationality))
     setRating(player?.current_rating?.toString() ?? '')
     setPositions(player?.preferred_positions ?? [])
     setAliasInput('')
@@ -636,16 +648,19 @@ function UserDetailsModal({
     const body: {
       sheet_name: string
       shirt_number: number | null
+      nationality: string
       preferred_positions: string[]
       current_rating?: number
     } = {
       sheet_name: trimmedName,
       shirt_number: parsedShirtNumber,
+      nationality: normalizeNationality(nationality),
       preferred_positions: positions,
     }
     const patch: Partial<NonNullable<UserRow['player']>> = {
       sheet_name: trimmedName,
       shirt_number: parsedShirtNumber,
+      nationality: normalizeNationality(nationality),
       preferred_positions: positions,
     }
 
@@ -691,6 +706,7 @@ function UserDetailsModal({
         id: created.id,
         sheet_name: typeof created.sheet_name === 'string' ? created.sheet_name : name,
         shirt_number: null,
+        nationality: typeof created.nationality === 'string' ? created.nationality : DEFAULT_NATIONALITY,
         avatar_url: null,
       })
       if (ok) setCreatePlayerName('')
@@ -867,6 +883,7 @@ function UserDetailsModal({
                   <PlayerIdentity
                     name={player.sheet_name}
                     shirtNumber={player.shirt_number}
+                    nationality={player.nationality}
                     avatarUrl={player.avatar_url}
                     avatarSize="lg"
                     nameClassName="font-semibold text-fcda-navy"
@@ -916,7 +933,7 @@ function UserDetailsModal({
                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_8rem]">
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_8rem_8rem]">
                   <label className="space-y-1.5">
                     <span className="text-sm font-medium text-foreground">Nome de jogador</span>
                     <Input
@@ -947,6 +964,27 @@ function UserDetailsModal({
                       onChange={(e) => setRating(e.target.value)}
                       disabled={isLoading}
                     />
+                  </label>
+                  <label className="space-y-1.5">
+                    <span className="text-sm font-medium text-foreground">Nacionalidade</span>
+                    <Input
+                      type="text"
+                      list="admin-user-nationality-options"
+                      maxLength={2}
+                      value={nationality}
+                      onChange={(e) => setNationality(e.target.value.toUpperCase().slice(0, 2))}
+                      onBlur={() => setNationality(normalizeNationality(nationality))}
+                      placeholder={DEFAULT_NATIONALITY}
+                      disabled={isLoading}
+                      className="uppercase"
+                    />
+                    <datalist id="admin-user-nationality-options">
+                      {NATIONALITY_OPTIONS.map((code) => (
+                        <option key={code} value={code}>
+                          {getNationalityLabel(code)}
+                        </option>
+                      ))}
+                    </datalist>
                   </label>
                 </div>
 
@@ -1087,6 +1125,7 @@ function UserDetailsModal({
                             <PlayerIdentity
                               name={result.sheet_name}
                               shirtNumber={result.shirt_number}
+                              nationality={result.nationality}
                               avatarUrl={result.avatar_url}
                               avatarSize="sm"
                             />

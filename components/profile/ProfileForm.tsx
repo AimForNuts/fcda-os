@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Camera, Check, Hash, Save, UserRound } from 'lucide-react'
+import { Camera, Check, Flag, Hash, Save, UserRound } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,13 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { NationalityFlag } from '@/components/player/NationalityFlag'
+import {
+  DEFAULT_NATIONALITY,
+  NATIONALITY_OPTIONS,
+  getNationalityLabel,
+  normalizeNationality,
+} from '@/lib/nationality'
 import { PLAYER_AVATAR_MAX_BYTES } from '@/lib/players/avatar'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +37,7 @@ type Props = {
   playerName: string
   sheetName: string
   shirtNumber: number | null
+  nationality: string
   preferredPositions: string[]
   avatarUrl: string | null
 }
@@ -45,11 +53,13 @@ export function ProfileForm({
   playerName,
   sheetName,
   shirtNumber,
+  nationality,
   preferredPositions,
   avatarUrl,
 }: Props) {
   const [name, setName] = useState(sheetName)
   const [shirt, setShirt] = useState<string>(shirtNumber != null ? String(shirtNumber) : '')
+  const [nationalityValue, setNationalityValue] = useState(normalizeNationality(nationality))
   const [positions, setPositions] = useState<string[]>(preferredPositions)
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState(avatarUrl)
   const [submitting, setSubmitting] = useState(false)
@@ -60,6 +70,7 @@ export function ProfileForm({
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const displayName = name.trim() || playerName
   const shirtLabel = shirt.trim() === '' ? 'Sem número' : `#${shirt.trim()}`
+  const normalizedNationality = normalizeNationality(nationalityValue)
   const positionSummary = positions.length > 0 ? positions.join(' · ') : 'Escolhe as tuas posições'
 
   async function handleSubmit(e: React.FormEvent) {
@@ -72,6 +83,7 @@ export function ProfileForm({
     const body = {
       sheet_name: name.trim(),
       shirt_number: shirt.trim() === '' ? null : isNaN(parsed) ? null : parsed,
+      nationality: normalizedNationality,
       preferred_positions: positions,
     }
 
@@ -191,6 +203,13 @@ export function ProfileForm({
               <div className="space-y-1">
                 <p className="text-lg font-semibold text-fcda-navy">{displayName}</p>
                 <p className="text-sm text-muted-foreground">{shirtLabel}</p>
+                <p className="text-sm text-muted-foreground">
+                  <NationalityFlag
+                    nationality={normalizedNationality}
+                    className="mr-1 inline-block h-3.5 w-5"
+                  />
+                  {getNationalityLabel(normalizedNationality)}
+                </p>
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   {positionSummary}
                 </p>
@@ -256,7 +275,7 @@ export function ProfileForm({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_10rem]">
+          <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_10rem_12rem]">
             <div className="space-y-2">
               <Label htmlFor="profile-name">Nome</Label>
               <div className="relative">
@@ -287,6 +306,32 @@ export function ProfileForm({
                   className="h-10 pl-9 [appearance:textfield]"
                   disabled={submitting}
                 />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="profile-nationality">Nacionalidade</Label>
+              <div className="relative">
+                <Flag className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="profile-nationality"
+                  list="profile-nationality-options"
+                  type="text"
+                  value={nationalityValue}
+                  onChange={(e) => setNationalityValue(e.target.value.toUpperCase().slice(0, 2))}
+                  onBlur={() => setNationalityValue(normalizeNationality(nationalityValue))}
+                  maxLength={2}
+                  placeholder={DEFAULT_NATIONALITY}
+                  className="h-10 pl-9 uppercase"
+                  disabled={submitting}
+                />
+                <datalist id="profile-nationality-options">
+                  {NATIONALITY_OPTIONS.map((code) => (
+                    <option key={code} value={code}>
+                      {getNationalityLabel(code)}
+                    </option>
+                  ))}
+                </datalist>
               </div>
             </div>
           </div>

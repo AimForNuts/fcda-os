@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       id: string
       sheet_name: string
       shirt_number: number | null
+      nationality: string
       avatar_url: string | null
     }
   >()
@@ -50,12 +51,13 @@ export async function POST(request: Request) {
   if (matchedPlayerIds.length > 0) {
     const { data: players } = await supabase
       .from('players')
-      .select('id, sheet_name, shirt_number, avatar_path')
+      .select('id, sheet_name, shirt_number, nationality, avatar_path')
       .in('id', matchedPlayerIds) as {
         data: Array<{
           id: string
           sheet_name: string
           shirt_number: number | null
+          nationality: string
           avatar_path: string | null
         }> | null
         error: unknown
@@ -85,6 +87,7 @@ export async function POST(request: Request) {
         id: string
         sheet_name: string
         shirt_number: number | null
+        nationality: string
         avatar_url: string | null
       } => p != null)
 

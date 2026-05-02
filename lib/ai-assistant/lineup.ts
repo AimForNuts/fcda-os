@@ -26,6 +26,7 @@ export type PlayerForAiLineup = {
   id: string
   sheet_name: string
   shirt_number: number | null
+  nationality: string
   current_rating: number | null
   preferred_positions: string[]
   last3Ratings: number[]
@@ -38,6 +39,7 @@ export type PlayerPreview = {
   player_id: string
   sheet_name: string
   shirt_number: number | null
+  nationality: string
   current_rating: number | null
   preferred_positions: string[]
   avatar_url: string | null
@@ -122,6 +124,7 @@ function teamPreview(
       player_id: player.id,
       sheet_name: player.sheet_name,
       shirt_number: player.shirt_number,
+      nationality: player.nationality,
       current_rating: player.current_rating,
       preferred_positions: player.preferred_positions,
       avatar_url: player.avatar_url,

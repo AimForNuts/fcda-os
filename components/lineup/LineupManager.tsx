@@ -9,6 +9,7 @@ import { TeamAssignmentToggle } from './TeamAssignmentToggle'
 import { AiGeneratedLineupModal, type AiGeneratedLineup } from './AiGeneratedLineupModal'
 import { Button } from '@/components/ui/button'
 import { TeamHeader } from '@/components/matches/TeamHeader'
+import { DEFAULT_NATIONALITY } from '@/lib/nationality'
 import type { ParsedEntry } from '@/lib/whatsapp/parser'
 
 type ResolvedEntry = {
@@ -19,11 +20,13 @@ type ResolvedEntry = {
     id: string
     sheet_name: string
     shirt_number: number | null
+    nationality: string
     avatar_url: string | null
   }>
   resolvedPlayerId: string | null
   resolvedName: string | null
   resolvedShirtNumber: number | null
+  resolvedNationality: string | null
   resolvedAvatarUrl: string | null
   team: 'a' | 'b' | null
   is_captain: boolean
@@ -34,6 +37,7 @@ type CurrentPlayer = {
   player_id: string
   sheet_name: string
   shirt_number: number | null
+  nationality: string
   avatar_url: string | null
   team: 'a' | 'b' | null
   is_captain: boolean
@@ -48,6 +52,7 @@ type SearchResult = {
   id: string
   sheet_name: string
   shirt_number: number | null
+  nationality: string
   avatar_url: string | null
 }
 
@@ -268,6 +273,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
         resolvedPlayerId: e.status === 'matched' ? e.matches[0].id : null,
         resolvedName: e.status === 'matched' ? e.matches[0].sheet_name : null,
         resolvedShirtNumber: e.status === 'matched' ? e.matches[0].shirt_number : null,
+        resolvedNationality: e.status === 'matched' ? e.matches[0].nationality : null,
         resolvedAvatarUrl: e.status === 'matched' ? e.matches[0].avatar_url : null,
         team: null,
         is_captain: false,
@@ -296,6 +302,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
               resolvedPlayerId: player.id,
               resolvedName: player.sheet_name,
               resolvedShirtNumber: player.shirt_number,
+              resolvedNationality: player.nationality,
               resolvedAvatarUrl: player.avatar_url,
               status: 'matched',
             }
@@ -354,6 +361,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
           id,
           sheet_name,
           shirt_number: null,
+          nationality: DEFAULT_NATIONALITY,
           avatar_url: null,
         }, true)
       } else {
@@ -529,6 +537,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                   <PlayerChip
                     name={entry.resolvedName ?? entry.raw}
                     shirtNumber={entry.resolvedShirtNumber}
+                    nationality={entry.resolvedNationality}
                     avatarUrl={entry.resolvedAvatarUrl}
                     status={entry.resolvedPlayerId ? 'matched' : entry.status}
                   />
@@ -585,6 +594,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                               <PlayerChip
                                 name={p.sheet_name}
                                 shirtNumber={p.shirt_number}
+                                nationality={p.nationality}
                                 avatarUrl={p.avatar_url}
                                 status="matched"
                               />
@@ -711,6 +721,7 @@ function CurrentTeamDropZone({
                 <PlayerChip
                   name={player.sheet_name}
                   shirtNumber={player.shirt_number}
+                  nationality={player.nationality}
                   avatarUrl={player.avatar_url}
                   status="matched"
                   className="w-full"

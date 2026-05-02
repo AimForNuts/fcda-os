@@ -24,7 +24,7 @@ export default async function StatsPage() {
 
   const { data: players } = await supabase
     .from('player_stats')
-    .select('id, display_name, shirt_number, profile_id, avatar_path, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp')
+    .select('id, display_name, shirt_number, nationality, profile_id, avatar_path, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp')
   const rows = await signPlayerAvatarRecords(players ?? [], isApproved)
   const playerIds = rows.map((player) => player.id)
   let formByPlayerId: LeaderboardFormByPlayerId = {}

@@ -8,6 +8,7 @@ import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 type BatchItem = {
   playerId: string
   playerName: string
+  playerNationality: string
   playerAvatarUrl: string | null
   rating: number
   feedback: string | null
@@ -91,6 +92,7 @@ export function RatingBatches({ batches: initialBatches }: Props) {
                         <PlayerIdentity
                           name={item.playerName}
                           avatarUrl={item.playerAvatarUrl}
+                          nationality={item.playerNationality}
                           avatarSize="sm"
                         />
                       </td>
