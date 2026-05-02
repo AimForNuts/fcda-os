@@ -100,7 +100,7 @@ export function validateAiLineup(lineup: AiLineup, rosterPlayerIds: string[]) {
   if (outsiderIds.size > 0) errors.push(`Players outside roster: ${[...outsiderIds].join(', ')}`)
   if (missingIds.length > 0) errors.push(`Missing players: ${missingIds.join(', ')}`)
   if (captainCountA !== 1) errors.push('Team White must have exactly one captain')
-  if (captainCountB !== 1) errors.push('Team Black must have exactly one captain')
+  if (captainCountB !== 1) errors.push('Team Blue must have exactly one captain')
 
   return {
     ok: errors.length === 0,

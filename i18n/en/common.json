@@ -70,7 +70,7 @@
       "cancelled": "Cancelled"
     },
     "teamA": "Team White",
-    "teamB": "Team Black",
+    "teamB": "Team Blue",
     "lineup": "Lineup",
     "noLineup": "Lineup not available.",
     "rate": "Rate",
@@ -182,7 +182,7 @@
       "title": "Finish Game",
       "score": "Final Score",
       "scoreA": "Team White",
-      "scoreB": "Team Black",
+      "scoreB": "Team Blue",
       "warning": "This action cannot be undone.",
       "confirm": "Confirm & Finish",
       "alreadyFinished": "This game is already finished.",
