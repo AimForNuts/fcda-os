@@ -95,6 +95,49 @@ function ScheduledGameFeature({
   )
 }
 
+function SquadSeparator() {
+  return (
+    <section
+      className="group relative isolate min-h-[12.5rem] overflow-hidden bg-fcda-navy text-white md:min-h-[15.5rem]"
+      aria-labelledby="squad-separator-title"
+    >
+      <Image
+        src="/william_fcda.webp"
+        alt=""
+        fill
+        sizes="100vw"
+        className="absolute inset-0 -z-30 object-cover object-[55%_22%] transition duration-500 group-hover:scale-[1.03]"
+        aria-hidden
+      />
+      <div className="absolute inset-0 -z-20 bg-blue-950/70 transition-colors duration-300 group-hover:bg-blue-800/72" aria-hidden />
+      <div
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-blue-950/80 via-blue-800/55 to-blue-700/40"
+        aria-hidden
+      />
+
+      <div className="container mx-auto flex min-h-[8rem] max-w-screen-xl items-center px-4 py-8 md:min-h-[10.5rem]">
+        <h2
+          id="squad-separator-title"
+          className="max-w-[12ch] text-4xl font-extrabold tracking-tight text-white drop-shadow-sm sm:max-w-none sm:text-5xl md:text-6xl"
+        >
+          Plantel 25-26
+        </h2>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-blue-950/35 backdrop-blur-[1px]">
+        <div className="container mx-auto max-w-screen-xl px-0 sm:px-4">
+          <Link
+            href="/players"
+            className="block w-fit bg-blue-700 px-8 py-4 text-sm font-bold text-white transition-colors hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-w-56 sm:px-9 md:[clip-path:polygon(0_0,100%_0,92%_100%,0_100%)]"
+          >
+            Ver plantel
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default async function HomePage() {
   const supabase = await createClient()
 
@@ -216,6 +259,8 @@ export default async function HomePage() {
           )}
         </div>
       </section>
+
+      <SquadSeparator />
     </div>
   )
 }
