@@ -57,6 +57,34 @@ function formatHeroDate(iso: string) {
 function MatchesHero({ game }: { game: Game | null }) {
   const formatted = game ? formatHeroDate(game.date) : null
 
+  if (!game) {
+    return (
+      <section className="bg-fcda-navy text-white">
+        <div className="container mx-auto grid max-w-screen-xl gap-8 px-4 py-10 md:grid-cols-[1fr_auto] md:items-end md:py-14">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-fcda-gold">
+              Futebol Clube Dragões da Areosa
+            </p>
+            <h1 className="mt-3 text-5xl font-black uppercase tracking-tight md:text-7xl">
+              Jogos
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 md:text-base">
+              Sem jogos agendados de momento. Consulta os últimos resultados e volta mais tarde para o próximo encontro.
+            </p>
+          </div>
+          <Image
+            src="/crest.png"
+            alt=""
+            width={160}
+            height={160}
+            className="hidden h-40 w-40 object-contain opacity-90 drop-shadow-lg md:block"
+            aria-hidden
+          />
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="relative isolate min-h-[30rem] overflow-hidden bg-fcda-navy text-white">
       <Image
@@ -206,9 +234,22 @@ export default async function MatchesPage({
   const isApproved = session?.profile.approved ?? false
   const canCreateGame = Boolean(session?.profile.approved && canAccessMod(session.roles))
 
-  const { data: games } = await supabase
-    .from('games')
-    .select('*') as { data: Game[] | null; error: unknown }
+  const [{ data: games }, { data: heroGame }] = await Promise.all([
+    supabase
+      .from('games')
+      .select('*'),
+    supabase
+      .from('games')
+      .select('*')
+      .eq('status', 'scheduled')
+      .gte('date', 'now')
+      .order('date', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+  ]) as [
+    { data: Game[] | null; error: unknown },
+    { data: Game | null; error: unknown },
+  ]
 
   const sorted = sortGames(games ?? [])
   const gameList = filterGamesByDateRange(sorted, from, to)
@@ -277,7 +318,6 @@ export default async function MatchesPage({
   const noGamesInDb = sorted.length === 0
   const emptyAfterFilter = !noGamesInDb && gameList.length === 0 && hasDateFilter
   const emptyVisibleList = !noGamesInDb && gameList.length > 0 && visibleGames.length === 0
-  const heroGame = sorted.find((game) => game.status === 'scheduled') ?? sorted[0] ?? null
   const emptyTabMessage = activeView === 'calendar'
     ? 'Não há jogos agendados neste intervalo.'
     : 'Ainda não há resultados neste intervalo.'

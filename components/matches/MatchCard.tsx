@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronDown, ChevronRight, ChevronUp, MessageCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronUp, MessageCircle, Trophy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -12,6 +12,7 @@ import { TeamHeader } from '@/components/matches/TeamHeader'
 import { useTranslation } from 'react-i18next'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
+import { cn } from '@/lib/utils'
 import type { Game } from '@/types'
 
 type LineupSummaryPlayer = {
@@ -64,13 +65,13 @@ function PlayerSummaryRow({
 
   return (
     <div
-      className={[
-        'grid min-h-9 items-center gap-2 py-1.5 text-[1.05rem] leading-tight sm:text-lg',
+      className={cn(
+        'group grid min-h-9 items-center gap-2 rounded-md px-2 py-1.5 text-[1.05rem] leading-tight transition-colors hover:bg-fcda-ice/35 sm:text-lg',
         showAvatars
           ? 'grid-cols-[2.25rem_1.75rem_2rem_minmax(0,1fr)]'
           : 'grid-cols-[2.25rem_2rem_minmax(0,1fr)]',
-        muted ? 'text-muted-foreground' : '',
-      ].join(' ')}
+        muted && 'text-muted-foreground',
+      )}
     >
       <span className="text-right font-medium tabular-nums text-slate-500">
         {player.shirt_number ?? '–'}
@@ -85,7 +86,7 @@ function PlayerSummaryRow({
       ) : null}
       <NationalityFlag nationality={player.nationality} className="h-4 w-6" />
       <span className="flex min-w-0 items-baseline gap-1.5 font-normal text-slate-700">
-        <span className="min-w-0 truncate">{displayName}</span>
+        <span className="min-w-0 truncate group-hover:underline">{displayName}</span>
         {player.is_captain ? <span className="shrink-0 text-current">(C)</span> : null}
       </span>
     </div>
@@ -116,6 +117,13 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
   const scoreStr = game.status === 'finished' && game.score_a != null && game.score_b != null
     ? `${game.score_a} – ${game.score_b}`
     : null
+  const winningTeam = game.status === 'finished' && game.score_a != null && game.score_b != null
+    ? game.score_a > game.score_b
+      ? 'a'
+      : game.score_b > game.score_a
+        ? 'b'
+        : null
+    : null
 
   const hasTeams = lineup && (lineup.teamA.length > 0 || lineup.teamB.length > 0)
   const hasUnassigned = lineup && lineup.unassigned.length > 0 && !hasTeams
@@ -145,10 +153,18 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
 
             <div className="min-w-0">
               <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
-                <div className="flex min-w-0 items-center justify-end gap-3 text-right">
-                  <span className="truncate text-sm font-black text-foreground sm:text-base">
+                <div className="flex min-w-0 items-center justify-end gap-2 text-right">
+                  <span
+                    className={cn(
+                      'min-w-0 truncate text-sm font-semibold text-foreground sm:text-base',
+                      winningTeam === 'a' && 'font-black',
+                    )}
+                  >
                     Equipa Branca
                   </span>
+                  {winningTeam === 'a' ? (
+                    <Trophy className="size-4 shrink-0 text-fcda-gold sm:size-5" aria-hidden />
+                  ) : null}
                   <Image
                     src={kitA.imageSrc}
                     alt=""
@@ -175,7 +191,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                   )}
                 </div>
 
-                <div className="flex min-w-0 items-center gap-3">
+                <div className="flex min-w-0 items-center gap-2">
                   <Image
                     src={kitB.imageSrc}
                     alt=""
@@ -184,7 +200,15 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                     className="h-12 w-auto shrink-0 object-contain sm:h-14"
                     aria-hidden
                   />
-                  <span className="truncate text-sm font-black text-foreground sm:text-base">
+                  {winningTeam === 'b' ? (
+                    <Trophy className="size-4 shrink-0 text-fcda-gold sm:size-5" aria-hidden />
+                  ) : null}
+                  <span
+                    className={cn(
+                      'min-w-0 truncate text-sm font-semibold text-foreground sm:text-base',
+                      winningTeam === 'b' && 'font-black',
+                    )}
+                  >
                     Equipa Azul
                   </span>
                 </div>

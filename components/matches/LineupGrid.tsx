@@ -16,6 +16,7 @@ type Props = {
   teamB: LineupPlayer[]
   unassigned: LineupPlayer[]
   isApproved?: boolean
+  winningTeam?: MatchTeam | null
 }
 
 function getInitials(name: string) {
@@ -34,29 +35,13 @@ function PlayerRow({
   isApproved?: boolean
   muted?: boolean
 }) {
-  const name = (
-    <span className={cn('min-w-0 truncate', muted && 'text-muted-foreground')}>
-      {player.display_name}
-    </span>
+  const rowClassName = cn(
+    'grid min-h-9 grid-cols-[2.25rem_1.75rem_2rem_minmax(0,1fr)] items-center gap-2 rounded-md px-2 py-1.5 text-[1.05rem] leading-tight transition-colors sm:text-lg',
+    isApproved && 'group hover:bg-fcda-ice/35',
+    muted && 'text-muted-foreground'
   )
-  const nameNode = isApproved ? (
-    <Link
-      href={`/players/${player.id}`}
-      className="min-w-0 truncate hover:underline"
-    >
-      {name}
-    </Link>
-  ) : (
-    name
-  )
-
-  return (
-    <div
-      className={cn(
-        'grid min-h-9 grid-cols-[2.25rem_1.75rem_2rem_minmax(0,1fr)] items-center gap-2 py-1.5 text-[1.05rem] leading-tight sm:text-lg',
-        muted && 'text-muted-foreground'
-      )}
-    >
+  const content = (
+    <>
       <span className="text-right font-medium tabular-nums text-slate-500">
         {player.shirt_number ?? '–'}
       </span>
@@ -70,11 +55,35 @@ function PlayerRow({
       </Avatar>
       <NationalityFlag nationality={player.nationality} className="h-4 w-6" />
       <span className="flex min-w-0 items-baseline gap-1.5 font-normal text-slate-700">
-        {nameNode}
+        <span
+          className={cn(
+            'min-w-0 truncate',
+            isApproved && 'group-hover:underline',
+            muted && 'text-muted-foreground',
+          )}
+        >
+          {player.display_name}
+        </span>
         {player.is_captain ? (
           <span className="shrink-0 text-current">(C)</span>
         ) : null}
       </span>
+    </>
+  )
+
+  return isApproved ? (
+    <Link
+      href={`/players/${player.id}`}
+      title="Ver perfil do jogador"
+      className={rowClassName}
+    >
+      {content}
+    </Link>
+  ) : (
+    <div
+      className={rowClassName}
+    >
+      {content}
     </div>
   )
 }
@@ -83,14 +92,16 @@ function TeamLineupColumn({
   team,
   players,
   isApproved,
+  isWinner,
 }: {
   team: MatchTeam
   players: LineupPlayer[]
   isApproved?: boolean
+  isWinner?: boolean
 }) {
   return (
     <section className="min-w-0 space-y-3">
-      <TeamHeader team={team} variant="plain" />
+      <TeamHeader team={team} variant="plain" isWinner={isWinner} />
       <div className="space-y-0.5">
         {players.length > 0 ? (
           players.map((p) => (
@@ -106,7 +117,7 @@ function TeamLineupColumn({
   )
 }
 
-export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
+export function LineupGrid({ teamA, teamB, unassigned, isApproved, winningTeam }: Props) {
   const { t } = useTranslation()
 
   if (teamA.length === 0 && teamB.length === 0 && unassigned.length === 0) {
@@ -120,8 +131,18 @@ export function LineupGrid({ teamA, teamB, unassigned, isApproved }: Props) {
   if (teamA.length > 0 || teamB.length > 0) {
     return (
       <div className="grid gap-6 md:grid-cols-2">
-        <TeamLineupColumn team="a" players={teamA} isApproved={isApproved} />
-        <TeamLineupColumn team="b" players={teamB} isApproved={isApproved} />
+        <TeamLineupColumn
+          team="a"
+          players={teamA}
+          isApproved={isApproved}
+          isWinner={winningTeam === 'a'}
+        />
+        <TeamLineupColumn
+          team="b"
+          players={teamB}
+          isApproved={isApproved}
+          isWinner={winningTeam === 'b'}
+        />
       </div>
     )
   }

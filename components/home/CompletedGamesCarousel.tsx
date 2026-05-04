@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { CheckCircle2, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, MessageCircle, Trophy } from 'lucide-react'
 import { formatScheduleDate } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { cn } from '@/lib/utils'
@@ -26,6 +26,13 @@ function HomeGameCard({
     game.score_a != null && game.score_b != null
       ? `${game.score_a} - ${game.score_b}`
       : formatted.time
+  const winningTeam = game.score_a != null && game.score_b != null
+    ? game.score_a > game.score_b
+      ? 'a'
+      : game.score_b > game.score_a
+        ? 'b'
+        : null
+    : null
 
   return (
     <article className={cn('min-w-0', className)} data-carousel-card>
@@ -69,14 +76,27 @@ function HomeGameCard({
 
         <div className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 py-8">
           <div className="min-w-0 text-center">
-            <Image
-              src={teamA.imageSrc}
-              alt={teamA.imageAlt}
-              width={48}
-              height={66}
-              className="mx-auto h-12 w-auto object-contain drop-shadow-sm"
-            />
-            <p className="mt-3 truncate text-sm font-semibold text-fcda-navy">{teamA.label}</p>
+            <div className="flex min-h-12 items-center justify-center gap-1.5" aria-label={teamA.label}>
+              {winningTeam === 'a' ? (
+                <Trophy className="size-4 shrink-0 text-fcda-gold" aria-hidden />
+              ) : null}
+              <Image
+                src={teamA.imageSrc}
+                alt=""
+                width={48}
+                height={66}
+                className="h-12 w-auto object-contain drop-shadow-sm"
+                aria-hidden
+              />
+            </div>
+            <p
+              className={cn(
+                'mt-3 truncate text-sm font-semibold text-fcda-navy',
+                winningTeam === 'a' && 'font-black',
+              )}
+            >
+              {teamA.label}
+            </p>
           </div>
 
           <div className="flex min-w-16 items-center justify-center rounded-full border border-fcda-gold bg-fcda-gold px-3 py-1 text-sm font-bold text-fcda-navy tabular-nums shadow-sm">
@@ -84,14 +104,27 @@ function HomeGameCard({
           </div>
 
           <div className="min-w-0 text-center">
-            <Image
-              src={teamB.imageSrc}
-              alt={teamB.imageAlt}
-              width={48}
-              height={66}
-              className="mx-auto h-12 w-auto object-contain drop-shadow-sm"
-            />
-            <p className="mt-3 truncate text-sm font-semibold text-fcda-navy">{teamB.label}</p>
+            <div className="flex min-h-12 items-center justify-center gap-1.5" aria-label={teamB.label}>
+              <Image
+                src={teamB.imageSrc}
+                alt=""
+                width={48}
+                height={66}
+                className="h-12 w-auto object-contain drop-shadow-sm"
+                aria-hidden
+              />
+              {winningTeam === 'b' ? (
+                <Trophy className="size-4 shrink-0 text-fcda-gold" aria-hidden />
+              ) : null}
+            </div>
+            <p
+              className={cn(
+                'mt-3 truncate text-sm font-semibold text-fcda-navy',
+                winningTeam === 'b' && 'font-black',
+              )}
+            >
+              {teamB.label}
+            </p>
           </div>
         </div>
 
