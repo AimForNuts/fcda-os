@@ -25,7 +25,7 @@ import { MatchComments, type MatchComment } from '@/components/matches/MatchComm
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
-import { getTeamPresentation } from '@/lib/games/team-presentation'
+import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
 import { cn } from '@/lib/utils'
 import type { PlayerPublic, GamePlayer, Game } from '@/types'
 
@@ -106,6 +106,16 @@ function getCenterLabel(game: Game, time: string) {
   return time
 }
 
+function getWinningTeam(game: Game): MatchTeam | null {
+  if (game.status !== 'finished' || game.score_a == null || game.score_b == null) {
+    return null
+  }
+
+  if (game.score_a > game.score_b) return 'a'
+  if (game.score_b > game.score_a) return 'b'
+  return null
+}
+
 function MatchDetailHero({
   game,
   showRateButton,
@@ -117,6 +127,7 @@ function MatchDetailHero({
   const teamA = getTeamPresentation('a')
   const teamB = getTeamPresentation('b')
   const centerLabel = getCenterLabel(game, formatted.time)
+  const winningTeam = getWinningTeam(game)
 
   return (
     <section className="relative isolate overflow-hidden bg-fcda-navy text-white">
@@ -151,10 +162,18 @@ function MatchDetailHero({
             <h1 className="sr-only">{formatted.headline}</h1>
 
             <div className="grid max-w-3xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
-              <div className="flex min-w-0 items-center justify-end gap-3 text-right">
-                <span className="truncate text-sm font-black text-white sm:text-base">
+              <div className="flex min-w-0 items-center justify-end gap-2 text-right">
+                <span
+                  className={cn(
+                    'truncate text-sm font-semibold text-white sm:text-base',
+                    winningTeam === 'a' && 'font-black',
+                  )}
+                >
                   {teamA.label}
                 </span>
+                {winningTeam === 'a' ? (
+                  <Trophy className="size-4 shrink-0 text-fcda-gold sm:size-5" aria-hidden />
+                ) : null}
                 <Image
                   src={teamA.imageSrc}
                   alt={teamA.imageAlt}
@@ -176,7 +195,7 @@ function MatchDetailHero({
                 </span>
               </div>
 
-              <div className="flex min-w-0 items-center gap-3">
+              <div className="flex min-w-0 items-center gap-2">
                 <Image
                   src={teamB.imageSrc}
                   alt={teamB.imageAlt}
@@ -185,7 +204,15 @@ function MatchDetailHero({
                   priority
                   className="h-12 w-auto shrink-0 object-contain drop-shadow-lg sm:h-16"
                 />
-                <span className="truncate text-sm font-black text-white sm:text-base">
+                {winningTeam === 'b' ? (
+                  <Trophy className="size-4 shrink-0 text-fcda-gold sm:size-5" aria-hidden />
+                ) : null}
+                <span
+                  className={cn(
+                    'truncate text-sm font-semibold text-white sm:text-base',
+                    winningTeam === 'b' && 'font-black',
+                  )}
+                >
                   {teamB.label}
                 </span>
               </div>
@@ -396,7 +423,13 @@ export default async function MatchDetailPage({
                   </p>
                 </div>
               </div>
-              <LineupGrid teamA={teamA} teamB={teamB} unassigned={unassigned} isApproved={isApproved} />
+              <LineupGrid
+                teamA={teamA}
+                teamB={teamB}
+                unassigned={unassigned}
+                isApproved={isApproved}
+                winningTeam={getWinningTeam(game)}
+              />
             </section>
 
             <section>
