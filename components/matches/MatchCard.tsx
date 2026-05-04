@@ -65,13 +65,13 @@ function PlayerSummaryRow({
 
   return (
     <div
-      className={[
-        'grid min-h-9 items-center gap-2 py-1.5 text-[1.05rem] leading-tight sm:text-lg',
+      className={cn(
+        'group grid min-h-9 items-center gap-2 rounded-md px-2 py-1.5 text-[1.05rem] leading-tight transition-colors hover:bg-fcda-ice/35 sm:text-lg',
         showAvatars
           ? 'grid-cols-[2.25rem_1.75rem_2rem_minmax(0,1fr)]'
           : 'grid-cols-[2.25rem_2rem_minmax(0,1fr)]',
-        muted ? 'text-muted-foreground' : '',
-      ].join(' ')}
+        muted && 'text-muted-foreground',
+      )}
     >
       <span className="text-right font-medium tabular-nums text-slate-500">
         {player.shirt_number ?? '–'}
@@ -86,7 +86,7 @@ function PlayerSummaryRow({
       ) : null}
       <NationalityFlag nationality={player.nationality} className="h-4 w-6" />
       <span className="flex min-w-0 items-baseline gap-1.5 font-normal text-slate-700">
-        <span className="min-w-0 truncate">{displayName}</span>
+        <span className="min-w-0 truncate group-hover:underline">{displayName}</span>
         {player.is_captain ? <span className="shrink-0 text-current">(C)</span> : null}
       </span>
     </div>

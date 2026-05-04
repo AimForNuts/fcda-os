@@ -1,14 +1,16 @@
 import Image from 'next/image'
+import { Trophy } from 'lucide-react'
 import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
 import { cn } from '@/lib/utils'
 
 type Props = {
   team: MatchTeam
   className?: string
+  isWinner?: boolean
   variant?: 'surface' | 'plain'
 }
 
-export function TeamHeader({ team, className, variant = 'surface' }: Props) {
+export function TeamHeader({ team, className, isWinner = false, variant = 'surface' }: Props) {
   const presentation = getTeamPresentation(team)
 
   if (variant === 'plain') {
@@ -24,6 +26,9 @@ export function TeamHeader({ team, className, variant = 'surface' }: Props) {
         <h3 className="min-w-0 truncate text-sm font-black text-foreground">
           {presentation.label}
         </h3>
+        {isWinner ? (
+          <Trophy className="size-4 shrink-0 text-fcda-gold sm:size-5" aria-hidden />
+        ) : null}
       </div>
     )
   }
@@ -49,6 +54,9 @@ export function TeamHeader({ team, className, variant = 'surface' }: Props) {
             {presentation.label}
           </p>
         </div>
+        {isWinner ? (
+          <Trophy className="size-4 shrink-0 text-fcda-gold" aria-hidden />
+        ) : null}
       </div>
     </div>
   )
