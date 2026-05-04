@@ -35,6 +35,8 @@ type UpcomingMatch = {
   location: string
 }
 
+type MatchResult = 'win' | 'draw' | 'loss'
+
 type RankingRow = Pick<
   PlayerStats,
   | 'id'
@@ -155,12 +157,28 @@ function rankingPreviewAroundPlayer(
   }))
 }
 
-function resultForPlayer(match: MatchRow) {
+function resultForPlayer(match: MatchRow): MatchResult | null {
   if (match.score_a == null || match.score_b == null) return null
   if (match.score_a === match.score_b) return 'draw'
   if (match.team === 'a') return match.score_a > match.score_b ? 'win' : 'loss'
   if (match.team === 'b') return match.score_b > match.score_a ? 'win' : 'loss'
   return null
+}
+
+function resultLabel(result: MatchResult | null) {
+  if (result === 'win') return 'VITORIA'
+  if (result === 'draw') return 'EMPATE'
+  if (result === 'loss') return 'DERROTA'
+  return '—'
+}
+
+function resultClassName(result: MatchResult | null) {
+  return cn(
+    result === 'win' && 'text-emerald-700',
+    result === 'draw' && 'text-amber-600',
+    result === 'loss' && 'text-rose-700',
+    result == null && 'text-fcda-navy/35'
+  )
 }
 
 const POSITION_LABELS: Record<string, string> = {
@@ -359,6 +377,7 @@ export default async function PlayerProfilePage({
     rankingPreviewAvatars.map((entry) => [entry.id, entry.avatar_url])
   )
   const latestMatch = matchHistory[0] ?? null
+  const latestResult = latestMatch ? resultForPlayer(latestMatch) : null
 
   const dateStr = (iso: string) =>
     new Date(iso).toLocaleDateString('pt-PT', {
@@ -674,13 +693,20 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                     />
                   </div>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                    <p className="text-xs text-fcda-navy/55">
-                      <span>{dateStr(latestMatch.date)}</span>
-                      <span className="mx-1.5 text-fcda-navy/25" aria-hidden>
-                        ·
-                      </span>
-                      <span>{latestMatch.location}</span>
-                    </p>
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                      <p className="min-w-0 text-fcda-navy/55">
+                        <span>{dateStr(latestMatch.date)}</span>
+                        <span className="mx-1.5 text-fcda-navy/25" aria-hidden>
+                          ·
+                        </span>
+                        <span>{latestMatch.location}</span>
+                      </p>
+                      <p className="inline-flex items-center border-l border-fcda-navy/15 pl-3">
+                        <span className={cn('font-black uppercase tracking-wide', resultClassName(latestResult))}>
+                          {resultLabel(latestResult)}
+                        </span>
+                      </p>
+                    </div>
                     <Link
                       href={`/matches/${latestMatch.game_id}`}
                       className="shrink-0 text-xs font-semibold text-fcda-navy underline underline-offset-2"
@@ -799,7 +825,6 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                         {teamPresentation ? (
                           <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-fcda-navy/45 sm:gap-1.5 sm:text-[11px] sm:tracking-[0.14em]">
-                            <span className="hidden sm:inline">Equipa</span>
                             <Image
                               src={teamPresentation.imageSrc}
                               alt=""
@@ -811,7 +836,6 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-fcda-navy/45">
-                            <span className="hidden sm:inline">Equipa</span>
                             <span
                               aria-hidden
                               className="text-sm font-black leading-none text-fcda-navy/25 sm:text-base"
@@ -821,25 +845,13 @@ Nesta época, soma ${matchesPlayed} jogos oficiais, ${totalPoints} pontos e uma 
                           </span>
                         )}
                         <span className="inline-flex items-center gap-1 border-l border-fcda-navy/15 pl-2 sm:gap-1.5 sm:pl-3">
-                          <span className="hidden sm:inline text-[10px] font-semibold uppercase tracking-[0.14em] text-fcda-navy/45">
-                            Estado
-                          </span>
                           <span
                             className={cn(
                               'text-[11px] font-black uppercase tracking-wide sm:text-xs',
-                              result === 'win' && 'text-emerald-700',
-                              result === 'draw' && 'text-amber-600',
-                              result === 'loss' && 'text-rose-700',
-                              result == null && 'text-fcda-navy/35'
+                              resultClassName(result)
                             )}
                           >
-                            {result === 'win'
-                              ? 'VITORIA'
-                              : result === 'draw'
-                                ? 'EMPATE'
-                                : result === 'loss'
-                                  ? 'DERROTA'
-                                  : '—'}
+                            {resultLabel(result)}
                           </span>
                         </span>
                       </div>
