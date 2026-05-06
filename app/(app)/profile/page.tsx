@@ -1,12 +1,15 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { ExternalLink, ShieldAlert } from 'lucide-react'
+import { CalendarDays, ExternalLink, ShieldAlert } from 'lucide-react'
 import { signPlayerAvatarPath } from '@/lib/players/avatar.server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
+import { createPlayerCalendarToken } from '@/lib/calendar/token'
 import { PlayerPhotoZoom } from '@/components/player/PlayerPhotoZoom'
 import { AccountForm } from '@/components/profile/AccountForm'
+import { CalendarSyncField } from '@/components/profile/CalendarSyncField'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -19,9 +22,35 @@ function getInitials(name: string) {
   return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase()
 }
 
+function getOrigin(headerList: Headers) {
+  const forwardedHost = headerList.get('x-forwarded-host')
+  const host = forwardedHost ?? headerList.get('host')
+
+  if (!host) return ''
+
+  const forwardedProto = headerList.get('x-forwarded-proto')
+  const protocol = forwardedProto ?? (host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https')
+
+  return `${protocol}://${host}`
+}
+
+function calendarSubscriptionUrl(origin: string, playerId?: string) {
+  const path = '/api/calendar/games.ics'
+  const baseUrl = origin ? `${origin}${path}` : path
+
+  if (!playerId) return baseUrl
+
+  const params = new URLSearchParams({
+    player_id: createPlayerCalendarToken(playerId),
+  })
+
+  return `${baseUrl}?${params.toString()}`
+}
+
 export default async function ProfilePage() {
   const session = await fetchSessionContext()
   if (!session) redirect('/auth/login')
+  const headerList = await headers()
 
   const supabase = await createClient()
   const {
@@ -41,6 +70,10 @@ export default async function ProfilePage() {
   if (playerError) throw playerError
   const displayName = player?.sheet_name ?? session.profile.display_name
   const avatarUrl = player ? await signPlayerAvatarPath(player.avatar_path, true) : null
+  const origin = getOrigin(headerList)
+  const allGamesCalendarUrl = calendarSubscriptionUrl(origin)
+  const playerCalendarUrl = player ? calendarSubscriptionUrl(origin, player.id) : null
+  const isLocalCalendarUrl = origin.includes('localhost') || origin.includes('127.0.0.1')
 
   return (
     <div className="container mx-auto max-w-screen-lg px-4 py-8 md:py-10">
@@ -129,6 +162,46 @@ export default async function ProfilePage() {
             </CardContent>
           </Card>
         )}
+
+        <Card className="border-border/70 shadow-sm">
+          <CardContent className="space-y-5 p-6 md:p-8">
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-fcda-ice text-fcda-navy">
+                <CalendarDays className="size-5" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-fcda-navy">
+                  Sincronização de calendário
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Copia o URL ICS para subscrever no teu calendário.
+                </p>
+                {isLocalCalendarUrl ? (
+                  <p className="mt-2 text-sm leading-6 text-amber-700">
+                    Calendários externos, como Google Calendar, não conseguem aceder a localhost.
+                    Usa este URL a partir da versão publicada em produção.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {playerCalendarUrl ? (
+                <CalendarSyncField
+                  id="player-calendar-url"
+                  label="Os meus jogos"
+                  value={playerCalendarUrl}
+                />
+              ) : null}
+
+              <CalendarSyncField
+                id="all-games-calendar-url"
+                label="Todos os jogos"
+                value={allGamesCalendarUrl}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
