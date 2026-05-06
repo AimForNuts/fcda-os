@@ -32,6 +32,7 @@ const player: PlayerRow = {
   id: '11111111-1111-4111-8111-111111111111',
   sheet_name: 'André',
   shirt_number: 10,
+  nationality: 'PT',
   current_rating: 7.5,
   preferred_positions: ['CM'],
   profile_id: null,

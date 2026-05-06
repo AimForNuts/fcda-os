@@ -57,7 +57,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 border-b border-fcda-navy/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+      <div className="sticky top-20 z-40 -mx-4 flex flex-col gap-3 border-b border-fcda-navy/10 bg-white px-4 py-4 sm:flex-row sm:items-end sm:justify-between md:-mx-0 md:px-0">
         <div className="space-y-1.5 sm:max-w-sm">
           <Label htmlFor="player-search">{t('players.nameLabel')}</Label>
           <div className="relative">

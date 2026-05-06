@@ -373,57 +373,53 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="max-w-md">
-        <label htmlFor="admin-user-search" className="sr-only">
-          {t('admin.searchUsers')}
-        </label>
-        <Input
-          id="admin-user-search"
-          type="search"
-          value={listSearchValue}
-          onChange={(e) => setListSearchValue(e.target.value)}
-          placeholder={t('admin.searchUsers')}
-        />
+    <div className="min-w-0 space-y-3">
+      <div className="sticky top-20 z-40 -mx-4 border-b border-border bg-background px-4 py-3 shadow-sm">
+        <div className="w-full max-w-md">
+          <label htmlFor="admin-user-search" className="sr-only">
+            {t('admin.searchUsers')}
+          </label>
+          <Input
+            id="admin-user-search"
+            type="search"
+            value={listSearchValue}
+            onChange={(e) => setListSearchValue(e.target.value)}
+            placeholder={t('admin.searchUsers')}
+          />
+        </div>
       </div>
 
-      <div className="rounded-lg border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium">Nome</th>
-              <th className="px-4 py-3 text-left font-medium">Jogador / Aliases</th>
-              <th className="px-4 py-3 text-left font-medium">Estado</th>
-              <th className="px-4 py-3 text-left font-medium">Papéis</th>
-              <th className="px-4 py-3 text-right font-medium">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
+      {filteredRows.length === 0 ? (
+        <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">
+          {rows.length === 0 ? 'Sem utilizadores registados.' : t('admin.noUsersFound')}
+        </p>
+      ) : (
+        <>
+          <div className="space-y-2 md:hidden">
             {filteredRows.map((user) => {
               const error = errorMap[user.id]
               const hasMod = user.roles.includes('mod')
               const hasAdmin = user.roles.includes('admin')
 
               return (
-                <tr
+                <div
                   key={user.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${t('admin.actions')}: ${user.display_name}`}
-                  className="cursor-pointer bg-background transition-colors hover:bg-muted/30 focus-visible:bg-muted/30 focus-visible:outline-none"
+                  className="touch-manipulation cursor-pointer rounded-lg border border-border bg-background p-4 shadow-sm transition-colors hover:bg-muted/30"
                   onClick={() => openUserDetails(user.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault()
-                      openUserDetails(user.id)
-                    }
-                  }}
                 >
-                  <td className="px-4 py-3 font-medium">{user.display_name}</td>
+                  <div className="flex items-start justify-between gap-2 text-left">
+                    <p className="min-w-0 flex-1 font-medium text-fcda-navy">{user.display_name}</p>
+                    <Badge
+                      variant={user.approved ? 'default' : 'secondary'}
+                      className={`shrink-0 ${user.approved ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}
+                    >
+                      {user.approved ? t('admin.approved') : t('admin.pending')}
+                    </Badge>
+                  </div>
 
-                  <td className="px-4 py-3">
+                  <div className="mt-3">
                     {user.player ? (
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <PlayerIdentity
                           name={user.player.sheet_name}
                           shirtNumber={user.player.shirt_number}
@@ -446,34 +442,36 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                         )}
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">{t('admin.noPlayer')}</span>
+                      <span className="text-sm text-muted-foreground">{t('admin.noPlayer')}</span>
                     )}
-
                     {error && (
-                      <p role="alert" className="text-xs text-destructive mt-1">{error}</p>
+                      <p role="alert" className="mt-2 text-xs text-destructive">
+                        {error}
+                      </p>
                     )}
-                  </td>
+                  </div>
 
-                  <td className="px-4 py-3">
-                    <Badge
-                      variant={user.approved ? 'default' : 'secondary'}
-                      className={user.approved ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}
-                    >
-                      {user.approved ? t('admin.approved') : t('admin.pending')}
-                    </Badge>
-                  </td>
+                  {user.approved && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {user.roles.includes('player') && (
+                        <Badge variant="outline" className="text-xs">
+                          Player
+                        </Badge>
+                      )}
+                      {hasMod && (
+                        <Badge variant="outline" className="text-xs text-fcda-navy border-fcda-navy">
+                          Mod
+                        </Badge>
+                      )}
+                      {hasAdmin && (
+                        <Badge variant="outline" className="text-xs text-fcda-gold border-fcda-gold">
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
+                  )}
 
-                  <td className="px-4 py-3">
-                    {user.approved && (
-                      <div className="flex flex-wrap gap-1">
-                        {user.roles.includes('player') && <Badge variant="outline" className="text-xs">Player</Badge>}
-                        {hasMod && <Badge variant="outline" className="text-xs text-fcda-navy border-fcda-navy">Mod</Badge>}
-                        {hasAdmin && <Badge variant="outline" className="text-xs text-fcda-gold border-fcda-gold">Admin</Badge>}
-                      </div>
-                    )}
-                  </td>
-
-                  <td className="px-4 py-3 text-right">
+                  <div className="mt-3 flex justify-end border-t border-border pt-3">
                     <Button
                       size="sm"
                       variant="outline"
@@ -485,19 +483,133 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
                     >
                       {t('admin.actions')}
                     </Button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               )
             })}
-          </tbody>
-        </table>
+          </div>
 
-        {filteredRows.length === 0 && (
-          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-            {rows.length === 0 ? 'Sem utilizadores registados.' : t('admin.noUsersFound')}
-          </p>
-        )}
-      </div>
+          <div className="hidden overflow-hidden rounded-lg border md:block">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">Nome</th>
+                  <th className="px-4 py-3 text-left font-medium">Jogador / Aliases</th>
+                  <th className="px-4 py-3 text-left font-medium">Estado</th>
+                  <th className="px-4 py-3 text-left font-medium">Papéis</th>
+                  <th className="px-4 py-3 text-right font-medium">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredRows.map((user) => {
+                  const error = errorMap[user.id]
+                  const hasMod = user.roles.includes('mod')
+                  const hasAdmin = user.roles.includes('admin')
+
+                  return (
+                    <tr
+                      key={user.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${t('admin.actions')}: ${user.display_name}`}
+                      className="cursor-pointer bg-background transition-colors hover:bg-muted/30 focus-visible:bg-muted/30 focus-visible:outline-none"
+                      onClick={() => openUserDetails(user.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          openUserDetails(user.id)
+                        }
+                      }}
+                    >
+                      <td className="px-4 py-3 font-medium">{user.display_name}</td>
+
+                      <td className="px-4 py-3">
+                        {user.player ? (
+                          <div className="space-y-1">
+                            <PlayerIdentity
+                              name={user.player.sheet_name}
+                              shirtNumber={user.player.shirt_number}
+                              nationality={user.player.nationality}
+                              avatarUrl={user.player.avatar_url}
+                              avatarSize="sm"
+                              nameClassName="font-medium text-fcda-navy"
+                            />
+                            {user.player.aliases.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {user.player.aliases.map((a) => (
+                                  <span
+                                    key={a.id}
+                                    className="inline-flex items-center rounded-full bg-fcda-ice border border-fcda-navy/20 px-2 py-0.5 text-xs text-fcda-navy"
+                                  >
+                                    {a.alias_display}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">{t('admin.noPlayer')}</span>
+                        )}
+
+                        {error && (
+                          <p role="alert" className="mt-1 text-xs text-destructive">
+                            {error}
+                          </p>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant={user.approved ? 'default' : 'secondary'}
+                          className={user.approved ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}
+                        >
+                          {user.approved ? t('admin.approved') : t('admin.pending')}
+                        </Badge>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {user.approved && (
+                          <div className="flex flex-wrap gap-1">
+                            {user.roles.includes('player') && (
+                              <Badge variant="outline" className="text-xs">
+                                Player
+                              </Badge>
+                            )}
+                            {hasMod && (
+                              <Badge variant="outline" className="text-xs text-fcda-navy border-fcda-navy">
+                                Mod
+                              </Badge>
+                            )}
+                            {hasAdmin && (
+                              <Badge variant="outline" className="text-xs text-fcda-gold border-fcda-gold">
+                                Admin
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            openUserDetails(user.id)
+                          }}
+                        >
+                          {t('admin.actions')}
+                        </Button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {selectedUser && (
         <UserDetailsModal

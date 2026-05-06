@@ -470,7 +470,7 @@ export function StatsTable({
       </section>
 
       <section aria-labelledby="leaderboard-table-title" className="space-y-3">
-        <div className="flex flex-col gap-3 rounded-lg border border-border bg-background p-3 shadow-sm md:flex-row md:items-end md:justify-between">
+        <div className="sticky top-20 z-40 -mx-4 flex flex-col gap-3 rounded-lg border border-border bg-background p-3 shadow-sm md:-mx-0 md:flex-row md:items-end md:justify-between">
           <div className="min-w-0 flex-1">
             <h2 id="leaderboard-table-title" className="sr-only">
               {t('stats.tableTitle')}
