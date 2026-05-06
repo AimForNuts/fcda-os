@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronDown, ChevronRight, ChevronUp, MessageCircle, Trophy } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronUp, ExternalLink, MessageCircle, Trophy } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n/config'
 import { Card, CardContent } from '@/components/ui/card'
@@ -15,8 +15,9 @@ import { TeamHeader } from '@/components/matches/TeamHeader'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { bcp47ForI18nLanguage } from '@/lib/i18n/date-locale'
+import { getRecintoMapsUrl } from '@/lib/recintos/google-maps'
 import { cn } from '@/lib/utils'
-import type { Game } from '@/types'
+import type { Game, Recinto } from '@/types'
 
 type LineupSummaryPlayer = {
   id: string
@@ -53,6 +54,7 @@ type Props = {
   lineup?: LineupSummary
   showAvatars?: boolean
   commentCount?: number
+  recinto?: Pick<Recinto, 'name' | 'google_place_id' | 'latitude' | 'longitude' | 'maps_url'> | null
 }
 
 function PlayerSummaryRow({
@@ -100,11 +102,12 @@ function PlayerSummaryRow({
   )
 }
 
-export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 }: Props) {
+export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0, recinto }: Props) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(
     game.status === 'finished' || game.status === 'cancelled'
   )
+  const mapsUrl = getRecintoMapsUrl(recinto)
 
   const dateLocale = bcp47ForI18nLanguage(i18n.language)
   const captainAbbrev = t('matches.captainAbbrev')
@@ -157,7 +160,23 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
               </div>
               <div className="min-w-0 text-right lg:text-left">
                 <p className="truncate text-sm font-bold text-foreground">{timeStr}</p>
-                <p className="mt-1 truncate text-sm text-muted-foreground">{game.location}</p>
+                {mapsUrl ? (
+                  <button
+                    type="button"
+                    className="mt-1 inline-flex max-w-full items-center gap-1 truncate text-sm text-muted-foreground hover:text-foreground hover:underline"
+                    aria-label={`Abrir ${game.location} no Google Maps`}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      window.open(mapsUrl, '_blank', 'noopener,noreferrer')
+                    }}
+                  >
+                    <span className="truncate">{game.location}</span>
+                    <ExternalLink className="size-3.5 shrink-0" aria-hidden />
+                  </button>
+                ) : (
+                  <p className="mt-1 truncate text-sm text-muted-foreground">{game.location}</p>
+                )}
               </div>
             </div>
 

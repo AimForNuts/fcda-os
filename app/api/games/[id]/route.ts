@@ -6,6 +6,7 @@ import type { Database } from '@/types/database'
 const updateGameSchema = z.object({
   date: z.string().min(1).optional(),
   location: z.string().min(1).max(200).optional(),
+  recinto_id: z.string().uuid().nullable().optional(),
   counts_for_stats: z.boolean().optional(),
 })
 
@@ -15,6 +16,7 @@ type GameUpdateResult = {
   id: string
   date: string
   location: string
+  recinto_id: string | null
   counts_for_stats: boolean
 }
 type UpdateGameQuery = {
@@ -48,7 +50,8 @@ export async function PATCH(
 
   const supabase = await createClient()
 
-  // Verify game exists and is still scheduled
+  // Verify game exists. Metadata edits are allowed after a game is finished;
+  // lineup/finish/delete endpoints keep their own state restrictions.
   const { data: existing } = await supabase
     .from('games')
     .select('id, status')
@@ -56,9 +59,6 @@ export async function PATCH(
     .single() as { data: { id: string; status: string } | null; error: unknown }
 
   if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
-  if (existing.status !== 'scheduled') {
-    return Response.json({ error: 'Only scheduled games can be edited' }, { status: 409 })
-  }
 
   const updatePayload = {
     ...parsed.data,
@@ -69,11 +69,20 @@ export async function PATCH(
     .from('games') as unknown as UpdateGameQuery)
     .update(updatePayload)
     .eq('id', id)
-    .select('id, date, location, counts_for_stats')
+    .select('id, date, location, recinto_id, counts_for_stats')
     .single()
 
   if (error || !game) {
+    console.error('game update failed', error)
     return Response.json({ error: 'Failed to update game' }, { status: 500 })
+  }
+
+  if (game.recinto_id) {
+    const { error: recintoErr } = await supabase
+      .from('recintos')
+      .update({ last_used_at: new Date().toISOString() })
+      .eq('id', game.recinto_id)
+    if (recintoErr) console.error('recinto last_used_at update failed', recintoErr)
   }
 
   const admin = createServiceClient()
