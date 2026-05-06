@@ -22,7 +22,8 @@ import { GameDateTime } from '@/components/matches/GameDateTime'
 import { ResetTeamsButton } from '@/components/matches/ResetTeamsButton'
 import { DeleteGameButton } from '@/components/matches/DeleteGameButton'
 import { MatchComments, type MatchComment } from '@/components/matches/MatchComments'
-import { Badge } from '@/components/ui/badge'
+import { GameStatusBadge, getGameStatusLabel } from '@/components/matches/GameStatusBadge'
+import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { Button } from '@/components/ui/button'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
@@ -47,18 +48,6 @@ export async function generateMetadata({
   const d = new Date(game.date)
   const dateStr = d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
   return { title: `${dateStr} · ${game.location} — FCDA` }
-}
-
-const STATUS_LABEL: Record<Game['status'], string> = {
-  scheduled: 'Agendado',
-  finished: 'Terminado',
-  cancelled: 'Cancelado',
-}
-
-const STATUS_BADGE_CLASS: Record<Game['status'], string> = {
-  scheduled: 'border-white/20 bg-white/14 text-white',
-  finished: 'border-emerald-300/35 bg-emerald-400/18 text-emerald-50',
-  cancelled: 'border-red-300/40 bg-red-500/16 text-red-50',
 }
 
 const MANAGEMENT_ACTION_CLASS = 'h-10 w-full justify-start rounded-lg px-3 text-sm font-semibold'
@@ -149,12 +138,10 @@ function MatchDetailHero({
             <ArrowLeft className="size-4" aria-hidden />
             Jogos
           </Link>
-          <Badge
-            variant="outline"
-            className={cn('h-7 border px-3 text-sm font-bold backdrop-blur-sm', STATUS_BADGE_CLASS[game.status])}
-          >
-            {STATUS_LABEL[game.status]}
-          </Badge>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <GameStatusBadge status={game.status} />
+            <GameTypeBadge competitive={game.counts_for_stats} />
+          </div>
         </div>
 
         <div className="grid gap-6 pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-center lg:gap-10">
@@ -467,17 +454,10 @@ export default async function MatchDetailPage({
                 <h2 className="text-sm font-black uppercase text-muted-foreground">
                   Resumo
                 </h2>
-                <Badge
-                  variant={
-                    game.status === 'finished'
-                      ? 'default'
-                      : game.status === 'cancelled'
-                        ? 'destructive'
-                        : 'secondary'
-                  }
-                >
-                  {STATUS_LABEL[game.status]}
-                </Badge>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <GameStatusBadge status={game.status} />
+                  <GameTypeBadge competitive={game.counts_for_stats} />
+                </div>
               </div>
 
               <dl className="space-y-4 text-sm">
@@ -501,7 +481,7 @@ export default async function MatchDetailPage({
                   <Flag className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
                     <dt className="text-muted-foreground">Estado</dt>
-                    <dd className="mt-1 font-semibold">{STATUS_LABEL[game.status]}</dd>
+                    <dd className="mt-1 font-semibold">{getGameStatusLabel(game.status)}</dd>
                   </div>
                 </div>
                 <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">

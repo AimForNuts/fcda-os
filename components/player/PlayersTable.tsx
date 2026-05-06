@@ -57,7 +57,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-20 z-40 -mx-4 flex flex-col gap-3 border-b border-fcda-navy/10 bg-white px-4 py-4 sm:flex-row sm:items-end sm:justify-between md:-mx-0 md:px-0">
+      <div className="sticky top-20 z-40 -mx-4 flex flex-col gap-3 border-b border-border bg-background/95 px-4 py-4 backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between md:-mx-0 md:px-0 supports-[backdrop-filter]:bg-background/80">
         <div className="space-y-1.5 sm:max-w-sm">
           <Label htmlFor="player-search">{t('players.nameLabel')}</Label>
           <div className="relative">
@@ -68,7 +68,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               placeholder={t('players.searchPlaceholder')}
-              className="h-10 rounded-full bg-white pl-9 pr-4"
+              className="h-10 rounded-full bg-background pl-9 pr-4"
             />
           </div>
         </div>
@@ -78,7 +78,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
       </div>
 
       {filteredPlayers.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-fcda-navy/20 bg-muted/20 p-8 text-center">
+        <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center">
           <p className="text-sm text-muted-foreground">{t('stats.noPlayers')}</p>
         </div>
       ) : (
@@ -101,19 +101,19 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
                 href={`/players/${player.id}`}
                 aria-label={`Ver perfil de ${player.display_name}`}
                 className={cn(
-                  'group relative block min-h-88 overflow-hidden rounded-none border bg-[#f4f6f8] text-left shadow-sm shadow-fcda-navy/5 transition-all',
+                  'group relative block min-h-88 overflow-hidden rounded-none border bg-card text-left shadow-sm shadow-foreground/5 transition-all',
                   'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-                  'hover:-translate-y-1 hover:border-fcda-navy/30 hover:bg-white hover:shadow-lg hover:shadow-fcda-navy/10',
-                  isHighlighted ? 'border-fcda-gold ring-2 ring-fcda-gold/25' : 'border-fcda-navy/10'
+                  'hover:-translate-y-1 hover:border-primary/35 hover:bg-muted/25 hover:shadow-lg hover:shadow-foreground/10',
+                  isHighlighted ? 'border-fcda-gold ring-2 ring-fcda-gold/25' : 'border-border'
                 )}
               >
-                <div className="absolute inset-x-0 top-0 h-px bg-fcda-navy/10" />
+                <div className="absolute inset-x-0 top-0 h-px bg-border" />
                 <div className="relative z-20 p-6">
                   <p className="text-5xl font-black leading-none text-fcda-gold tabular-nums">
                     {shirtNumber}
                   </p>
-                  <div className="mt-3 h-px w-6 bg-fcda-navy/15" />
-                  <h2 className="mt-3 max-w-[8.5rem] text-xl font-black uppercase leading-tight tracking-tight text-fcda-navy">
+                  <div className="mt-3 h-px w-6 bg-border" />
+                  <h2 className="mt-3 max-w-[8.5rem] text-xl font-black uppercase leading-tight tracking-tight text-foreground">
                     {player.display_name}
                   </h2>
                   <div className="mt-2 flex flex-col items-start gap-0.5">
@@ -144,12 +144,12 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
                       aria-hidden
                     />
                   ) : (
-                    <div className="mr-5 flex size-32 items-center justify-center rounded-full border border-fcda-navy/10 bg-white text-4xl font-black text-fcda-navy/30 shadow-inner">
+                    <div className="mr-5 flex size-32 items-center justify-center rounded-full border border-border bg-muted text-4xl font-black text-muted-foreground shadow-inner">
                       {getInitials(player.display_name)}
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#f4f6f8] via-[#f4f6f8]/35 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#f4f6f8] to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-card via-card/35 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card to-transparent" />
                 </div>
 
                 <div className="absolute inset-x-0 bottom-0 z-20 translate-y-full bg-fcda-gold text-white transition-transform duration-300 group-hover:translate-y-0 group-focus-visible:translate-y-0">

@@ -7,7 +7,7 @@ vi.mock('react-i18next', () => ({
     t: (k: string) => {
       const map: Record<string, string> = {
         'matches.status.scheduled': 'Agendado',
-        'matches.status.finished': 'Terminado',
+        'matches.status.finished': 'Concluído',
         'matches.status.cancelled': 'Cancelado',
       }
       return map[k] ?? k
@@ -75,15 +75,27 @@ describe('MatchCard', () => {
     expect(screen.getByText('Agendado')).toBeInTheDocument()
   })
 
+  it('labels competitive games', () => {
+    render(<MatchCard game={baseGame} />)
+    expect(screen.getByText('Competitivo')).toBeInTheDocument()
+    expect(screen.getByLabelText('Jogo competitivo')).toBeInTheDocument()
+  })
+
+  it('labels friendly games', () => {
+    render(<MatchCard game={{ ...baseGame, counts_for_stats: false }} />)
+    expect(screen.getByText('Amigável')).toBeInTheDocument()
+    expect(screen.getByLabelText('Jogo amigável')).toBeInTheDocument()
+  })
+
   it('formats scheduled game time in Portugal time', () => {
     render(<MatchCard game={baseGame} />)
     expect(screen.getAllByText('11:00').length).toBeGreaterThan(0)
   })
 
-  it('shows Terminado badge for finished game', () => {
+  it('shows Concluído badge for finished game', () => {
     const finished: Game = { ...baseGame, status: 'finished', score_a: 1, score_b: 0 }
     render(<MatchCard game={finished} />)
-    expect(screen.getByText('Terminado')).toBeInTheDocument()
+    expect(screen.getByText('Concluído')).toBeInTheDocument()
   })
 
   it('shows Cancelado badge for cancelled game', () => {

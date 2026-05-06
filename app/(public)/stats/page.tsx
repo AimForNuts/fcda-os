@@ -11,6 +11,7 @@ import {
   type LeaderboardFormByPlayerId,
   type LeaderboardFormMatch,
 } from '@/lib/stats/leaderboard'
+import type { PlayerStats } from '@/types'
 
 export const metadata = { title: 'Classificação — FCDA' }
 
@@ -25,6 +26,8 @@ export default async function StatsPage() {
   const { data: players } = await supabase
     .from('player_stats')
     .select('id, display_name, shirt_number, nationality, profile_id, avatar_path, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp')
+    .not('profile_id', 'is', null)
+    .overrideTypes<Array<PlayerStats>, { merge: false }>()
   const rows = await signPlayerAvatarRecords(players ?? [], isApproved)
   const playerIds = rows.map((player) => player.id)
   let formByPlayerId: LeaderboardFormByPlayerId = {}
@@ -96,7 +99,7 @@ export default async function StatsPage() {
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 md:text-base">
               Classificação por pontos (3 por vitória, 1 por empate), com líderes,
               percentagem de vitórias e pontos por jogo para comparar o plantel
-              em todos os jogos ou só nos competitivos.
+              nos jogos competitivos.
             </p>
           </div>
           <Image

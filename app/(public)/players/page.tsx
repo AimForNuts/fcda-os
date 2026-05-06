@@ -97,7 +97,7 @@ export default async function PlayersPage() {
   }))
 
   return (
-    <div className="bg-white">
+    <div className="bg-background">
       <section className="bg-fcda-navy text-white">
         <div className="container mx-auto grid max-w-screen-xl gap-8 px-4 py-10 md:grid-cols-[1fr_auto] md:items-end md:py-14">
           <div>

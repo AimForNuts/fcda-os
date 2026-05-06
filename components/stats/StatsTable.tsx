@@ -4,7 +4,6 @@ import { useState, useMemo, useDeferredValue } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search, Trophy } from 'lucide-react'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
-import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,7 +13,6 @@ import {
   filterLeaderboardRows,
   type LeaderboardFormByPlayerId,
   type LeaderboardFormResult,
-  type LeaderboardMode,
   type LeaderboardPlayer,
   type LeaderboardRow,
 } from '@/lib/stats/leaderboard'
@@ -132,47 +130,6 @@ function FormPills({
         </span>
       ))}
     </span>
-  )
-}
-
-function LeaderboardModeToggle({
-  mode,
-  onModeChange,
-}: {
-  mode: LeaderboardMode
-  onModeChange: (mode: LeaderboardMode) => void
-}) {
-  const { t } = useTranslation()
-  const options: Array<{ value: LeaderboardMode; label: string }> = [
-    { value: 'all', label: t('stats.modeAll') },
-    { value: 'competitive', label: t('stats.modeCompetitive') },
-  ]
-
-  return (
-    <div
-      className="inline-flex rounded-lg border border-border bg-muted/40 p-1"
-      role="group"
-      aria-label={t('stats.modeLabel')}
-    >
-      {options.map((option) => (
-        <Button
-          key={option.value}
-          type="button"
-          variant="ghost"
-          size="sm"
-          aria-pressed={mode === option.value}
-          onClick={() => onModeChange(option.value)}
-          className={cn(
-            'h-7 rounded-md px-3 text-xs font-semibold',
-            mode === option.value
-              ? 'bg-fcda-navy text-white hover:bg-fcda-navy hover:text-white'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          {option.label}
-        </Button>
-      ))}
-    </div>
   )
 }
 
@@ -310,13 +267,12 @@ export function StatsTable({
   highlightedPlayerId = null,
 }: Props) {
   const { t } = useTranslation()
-  const [mode, setMode] = useState<LeaderboardMode>('all')
   const [searchValue, setSearchValue] = useState('')
   const deferredSearchValue = useDeferredValue(searchValue)
 
   const leaderboardRows = useMemo(
-    () => buildLeaderboardRows(players, mode, formByPlayerId),
-    [formByPlayerId, mode, players]
+    () => buildLeaderboardRows(players, 'competitive', formByPlayerId),
+    [formByPlayerId, players]
   )
   const rows = useMemo(
     () => filterLeaderboardRows(leaderboardRows, deferredSearchValue),
@@ -491,7 +447,6 @@ export function StatsTable({
               />
             </div>
           </div>
-          <LeaderboardModeToggle mode={mode} onModeChange={setMode} />
         </div>
 
         <p className="text-xs text-muted-foreground">{t('stats.tiebreakerNote')}</p>

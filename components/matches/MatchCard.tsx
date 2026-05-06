@@ -5,11 +5,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronDown, ChevronRight, ChevronUp, MessageCircle, Trophy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NationalityFlag } from '@/components/player/NationalityFlag'
+import { GameStatusBadge } from '@/components/matches/GameStatusBadge'
+import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { TeamHeader } from '@/components/matches/TeamHeader'
-import { useTranslation } from 'react-i18next'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { cn } from '@/lib/utils'
@@ -73,19 +73,19 @@ function PlayerSummaryRow({
         muted && 'text-muted-foreground',
       )}
     >
-      <span className="text-right font-medium tabular-nums text-slate-500">
+      <span className="text-right font-medium tabular-nums text-muted-foreground">
         {player.shirt_number ?? '–'}
       </span>
       {showAvatars ? (
         <Avatar size="sm" className="size-7">
           {player.avatar_url ? <AvatarImage src={player.avatar_url} alt="" aria-hidden /> : null}
-          <AvatarFallback className="bg-muted text-[0.65rem] font-semibold text-slate-500">
+          <AvatarFallback className="bg-muted text-[0.65rem] font-semibold text-muted-foreground">
             {getInitials(displayName)}
           </AvatarFallback>
         </Avatar>
       ) : null}
       <NationalityFlag nationality={player.nationality} className="h-4 w-6" />
-      <span className="flex min-w-0 items-baseline gap-1.5 font-normal text-slate-700">
+      <span className="flex min-w-0 items-baseline gap-1.5 font-normal text-foreground">
         <span className="min-w-0 truncate group-hover:underline">{displayName}</span>
         {player.is_captain ? <span className="shrink-0 text-current">(C)</span> : null}
       </span>
@@ -94,7 +94,6 @@ function PlayerSummaryRow({
 }
 
 export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 }: Props) {
-  const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(
     game.status === 'finished' || game.status === 'cancelled'
   )
@@ -134,13 +133,13 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
 
   return (
     <Link href={`/matches/${game.id}`} className="block" aria-label={`${game.location} — ${fullDateStr}`}>
-      <Card className="cursor-pointer rounded-lg border-0 bg-white py-0 shadow-none ring-1 ring-border transition-colors hover:bg-muted/30 lg:rounded-none lg:ring-0 lg:ring-inset lg:hover:bg-muted/20">
+      <Card className="cursor-pointer rounded-lg border-0 py-0 shadow-none ring-1 ring-border transition-colors hover:bg-muted/30 lg:rounded-none lg:ring-0 lg:ring-inset lg:hover:bg-muted/20">
         <CardContent className="px-0 py-0">
           <div className="grid min-h-32 gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(8rem,14rem)_1fr_minmax(10rem,14rem)] lg:items-center lg:gap-6 lg:border-b lg:border-border">
             <div className="flex items-center justify-between gap-4 lg:justify-start">
               <div>
                 <p className="text-xs font-black uppercase text-muted-foreground">{monthStr}</p>
-                <p className="mt-0.5 text-4xl font-black leading-none text-fcda-blue tabular-nums">
+                <p className="mt-0.5 text-4xl font-black leading-none text-primary tabular-nums">
                   {dayStr}
                 </p>
                 <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">{weekdayStr}</p>
@@ -217,17 +216,8 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
 
             <div className="flex min-w-0 items-center justify-between gap-3 border-t border-border pt-4 lg:justify-end lg:border-t-0 lg:pt-0">
               <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-                <Badge
-                  variant={
-                    game.status === 'finished'
-                      ? 'default'
-                      : game.status === 'cancelled'
-                        ? 'destructive'
-                        : 'secondary'
-                  }
-                >
-                  {t(`matches.status.${game.status}`)}
-                </Badge>
+                <GameStatusBadge status={game.status} />
+                <GameTypeBadge competitive={game.counts_for_stats} />
                 <span
                   className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground"
                   aria-label={`${commentCount} comentários`}
@@ -236,7 +226,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                   <MessageCircle size={15} aria-hidden />
                   <span className="tabular-nums">{commentCount}</span>
                 </span>
-                <span className="inline-flex items-center gap-1 text-sm font-bold text-fcda-blue">
+                <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">
                   Ver jogo
                   <ChevronRight className="size-4" aria-hidden />
                 </span>
