@@ -9,6 +9,14 @@
     "register": "Register",
     "logout": "Logout",
     "admin": "Admin",
+    "matchesMenu": {
+      "calendar": "Calendar",
+      "calendarDescription": "Upcoming matches and dates",
+      "results": "Results",
+      "resultsDescription": "Completed matches and scores",
+      "myGames": "My games",
+      "myGamesDescription": "Matches linked to your player"
+    },
     "userMenu": {
       "preferences": "Preferences",
       "preferencesDescription": "Account, security, and access",
@@ -86,6 +94,72 @@
   "matches": {
     "title": "Matches",
     "noMatches": "No matches recorded yet.",
+    "captainAbbrev": "(C)",
+    "gameType": {
+      "competitive": "Competitive",
+      "friendly": "Friendly"
+    },
+    "gameTypeAria": "{{type}} game",
+    "statusAria": "{{status}} game",
+    "noGamePlayed": "Not played",
+    "viewGame": "View match",
+    "commentsAria": "{{count}} comments",
+    "page": {
+      "clubName": "Futebol Clube Dragões da Areosa",
+      "heroEmptyDescription": "No matches scheduled right now. Check recent results and come back soon for the next fixture.",
+      "heroSport": "Football",
+      "heroBrandLine": "FCDA · Matches & results",
+      "heroSrTitle": "FCDA matches",
+      "heroHeadline": "{{date}} at {{time}}",
+      "headlineFallback": "Schedule & results",
+      "localDateTimeLabel": "Local date & time",
+      "dateAtTime": "{{date}} at {{time}}",
+      "venueLabel": "Venue",
+      "gatesOpenLabel": "Gates open",
+      "tbd": "TBD",
+      "defaultVenue": "Areosa",
+      "ticketsSoldOut": "Sold out",
+      "ticketsAvailable": "Tickets available at the usual outlets",
+      "tabsNavAriaLabel": "Match list type",
+      "tabs": {
+        "calendar": "Schedule",
+        "results": "Results",
+        "mine": "My games"
+      },
+      "views": {
+        "calendar": {
+          "heading": "Schedule",
+          "countLabel": "Upcoming matches",
+          "empty": "No scheduled matches in this range."
+        },
+        "results": {
+          "heading": "Results",
+          "countLabel": "Latest results",
+          "empty": "No results in this range yet."
+        },
+        "mine": {
+          "heading": "My games",
+          "countLabel": "Matches you're called up for",
+          "empty": "You aren't on any match in this range yet."
+        }
+      },
+      "empty": {
+        "login": "Sign in to see your matches.",
+        "pending": "Your account is still pending approval. Once approved, your matches will appear here.",
+        "noPlayer": "You don't have a player linked to your profile yet.",
+        "adjustFilter": "No matches in this date range. Adjust the dates or clear the filter."
+      },
+      "gameCount_one": "{{count}} match",
+      "gameCount_other": "{{count}} matches",
+      "listColDate": "Date",
+      "listColDetails": "Details"
+    },
+    "dateFilter": {
+      "aria": "Filter matches by date",
+      "from": "Start date",
+      "to": "End date",
+      "clear": "Clear"
+    },
     "status": {
       "scheduled": "Scheduled",
       "finished": "Completed",

@@ -2,15 +2,13 @@
 
 import { useEffect, type ReactNode } from 'react'
 import { I18nextProvider } from 'react-i18next'
-import i18n from '@/i18n/config'
-
-const STORAGE_KEY = 'fcda_language'
+import i18n, { LANGUAGE_STORAGE_KEY } from '@/i18n/config'
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   // Apply stored language preference after hydration so server and client
   // first-render always agree on 'en', avoiding hydration mismatches.
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY)
     if (stored && stored !== i18n.language) {
       i18n.changeLanguage(stored)
     }
