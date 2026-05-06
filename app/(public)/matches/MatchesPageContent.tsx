@@ -10,7 +10,7 @@ import { filterGamesByDateRange } from '@/lib/games/filter-by-date-range'
 import { sortGames } from '@/lib/games/sort'
 import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
 import type { MatchesView } from '@/lib/matches/matches-view'
-import type { Game } from '@/types'
+import type { Game, Recinto } from '@/types'
 
 export type { MatchesView } from '@/lib/matches/matches-view'
 export type MatchesSearchParams = Promise<{ from?: string; to?: string }>
@@ -147,9 +147,30 @@ export async function MatchesPageContent({
     && visibleGames.length === 0
     && personalEmptyKind === 'none'
 
+  const recintoIds = [
+    ...new Set(
+      [heroGame, ...visibleGames]
+        .map((game) => game?.recinto_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ]
+  const recintosById = new Map<string, Recinto>()
+
+  if (recintoIds.length > 0) {
+    const { data: recintos } = await supabase
+      .from('recintos')
+      .select('*')
+      .in('id', recintoIds) as { data: Recinto[] | null; error: unknown }
+
+    for (const recinto of recintos ?? []) {
+      recintosById.set(recinto.id, recinto)
+    }
+  }
+
   return (
     <MatchesListingChrome
       heroGame={heroGame}
+      heroRecinto={heroGame?.recinto_id ? recintosById.get(heroGame.recinto_id) : null}
       activeView={activeView}
       from={from}
       to={to}
@@ -170,6 +191,7 @@ export async function MatchesPageContent({
           lineup={lineupsByGame.get(g.id)}
           showAvatars={isApproved}
           commentCount={commentCounts.get(g.id) ?? 0}
+          recinto={g.recinto_id ? recintosById.get(g.recinto_id) : null}
         />
       ))}
     </MatchesListingChrome>

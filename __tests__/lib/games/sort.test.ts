@@ -7,6 +7,7 @@ function makeGame(overrides: Partial<Game>): Game {
     id: 'id',
     date: '2025-01-01T10:00:00',
     location: 'Field',
+    recinto_id: null,
     status: 'scheduled',
     counts_for_stats: true,
     score_a: null,
