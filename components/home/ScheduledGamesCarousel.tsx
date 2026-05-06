@@ -3,9 +3,11 @@
 import { useCallback, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Clock3, MessageCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
 import { formatScheduleDate } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
+import { GameStatusBadge } from '@/components/matches/GameStatusBadge'
+import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { cn } from '@/lib/utils'
 import type { Game } from '@/types'
 
@@ -46,9 +48,9 @@ function ScheduledGameCard({
         </span>
         <div className="relative z-10 grid gap-4 p-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center">
           <div className="min-w-0 pr-16">
-            <div className="mb-4 inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold uppercase text-white ring-1 ring-white/15">
-              <Clock3 size={12} aria-hidden />
-              Agendado
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <GameStatusBadge status={game.status} />
+              <GameTypeBadge competitive={game.counts_for_stats} />
             </div>
             <p
               className={cn(
@@ -188,7 +190,7 @@ export function ScheduledGamesCarousel({
         <div className="mt-4 flex items-center justify-center gap-3">
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-fcda-navy shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Jogo agendado anterior"
             disabled={!canGoBack}
             onClick={() => scrollToIndex(selectedIndex - 1)}
@@ -203,8 +205,8 @@ export function ScheduledGamesCarousel({
                 className={cn(
                   'h-1.5 rounded-full transition-all',
                   index === selectedIndex
-                    ? 'w-5 bg-fcda-navy'
-                    : 'w-1.5 bg-fcda-navy/30',
+                    ? 'w-5 bg-foreground'
+                    : 'w-1.5 bg-foreground/35',
                 )}
               />
             ))}
@@ -212,7 +214,7 @@ export function ScheduledGamesCarousel({
 
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-fcda-navy shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Próximo jogo agendado"
             disabled={!canGoForward}
             onClick={() => scrollToIndex(selectedIndex + 1)}

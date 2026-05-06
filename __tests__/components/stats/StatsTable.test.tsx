@@ -19,11 +19,8 @@ vi.mock('react-i18next', () => ({
         'stats.colForm': 'Forma',
         'stats.colPointsPerGame': 'Pts/Jogo',
         'stats.colWinRate': 'Vit. %',
-        'stats.modeAll': 'Todos',
-        'stats.modeCompetitive': 'Competitivos',
-        'stats.modeLabel': 'Modo da classificação',
         'stats.leadersTitle': 'Líderes atuais',
-        'stats.leadersSubtitle': 'Top três por pontos no modo selecionado.',
+        'stats.leadersSubtitle': 'Top três por pontos em jogos competitivos.',
         'stats.tableTitle': 'Classificação completa',
         'stats.yourRank': 'A tua posição',
         'stats.recordLabel': `${options?.wins}V ${options?.draws}E ${options?.losses}D`,
@@ -50,6 +47,7 @@ const players: PlayerStats[] = [
     id: '1',
     display_name: 'Carlos Silva',
     shirt_number: 10,
+    nationality: 'PT',
     profile_id: null,
     avatar_path: null,
     total_all: 20,
@@ -65,6 +63,7 @@ const players: PlayerStats[] = [
     id: '2',
     display_name: 'Jogador 2',
     shirt_number: null,
+    nationality: 'PT',
     profile_id: null,
     avatar_path: null,
     total_all: 15,
@@ -151,26 +150,19 @@ describe('StatsTable', () => {
     expect(screen.queryByRole('link', { name: 'Carlos Silva' })).not.toBeInTheDocument()
   })
 
-  it('renders toggle buttons Todos and Competitivos', () => {
+  it('does not render leaderboard mode controls', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    expect(screen.getByRole('button', { name: 'Todos' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Competitivos' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Todos' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Competitivos' })).not.toBeInTheDocument()
   })
 
-  it('displays all-mode totals by default', () => {
+  it('displays competitive totals', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    const carlosRow = getTableRowForPlayer('Carlos Silva')
-    expect(within(carlosRow).getAllByRole('cell')[6]).toHaveTextContent('20')
-  })
-
-  it('switches to competitive totals when Competitivos is clicked', () => {
-    render(<StatsTable players={players} isAnonymised={false} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Competitivos' }))
     const carlosRow = getTableRowForPlayer('Carlos Silva')
     expect(within(carlosRow).getAllByRole('cell')[6]).toHaveTextContent('10')
   })
 
-  it('renders recent form and switches it with the mode', () => {
+  it('renders recent competitive form', () => {
     render(
       <StatsTable
         players={players}
@@ -179,9 +171,8 @@ describe('StatsTable', () => {
       />
     )
 
-    expect(screen.getAllByLabelText('Forma: Vitória, Empate, Derrota').length).toBeGreaterThan(0)
-    fireEvent.click(screen.getByRole('button', { name: 'Competitivos' }))
     expect(screen.getAllByLabelText('Forma: Vitória').length).toBeGreaterThan(0)
+    expect(screen.queryByLabelText('Forma: Vitória, Empate, Derrota')).not.toBeInTheDocument()
   })
 
   it('shows sort indicator on Pontos column by default', () => {

@@ -3,9 +3,10 @@
 import { useCallback, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { CheckCircle2, ChevronLeft, ChevronRight, MessageCircle, Trophy } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageCircle, Trophy } from 'lucide-react'
 import { formatScheduleDate } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
+import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { cn } from '@/lib/utils'
 import type { Game } from '@/types'
 
@@ -49,9 +50,8 @@ function HomeGameCard({
               aria-hidden
             />
             <div className="min-w-0">
-              <div className="mb-1 inline-flex items-center gap-1 rounded-full bg-fcda-gold px-2 py-0.5 text-[11px] font-bold uppercase text-fcda-navy ring-1 ring-fcda-gold/70">
-                <CheckCircle2 size={12} aria-hidden />
-                Concluído
+              <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                <GameTypeBadge competitive={game.counts_for_stats} />
               </div>
               <p className="truncate text-xs text-muted-foreground">{game.location}</p>
             </div>
@@ -67,7 +67,7 @@ function HomeGameCard({
                 <span className="tabular-nums">{commentCount}</span>
               </span>
               <div>
-                <p className="text-sm font-bold text-fcda-navy">{formatted.dayMonth}</p>
+                <p className="text-sm font-bold text-foreground">{formatted.dayMonth}</p>
                 <p className="text-xs font-medium text-muted-foreground">{formatted.weekday}</p>
               </div>
             </div>
@@ -91,7 +91,7 @@ function HomeGameCard({
             </div>
             <p
               className={cn(
-                'mt-3 truncate text-sm font-semibold text-fcda-navy',
+                'mt-3 truncate text-sm font-semibold text-foreground',
                 winningTeam === 'a' && 'font-black',
               )}
             >
@@ -119,7 +119,7 @@ function HomeGameCard({
             </div>
             <p
               className={cn(
-                'mt-3 truncate text-sm font-semibold text-fcda-navy',
+                'mt-3 truncate text-sm font-semibold text-foreground',
                 winningTeam === 'b' && 'font-black',
               )}
             >
@@ -130,7 +130,7 @@ function HomeGameCard({
 
         <Link
           href={`/matches/${game.id}`}
-          className="relative z-10 block border-t border-border/70 px-4 py-3 text-center text-sm font-bold text-fcda-navy transition-colors hover:bg-muted/50"
+          className="relative z-10 block border-t border-border/70 px-4 py-3 text-center text-sm font-bold text-foreground transition-colors hover:bg-muted/50"
         >
           Detalhes
         </Link>
@@ -218,7 +218,7 @@ export function CompletedGamesCarousel({
         <div className="mt-4 flex items-center justify-center gap-3 md:hidden">
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-fcda-navy shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Jogo concluído anterior"
             disabled={!canGoBack}
             onClick={() => scrollToIndex(selectedIndex - 1)}
@@ -233,8 +233,8 @@ export function CompletedGamesCarousel({
                 className={cn(
                   'h-1.5 rounded-full transition-all',
                   index === selectedIndex
-                    ? 'w-5 bg-fcda-navy'
-                    : 'w-1.5 bg-fcda-navy/30',
+                    ? 'w-5 bg-foreground'
+                    : 'w-1.5 bg-foreground/35',
                 )}
               />
             ))}
@@ -242,7 +242,7 @@ export function CompletedGamesCarousel({
 
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-fcda-navy shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Próximo jogo concluído"
             disabled={!canGoForward}
             onClick={() => scrollToIndex(selectedIndex + 1)}

@@ -133,7 +133,7 @@ export default async function HomePage() {
           </h2>
           <Link
             href="/matches"
-            className="text-xs text-fcda-navy underline underline-offset-2 hover:text-fcda-navy/70"
+            className="text-xs text-primary underline underline-offset-2 hover:text-primary/80"
           >
             Ver todos
           </Link>
@@ -160,7 +160,7 @@ export default async function HomePage() {
             </h2>
             <Link
               href="/matches"
-              className="text-xs text-fcda-navy underline underline-offset-2 hover:text-fcda-navy/70"
+              className="text-xs text-primary underline underline-offset-2 hover:text-primary/80"
             >
               Ver todos
             </Link>

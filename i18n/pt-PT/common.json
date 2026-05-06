@@ -66,7 +66,7 @@
     "noMatches": "Ainda não há jogos registados.",
     "status": {
       "scheduled": "Agendado",
-      "finished": "Terminado",
+      "finished": "Concluído",
       "cancelled": "Cancelado"
     },
     "teamA": "Equipa Branca",
@@ -101,7 +101,7 @@
     "noPlayers": "Ainda sem dados de jogadores.",
     "anonymisedNote": "Inicia sessão para ver os nomes dos jogadores.",
     "leadersTitle": "Líderes atuais",
-    "leadersSubtitle": "Top três por pontos no modo selecionado.",
+    "leadersSubtitle": "Top três por pontos em jogos competitivos.",
     "tableTitle": "Classificação completa",
     "yourRank": "A tua posição",
     "colGames": "Jogos",
@@ -113,9 +113,6 @@
     "colPointsPerGame": "Pts/Jogo",
     "colWinRate": "Vit. %",
     "colRank": "Pos.",
-    "modeLabel": "Modo da classificação",
-    "modeAll": "Todos",
-    "modeCompetitive": "Competitivos",
     "recordLabel": "{{wins}}V {{draws}}E {{losses}}D",
     "formWin": "Vitória",
     "formDraw": "Empate",

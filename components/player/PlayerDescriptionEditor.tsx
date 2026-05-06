@@ -61,7 +61,7 @@ export function PlayerDescriptionEditor({
           onChange={(event) => setDraft(event.target.value)}
           maxLength={1600}
           rows={8}
-          className="min-h-48 w-full resize-y border border-fcda-navy/15 bg-white p-4 text-base leading-7 text-fcda-navy outline-none transition-colors focus:border-fcda-gold focus:ring-3 focus:ring-fcda-gold/20"
+          className="min-h-48 w-full resize-y border border-input bg-background p-4 text-base leading-7 text-foreground outline-none transition-colors focus:border-fcda-gold focus:ring-3 focus:ring-fcda-gold/20"
           placeholder="Escreve a biografia do jogador..."
         />
         <div className="flex flex-wrap items-center gap-2">
@@ -73,7 +73,7 @@ export function PlayerDescriptionEditor({
             <X className="size-4" />
             Cancelar
           </Button>
-          <span className="text-xs text-fcda-navy/45">{draft.length}/1600</span>
+          <span className="text-xs text-muted-foreground">{draft.length}/1600</span>
         </div>
         {error && <p className="text-sm font-semibold text-destructive">{error}</p>}
       </div>
@@ -82,7 +82,7 @@ export function PlayerDescriptionEditor({
 
   return (
     <div className="space-y-4">
-      <div className="whitespace-pre-wrap text-base leading-7 text-fcda-navy/65">
+      <div className="whitespace-pre-wrap text-base leading-7 text-foreground/90">
         {visibleDescription}
       </div>
       {canEdit && (

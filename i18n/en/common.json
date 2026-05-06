@@ -66,7 +66,7 @@
     "noMatches": "No matches recorded yet.",
     "status": {
       "scheduled": "Scheduled",
-      "finished": "Finished",
+      "finished": "Completed",
       "cancelled": "Cancelled"
     },
     "teamA": "Team White",
@@ -101,7 +101,7 @@
     "noPlayers": "No player data yet.",
     "anonymisedNote": "Sign in to see player names.",
     "leadersTitle": "Current leaders",
-    "leadersSubtitle": "Top three by points for the selected mode.",
+    "leadersSubtitle": "Top three by points in competitive games.",
     "tableTitle": "Full leaderboard",
     "yourRank": "Your position",
     "colGames": "Games",
@@ -113,9 +113,6 @@
     "colPointsPerGame": "Pts/Game",
     "colWinRate": "Win %",
     "colRank": "Pos.",
-    "modeLabel": "Leaderboard mode",
-    "modeAll": "All",
-    "modeCompetitive": "Competitive",
     "recordLabel": "{{wins}}W {{draws}}D {{losses}}L",
     "formWin": "Win",
     "formDraw": "Draw",
