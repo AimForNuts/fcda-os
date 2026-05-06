@@ -245,6 +245,7 @@
     "searchFeedbackReporterPlaceholder": "Search or pick a reporter…",
     "feedbackFilterAllPlayers": "All evaluated players",
     "feedbackFilterAllReporters": "All reporters",
+    "feedbackFilterRemoveChip": "Remove {{name}} from filter",
     "feedbackReporter": "Reporter",
     "feedbackEvaluatedPlayer": "Evaluated player",
     "feedbackCommentLabel": "Feedback",

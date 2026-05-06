@@ -3,7 +3,7 @@
 import type { FeedbackItem } from './page'
 import Link from 'next/link'
 import { Combobox } from '@base-ui/react/combobox'
-import { ChevronDown, Pencil, Trash2 } from 'lucide-react'
+import { Check, ChevronDown, Pencil, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -44,62 +44,76 @@ function formatMatchDate(dateValue: string) {
   return `${datePart.charAt(0).toLocaleUpperCase('pt-PT')}${datePart.slice(1)} · ${timePart}`
 }
 
-const ALL_VALUE = ''
-
 type FeedbackFilterComboboxProps = {
   id: string
   label: string
   placeholder: string
-  allLabel: string
   optionValues: string[]
-  value: string
-  onValueChange: (next: string) => void
-  listItemContent?: (value: string) => ReactNode
+  value: string[]
+  onValueChange: (next: string[]) => void
+  listItemContent: (value: string) => ReactNode
+  chipContent: (value: string) => ReactNode
+  removeChipAriaLabel: (value: string) => string
 }
 
 function FeedbackFilterCombobox({
   id,
   label,
   placeholder,
-  allLabel,
   optionValues,
   value,
   onValueChange,
   listItemContent,
+  chipContent,
+  removeChipAriaLabel,
 }: FeedbackFilterComboboxProps) {
-  const items = useMemo(
-    () => [ALL_VALUE, ...optionValues] as string[],
-    [optionValues]
-  )
-
-  function defaultListItemContent(item: string) {
-    return item === ALL_VALUE ? allLabel : item
-  }
-
-  const renderListRow = listItemContent ?? defaultListItemContent
+  const items = useMemo(() => optionValues, [optionValues])
 
   return (
     <Combobox.Root
+      multiple
       items={items}
       value={value}
-      onValueChange={(v) => onValueChange(typeof v === 'string' ? v : ALL_VALUE)}
-      itemToStringLabel={(v: string) => (v === ALL_VALUE ? allLabel : v)}
+      onValueChange={(v) => {
+        if (Array.isArray(v)) onValueChange(v)
+        else onValueChange([])
+      }}
+      itemToStringLabel={(v: string) => v}
       locale="pt-PT"
     >
       <div className="space-y-1">
         <Combobox.Label className="text-sm font-medium text-foreground">{label}</Combobox.Label>
         <Combobox.InputGroup
           className={cn(
-            'flex h-8 w-full min-w-0 items-center gap-0 rounded-lg border border-input bg-background pr-0.5 transition-colors',
+            'flex min-h-8 w-full min-w-0 flex-wrap items-center gap-x-1 gap-y-1 rounded-lg border border-input bg-background px-1 py-1 pr-0.5 transition-colors',
             'data-[open]:border-ring data-[open]:ring-3 data-[open]:ring-ring/50',
             'focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50'
           )}
         >
+          <Combobox.Chips className="flex min-w-0 flex-wrap content-center items-center gap-1">
+            <Combobox.Value>
+              {(selected: string[]) =>
+                selected.map((item) => (
+                  <Combobox.Chip
+                    key={item}
+                    className="flex max-w-[min(100%,14rem)] items-center gap-0.5 rounded-md border border-border bg-muted/80 py-0.5 pr-0.5 pl-1.5 text-xs text-foreground"
+                  >
+                    <span className="min-w-0 flex-1">{chipContent(item)}</span>
+                    <Combobox.ChipRemove
+                      type="button"
+                      aria-label={removeChipAriaLabel(item)}
+                      className="rounded p-0.5 text-muted-foreground hover:bg-background/80 hover:text-foreground"
+                    />
+                  </Combobox.Chip>
+                ))
+              }
+            </Combobox.Value>
+          </Combobox.Chips>
           <Combobox.Input
             id={id}
             placeholder={placeholder}
             className={cn(
-              'min-w-0 flex-1 border-0 bg-transparent px-2.5 py-1 text-sm text-foreground outline-none',
+              'min-w-[6rem] flex-1 border-0 bg-transparent px-1.5 py-0.5 text-sm text-foreground outline-none',
               'placeholder:text-muted-foreground',
               'focus-visible:ring-0'
             )}
@@ -135,14 +149,19 @@ function FeedbackFilterCombobox({
             <Combobox.List className="outline-none">
               {(item: string) => (
                 <Combobox.Item
-                  key={item === ALL_VALUE ? '__all__' : item}
+                  key={item}
                   value={item}
                   className={cn(
-                    'cursor-default rounded-md px-2 py-1.5 text-sm text-foreground outline-none select-none',
+                    'grid cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-md px-2 py-1.5 text-sm text-foreground outline-none select-none',
                     'data-highlighted:bg-accent data-highlighted:text-accent-foreground'
                   )}
                 >
-                  {renderListRow(item)}
+                  <span className="flex size-4 shrink-0 items-center justify-center">
+                    <Combobox.ItemIndicator>
+                      <Check className="size-3.5 text-primary" aria-hidden />
+                    </Combobox.ItemIndicator>
+                  </span>
+                  <span className="min-w-0">{listItemContent(item)}</span>
                 </Combobox.Item>
               )}
             </Combobox.List>
@@ -156,8 +175,8 @@ function FeedbackFilterCombobox({
 export function FeedbackInbox({ items: initialItems }: Props) {
   const { t } = useTranslation()
   const [items, setItems] = useState(initialItems)
-  const [playerFilter, setPlayerFilter] = useState(ALL_VALUE)
-  const [reporterFilter, setReporterFilter] = useState(ALL_VALUE)
+  const [playerFilter, setPlayerFilter] = useState<string[]>([])
+  const [reporterFilter, setReporterFilter] = useState<string[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [loadingId, setLoadingId] = useState<string | null>(null)
@@ -204,29 +223,29 @@ export function FeedbackInbox({ items: initialItems }: Props) {
     return m
   }, [items])
 
-  const effectivePlayerFilter = useMemo(() => {
-    if (playerFilter === ALL_VALUE) return ALL_VALUE
-    return playerNames.includes(playerFilter) ? playerFilter : ALL_VALUE
-  }, [playerFilter, playerNames])
+  const effectivePlayerFilter = useMemo(
+    () => playerFilter.filter((n) => playerNames.includes(n)),
+    [playerFilter, playerNames]
+  )
 
-  const effectiveReporterFilter = useMemo(() => {
-    if (reporterFilter === ALL_VALUE) return ALL_VALUE
-    return reporterNames.includes(reporterFilter) ? reporterFilter : ALL_VALUE
-  }, [reporterFilter, reporterNames])
+  const effectiveReporterFilter = useMemo(
+    () => reporterFilter.filter((n) => reporterNames.includes(n)),
+    [reporterFilter, reporterNames]
+  )
 
   const filteredItems = useMemo(() => {
     return items
       .filter(
         (item) =>
-          effectiveReporterFilter === ALL_VALUE ||
-          item.submitterName === effectiveReporterFilter
+          effectiveReporterFilter.length === 0 ||
+          effectiveReporterFilter.includes(item.submitterName)
       )
       .map((item) => ({
         ...item,
         comments: item.comments.filter(
           (comment) =>
-            effectivePlayerFilter === ALL_VALUE ||
-            comment.playerName === effectivePlayerFilter
+            effectivePlayerFilter.length === 0 ||
+            effectivePlayerFilter.includes(comment.playerName)
         ),
       }))
       .filter((item) => item.comments.length > 0)
@@ -315,34 +334,43 @@ export function FeedbackInbox({ items: initialItems }: Props) {
           id="admin-feedback-filter-player"
           label={t('admin.searchFeedbackPlayer')}
           placeholder={t('admin.searchFeedbackPlayerPlaceholder')}
-          allLabel={t('admin.feedbackFilterAllPlayers')}
           optionValues={playerNames}
           value={effectivePlayerFilter}
           onValueChange={setPlayerFilter}
-          listItemContent={(v) =>
-            v === ALL_VALUE ? (
-              t('admin.feedbackFilterAllPlayers')
-            ) : (
-              <PlayerIdentity
-                name={v}
-                avatarUrl={playerMetaByName.get(v)?.avatarUrl ?? null}
-                nationality={playerMetaByName.get(v)?.nationality ?? 'PT'}
-                avatarSize="sm"
-                nameClassName="font-normal"
-              />
+          removeChipAriaLabel={(name) => t('admin.feedbackFilterRemoveChip', { name })}
+          listItemContent={(v) => (
+            <PlayerIdentity
+              name={v}
+              avatarUrl={playerMetaByName.get(v)?.avatarUrl ?? null}
+              nationality={playerMetaByName.get(v)?.nationality ?? 'PT'}
+              avatarSize="sm"
+              nameClassName="font-normal"
+            />
+          )}
+          chipContent={(v) => {
+            const meta = playerMetaByName.get(v)
+            return (
+              <span className="flex min-w-0 items-center gap-1">
+                <Avatar size="sm" className="shrink-0">
+                  {meta?.avatarUrl ? <AvatarImage src={meta.avatarUrl} alt="" /> : null}
+                  <AvatarFallback className="bg-fcda-gold text-fcda-navy text-[10px] font-semibold">
+                    {getInitials(v)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate font-medium">{v}</span>
+              </span>
             )
-          }
+          }}
         />
         <FeedbackFilterCombobox
           id="admin-feedback-filter-reporter"
           label={t('admin.searchFeedbackReporter')}
           placeholder={t('admin.searchFeedbackReporterPlaceholder')}
-          allLabel={t('admin.feedbackFilterAllReporters')}
           optionValues={reporterNames}
           value={effectiveReporterFilter}
           onValueChange={setReporterFilter}
+          removeChipAriaLabel={(name) => t('admin.feedbackFilterRemoveChip', { name })}
           listItemContent={(v) => {
-            if (v === ALL_VALUE) return t('admin.feedbackFilterAllReporters')
             const meta = reporterMetaByName.get(v)
             return (
               <span className="flex min-w-0 items-center gap-2">
@@ -353,6 +381,20 @@ export function FeedbackInbox({ items: initialItems }: Props) {
                   </AvatarFallback>
                 </Avatar>
                 <span className="min-w-0 truncate font-normal">{v}</span>
+              </span>
+            )
+          }}
+          chipContent={(v) => {
+            const meta = reporterMetaByName.get(v)
+            return (
+              <span className="flex min-w-0 items-center gap-1">
+                <Avatar size="sm" className="shrink-0">
+                  {meta?.avatarUrl ? <AvatarImage src={meta.avatarUrl} alt="" /> : null}
+                  <AvatarFallback className="bg-fcda-gold text-fcda-navy text-[10px] font-semibold">
+                    {getInitials(v)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate font-medium">{v}</span>
               </span>
             )
           }}

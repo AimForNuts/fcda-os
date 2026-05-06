@@ -245,6 +245,7 @@
     "searchFeedbackReporterPlaceholder": "Pesquisar ou escolher autor…",
     "feedbackFilterAllPlayers": "Todos os jogadores avaliados",
     "feedbackFilterAllReporters": "Todos os autores",
+    "feedbackFilterRemoveChip": "Remover {{name}} do filtro",
     "feedbackReporter": "Autor",
     "feedbackEvaluatedPlayer": "Jogador avaliado",
     "feedbackCommentLabel": "Feedback",
