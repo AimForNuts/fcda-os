@@ -102,6 +102,8 @@
     "anonymisedNote": "Sign in to see player names.",
     "leadersTitle": "Current leaders",
     "leadersSubtitle": "Top three by points in competitive games.",
+    "leadersSubtitleAllGames": "Top three by points across all counted games (including friendlies).",
+    "includeFriendlyMatchesLabel": "Include friendlies",
     "tableTitle": "Full leaderboard",
     "yourRank": "Your position",
     "colGames": "Games",
