@@ -57,10 +57,10 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-20 z-40 -mx-4 flex flex-col gap-3 border-b border-border bg-background/95 px-4 py-4 backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between md:-mx-0 md:px-0 supports-[backdrop-filter]:bg-background/80">
-        <div className="space-y-1.5 sm:max-w-sm">
+      <div className="sticky top-20 z-40 -mx-4 border-b border-border bg-background/95 px-4 py-4 backdrop-blur-sm md:-mx-0 md:px-0 supports-[backdrop-filter]:bg-background/80">
+        <div className="w-full space-y-1.5">
           <Label htmlFor="player-search">{t('players.nameLabel')}</Label>
-          <div className="relative">
+          <div className="relative w-full">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="player-search"
@@ -68,13 +68,10 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               placeholder={t('players.searchPlaceholder')}
-              className="h-10 rounded-full bg-background pl-9 pr-4"
+              className="h-10 w-full rounded-full bg-background pl-9 pr-4"
             />
           </div>
         </div>
-        <p className="text-sm font-medium text-muted-foreground">
-          {filteredPlayers.length} / {players.length} jogadores
-        </p>
       </div>
 
       {filteredPlayers.length === 0 ? (
