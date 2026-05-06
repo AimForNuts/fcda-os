@@ -101,12 +101,10 @@ export function PlayerMatchHistory({ matches }: { matches: PlayerMatchHistoryRow
             const result = resultForPlayer(match)
 
             return (
-              <Link
+              <div
                 key={match.game_id}
-                href={`/matches/${match.game_id}`}
-                title="Ver ficha de jogo"
                 className={cn(
-                  'flex min-h-11 items-center gap-2 border-b border-border px-2 py-1.5 text-left transition-colors last:border-b-0 hover:bg-muted/40 sm:min-h-0 sm:gap-3 sm:px-3 sm:py-2',
+                  'flex min-h-11 items-center gap-2 border-b border-border px-2 py-1.5 text-left transition-colors last:border-b-0 sm:min-h-0 sm:gap-3 sm:px-3 sm:py-2',
                   index % 2 === 1 && 'bg-muted/30',
                 )}
               >
@@ -173,8 +171,14 @@ export function PlayerMatchHistory({ matches }: { matches: PlayerMatchHistoryRow
                       {resultLabel(result)}
                     </span>
                   </span>
+                  <Link
+                    href={`/matches/${match.game_id}`}
+                    className="shrink-0 border-l border-border pl-2 text-xs font-semibold text-primary underline underline-offset-2 hover:text-primary/80 sm:pl-3"
+                  >
+                    Ficha de jogo
+                  </Link>
                 </div>
-              </Link>
+              </div>
             )
           })}
         </div>
