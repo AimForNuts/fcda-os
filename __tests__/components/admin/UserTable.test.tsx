@@ -55,6 +55,7 @@ const user: UserRow = {
     id: '22222222-2222-4222-8222-222222222222',
     sheet_name: 'Andre',
     shirt_number: 10,
+    nationality: 'PT',
     current_rating: 7.5,
     preferred_positions: ['CM'],
     avatar_url: null,
@@ -71,6 +72,12 @@ const unlinkedUser: UserRow = {
   player: null,
 }
 
+/** Mobile + desktop shells both render; Vitest has no Tailwind, so both stay in the a11y tree. */
+function clickFirstUserActions() {
+  const buttons = screen.getAllByRole('button', { name: 'Actions' })
+  fireEvent.click(buttons[0])
+}
+
 describe('Admin UserTable details modal', () => {
   beforeEach(() => {
     mockFetch.mockReset()
@@ -81,7 +88,7 @@ describe('Admin UserTable details modal', () => {
 
     render(<UserTable users={[user]} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Actions' }))
+    clickFirstUserActions()
     expect(screen.getByLabelText('Email')).toHaveValue('andre@example.com')
 
     fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Andre Admin' } })
@@ -103,7 +110,7 @@ describe('Admin UserTable details modal', () => {
 
     render(<UserTable users={[user]} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Actions' }))
+    clickFirstUserActions()
     expect(screen.getByRole('dialog', { name: 'Player details' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Player' }))
@@ -121,6 +128,7 @@ describe('Admin UserTable details modal', () => {
           body: JSON.stringify({
             sheet_name: 'Joao',
             shirt_number: 9,
+            nationality: 'PT',
             preferred_positions: ['CM', 'ST'],
             current_rating: 8.25,
           }),
@@ -142,7 +150,7 @@ describe('Admin UserTable details modal', () => {
 
     render(<UserTable users={[unlinkedUser]} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Actions' }))
+    clickFirstUserActions()
     fireEvent.click(screen.getByRole('button', { name: 'Player' }))
     fireEvent.click(screen.getByRole('button', { name: 'Create and link' }))
 

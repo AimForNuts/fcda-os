@@ -2,7 +2,7 @@
 
 import { type FormEvent, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MessageSquare, X } from 'lucide-react'
+import { Camera, Link2, ListPlus, MessageSquare, Pencil, Trash2, Unlink, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
@@ -380,18 +380,20 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="max-w-md">
-        <label htmlFor="admin-player-search" className="sr-only">
-          {t('admin.searchPlayers')}
-        </label>
-        <Input
-          id="admin-player-search"
-          type="search"
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          placeholder={t('admin.searchPlayers')}
-        />
+    <div className="min-w-0 space-y-3">
+      <div className="sticky top-20 z-40 -mx-4 border-b border-border bg-background px-4 py-3 shadow-sm">
+        <div className="w-full max-w-md">
+          <label htmlFor="admin-player-search" className="sr-only">
+            {t('admin.searchPlayers')}
+          </label>
+          <Input
+            id="admin-player-search"
+            type="search"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder={t('admin.searchPlayers')}
+          />
+        </div>
         <datalist id="admin-player-nationality-options">
           {NATIONALITY_OPTIONS.map((code) => (
             <option key={code} value={code}>
@@ -410,15 +412,15 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
         const showAlias = showAliasInput.has(player.id)
 
         return (
-          <div key={player.id} className="rounded-lg border bg-background p-4 space-y-3">
+          <div key={player.id} className="touch-manipulation space-y-2 rounded-lg border bg-background p-3 sm:space-y-3 sm:p-4">
             {/* Header row: name + shirt + profile + actions */}
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div className="space-y-0.5 flex-1 min-w-0">
+            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between md:gap-4">
+              <div className="min-w-0 flex-1 space-y-0.5">
                 {isEditing ? (
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex flex-row flex-wrap items-center gap-1.5">
                     <input
                       type="text"
-                      className="rounded border border-input bg-background px-2 py-1 text-sm font-medium w-48"
+                      className="min-w-[7rem] flex-1 rounded border border-input bg-background px-2 py-1 text-sm font-medium sm:w-48 sm:flex-none"
                       value={vals?.sheet_name ?? ''}
                       onChange={(e) =>
                         setEditValues((prev) => ({
@@ -435,7 +437,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     <input
                       type="number"
                       placeholder="#"
-                      className="rounded border border-input bg-background px-2 py-1 text-sm w-16"
+                      className="w-14 shrink-0 rounded border border-input bg-background px-2 py-1 text-sm sm:w-16"
                       value={vals?.shirt_number ?? ''}
                       onChange={(e) =>
                         setEditValues((prev) => ({
@@ -452,7 +454,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                       type="text"
                       list="admin-player-nationality-options"
                       placeholder={DEFAULT_NATIONALITY}
-                      className="w-20 rounded border border-input bg-background px-2 py-1 text-sm uppercase"
+                      className="w-14 shrink-0 rounded border border-input bg-background px-2 py-1 text-sm uppercase sm:w-20"
                       value={vals?.nationality ?? DEFAULT_NATIONALITY}
                       maxLength={2}
                       onChange={(e) =>
@@ -478,10 +480,20 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                         if (e.key === 'Escape') setEditingId(null)
                       }}
                     />
-                    <Button size="sm" className="bg-fcda-navy text-white hover:bg-fcda-navy/90 text-xs" onClick={() => saveEdit(player.id)} disabled={isLoading}>
+                    <Button
+                      size="sm"
+                      className="shrink-0 bg-fcda-navy text-white hover:bg-fcda-navy/90 text-xs"
+                      onClick={() => saveEdit(player.id)}
+                      disabled={isLoading}
+                    >
                       {loadingMap[player.id] === 'edit' ? '...' : t('admin.saveEdit')}
                     </Button>
-                    <Button size="sm" variant="ghost" className="text-xs" onClick={() => setEditingId(null)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="shrink-0 text-xs"
+                      onClick={() => setEditingId(null)}
+                    >
                       {t('admin.cancelEdit')}
                     </Button>
                   </div>
@@ -503,14 +515,14 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
 
                 {/* Rating */}
                 {editingRatingId === player.id ? (
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <div className="mt-1 flex flex-row flex-wrap items-center gap-1.5">
                     <span className="text-xs text-muted-foreground">Rating:</span>
                     <input
                       type="number"
                       min="0"
                       max="10"
                       step="0.01"
-                      className="rounded border border-input bg-background px-2 py-0.5 text-xs w-20"
+                      className="w-20 rounded border border-input bg-background px-2 py-0.5 text-xs"
                       value={ratingInput[player.id] ?? ''}
                       onChange={(e) =>
                         setRatingInput((prev) => ({ ...prev, [player.id]: e.target.value }))
@@ -523,7 +535,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     />
                     <Button
                       size="sm"
-                      className="bg-fcda-navy text-white hover:bg-fcda-navy/90 text-xs h-6 px-2"
+                      className="h-6 shrink-0 bg-fcda-navy px-2 text-white hover:bg-fcda-navy/90 text-xs"
                       onClick={() => saveRating(player.id)}
                       disabled={isLoading}
                     >
@@ -532,7 +544,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-xs h-6 px-2"
+                      className="h-6 shrink-0 px-2 text-xs"
                       onClick={() => setEditingRatingId(null)}
                     >
                       {t('admin.cancelEdit')}
@@ -557,7 +569,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                 {/* Positions */}
                 {editingPositionsId === player.id ? (
                   <div
-                    className="flex items-center gap-1.5 mt-1 flex-wrap"
+                    className="mt-1 flex flex-wrap items-center gap-1.5"
                     onKeyDown={(e) => { if (e.key === 'Escape') setEditingPositionsId(null) }}
                   >
                     {POSITIONS.map((pos) => {
@@ -590,7 +602,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     })}
                     <Button
                       size="sm"
-                      className="bg-fcda-navy text-white hover:bg-fcda-navy/90 text-xs h-6 px-2"
+                      className="h-6 shrink-0 bg-fcda-navy px-2 text-white hover:bg-fcda-navy/90 text-xs"
                       onClick={() => savePositions(player.id)}
                       disabled={isLoading}
                     >
@@ -599,7 +611,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-xs h-6 px-2"
+                      className="h-6 shrink-0 px-2 text-xs"
                       onClick={() => setEditingPositionsId(null)}
                     >
                       {t('admin.cancelEdit')}
@@ -626,81 +638,120 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
 
               {/* Actions */}
               {!isEditing && (
-                <div className="flex flex-wrap gap-1 shrink-0">
-                  <input
-                    ref={(node) => {
-                      photoInputRefs.current[player.id] = node
-                    }}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={(e) => handlePhotoUpload(player.id, e.target.files?.[0] ?? null)}
-                  />
-                  <Button size="sm" variant="outline" className="text-xs" onClick={() => startEdit(player)} disabled={isLoading}>
-                    {t('admin.edit')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => photoInputRefs.current[player.id]?.click()}
-                    disabled={isLoading}
-                  >
-                    {loadingMap[player.id] === 'photo-upload' ? '...' : player.avatar_url ? 'Substituir foto' : 'Adicionar foto'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-xs text-muted-foreground"
-                    onClick={() => handlePhotoDelete(player.id)}
-                    disabled={isLoading || player.avatar_url == null}
-                  >
-                    {loadingMap[player.id] === 'photo-delete' ? '...' : 'Remover foto'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => openFeedbackModal(player)}
-                    disabled={isLoading}
-                  >
-                    <MessageSquare data-icon="inline-start" />
-                    {t('admin.addPlayerFeedback')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => setShowAliasInput((prev) => { const s = new Set(prev); s.add(player.id); return s })}
-                    disabled={isLoading}
-                  >
-                    {t('admin.addAlias')}
-                  </Button>
-                  {player.profile_id ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs text-muted-foreground"
-                      onClick={() => handleUnlinkUser(player.id)}
-                      disabled={isLoading}
-                    >
-                      {loadingMap[player.id] === 'unlink' ? '...' : t('admin.unlinkUser')}
-                    </Button>
-                  ) : (
+                <div className="w-full min-w-0 md:max-w-xl md:w-auto lg:max-w-none">
+                  <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] md:w-auto md:flex-wrap md:justify-end md:gap-1 md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden">
+                    <input
+                      ref={(node) => {
+                        photoInputRefs.current[player.id] = node
+                      }}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => handlePhotoUpload(player.id, e.target.files?.[0] ?? null)}
+                    />
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-xs"
-                      onClick={() => {
-                        setLinkingPlayerId(player.id)
-                        setUserSearchQuery('')
-                        setUserSearchResults([])
-                      }}
+                      className="h-8 shrink-0 gap-0 px-2.5 text-xs md:gap-1.5 md:px-3"
+                      title={t('admin.edit')}
+                      onClick={() => startEdit(player)}
                       disabled={isLoading}
                     >
-                      {t('admin.linkUser')}
+                      <Pencil className="size-3.5 shrink-0" aria-hidden />
+                      <span className="max-md:sr-only">{t('admin.edit')}</span>
                     </Button>
-                  )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 shrink-0 gap-0 px-2.5 text-xs md:gap-1.5 md:px-3"
+                      title={
+                        player.avatar_url ? 'Substituir foto' : 'Adicionar foto'
+                      }
+                      onClick={() => photoInputRefs.current[player.id]?.click()}
+                      disabled={isLoading}
+                    >
+                      <Camera className="size-3.5 shrink-0" aria-hidden />
+                      <span className="max-md:sr-only">
+                        {loadingMap[player.id] === 'photo-upload'
+                          ? '...'
+                          : player.avatar_url
+                            ? 'Substituir foto'
+                            : 'Adicionar foto'}
+                      </span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 shrink-0 gap-0 px-2.5 text-xs text-muted-foreground md:gap-1.5 md:px-3"
+                      title="Remover foto"
+                      onClick={() => handlePhotoDelete(player.id)}
+                      disabled={isLoading || player.avatar_url == null}
+                    >
+                      <Trash2 className="size-3.5 shrink-0" aria-hidden />
+                      <span className="max-md:sr-only">
+                        {loadingMap[player.id] === 'photo-delete' ? '...' : 'Remover foto'}
+                      </span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 shrink-0 gap-0 px-2.5 text-xs md:gap-1.5 md:px-3"
+                      title={t('admin.addPlayerFeedback')}
+                      onClick={() => openFeedbackModal(player)}
+                      disabled={isLoading}
+                    >
+                      <MessageSquare className="size-3.5 shrink-0" aria-hidden />
+                      <span className="max-md:sr-only">{t('admin.addPlayerFeedback')}</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 shrink-0 gap-0 px-2.5 text-xs md:gap-1.5 md:px-3"
+                      title={t('admin.addAlias')}
+                      onClick={() =>
+                        setShowAliasInput((prev) => {
+                          const s = new Set(prev)
+                          s.add(player.id)
+                          return s
+                        })
+                      }
+                      disabled={isLoading}
+                    >
+                      <ListPlus className="size-3.5 shrink-0" aria-hidden />
+                      <span className="max-md:sr-only">{t('admin.addAlias')}</span>
+                    </Button>
+                    {player.profile_id ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 shrink-0 gap-0 px-2.5 text-xs text-muted-foreground md:gap-1.5 md:px-3"
+                        title={t('admin.unlinkUser')}
+                        onClick={() => handleUnlinkUser(player.id)}
+                        disabled={isLoading}
+                      >
+                        <Unlink className="size-3.5 shrink-0" aria-hidden />
+                        <span className="max-md:sr-only">
+                          {loadingMap[player.id] === 'unlink' ? '...' : t('admin.unlinkUser')}
+                        </span>
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 shrink-0 gap-0 px-2.5 text-xs md:gap-1.5 md:px-3"
+                        title={t('admin.linkUser')}
+                        onClick={() => {
+                          setLinkingPlayerId(player.id)
+                          setUserSearchQuery('')
+                          setUserSearchResults([])
+                        }}
+                        disabled={isLoading}
+                      >
+                        <Link2 className="size-3.5 shrink-0" aria-hidden />
+                        <span className="max-md:sr-only">{t('admin.linkUser')}</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -729,11 +780,11 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                 </div>
 
                 {showAlias && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-row flex-wrap items-center gap-1.5">
                     <input
                       type="text"
                       placeholder={t('admin.addAlias')}
-                      className="rounded border border-input bg-background px-2 py-1 text-sm flex-1"
+                      className="min-w-[10rem] flex-1 rounded border border-input bg-background px-2 py-1 text-sm"
                       value={aliasInput[player.id] ?? ''}
                       onChange={(e) =>
                         setAliasInput((prev) => ({ ...prev, [player.id]: e.target.value }))
@@ -748,7 +799,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     />
                     <Button
                       size="sm"
-                      className="bg-fcda-navy text-white hover:bg-fcda-navy/90 text-xs"
+                      className="shrink-0 bg-fcda-navy text-white hover:bg-fcda-navy/90 text-xs"
                       onClick={() => addAlias(player.id)}
                       disabled={loadingMap[player.id] === 'alias'}
                     >
@@ -757,9 +808,13 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-xs"
+                      className="shrink-0 text-xs"
                       onClick={() =>
-                        setShowAliasInput((prev) => { const s = new Set(prev); s.delete(player.id); return s })
+                        setShowAliasInput((prev) => {
+                          const s = new Set(prev)
+                          s.delete(player.id)
+                          return s
+                        })
                       }
                     >
                       {t('admin.cancelEdit')}
@@ -901,7 +956,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                         setFeedbackRating(clamped)
                       }}
                       disabled={feedbackSubmitting}
-                      className="h-9 w-28 rounded-lg border border-input bg-background px-2.5 py-1 text-right text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+                      className="h-9 w-full rounded-lg border border-input bg-background px-2.5 py-1 text-right text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 sm:w-28"
                     />
                   </div>
 
@@ -926,14 +981,21 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
               )}
             </div>
 
-            <div className="flex flex-wrap justify-end gap-3 border-t border-border px-4 py-4 sm:px-5">
-              <Button type="button" variant="outline" onClick={closeFeedbackModal} disabled={feedbackSubmitting}>
+            <div className="flex flex-col gap-3 border-t border-border px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:flex-wrap sm:justify-end sm:px-5">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={closeFeedbackModal}
+                disabled={feedbackSubmitting}
+              >
                 {feedbackSubmitted ? t('admin.closeItem') : t('common.cancel')}
               </Button>
               {!feedbackSubmitted && feedbackTarget.feedback_games.length > 0 && (
                 <Button
                   type="submit"
                   form="admin-player-feedback-form"
+                  className="w-full sm:w-auto"
                   disabled={feedbackSubmitting}
                 >
                   {feedbackSubmitting ? t('matches.ratingSubmitting') : t('matches.ratingSubmit')}
