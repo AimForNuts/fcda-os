@@ -1,27 +1,26 @@
+'use client'
+
 import { Ban, CheckCircle2, Clock3 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import type { Game } from '@/types'
 
 const STATUS_META: Record<
   Game['status'],
   {
-    label: string
     className: string
     icon: typeof Clock3
   }
 > = {
   scheduled: {
-    label: 'Agendado',
     className: 'border-sky-700/20 bg-sky-50 text-sky-700',
     icon: Clock3,
   },
   finished: {
-    label: 'Concluído',
     className: 'border-fcda-gold/70 bg-fcda-gold text-fcda-navy',
     icon: CheckCircle2,
   },
   cancelled: {
-    label: 'Cancelado',
     className: 'border-red-700/20 bg-red-50 text-red-700',
     icon: Ban,
   },
@@ -33,13 +32,12 @@ type Props = {
   compact?: boolean
 }
 
-export function getGameStatusLabel(status: Game['status']) {
-  return STATUS_META[status].label
-}
-
 export function GameStatusBadge({ status, className, compact = false }: Props) {
+  const { t } = useTranslation()
   const meta = STATUS_META[status]
   const Icon = meta.icon
+  const label = t(`matches.status.${status}`)
+  const ariaPhrase = t('matches.statusAria', { status: label.toLowerCase() })
 
   return (
     <span
@@ -48,11 +46,11 @@ export function GameStatusBadge({ status, className, compact = false }: Props) {
         meta.className,
         className
       )}
-      aria-label={`Jogo ${meta.label.toLowerCase()}`}
-      title={`Jogo ${meta.label.toLowerCase()}`}
+      aria-label={ariaPhrase}
+      title={ariaPhrase}
     >
       <Icon className="size-3" aria-hidden />
-      {compact ? <span className="sr-only">{meta.label}</span> : <span>{meta.label}</span>}
+      {compact ? <span className="sr-only">{label}</span> : <span>{label}</span>}
     </span>
   )
 }

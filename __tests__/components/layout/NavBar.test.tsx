@@ -31,14 +31,43 @@ describe('Navbar', () => {
 
   it('renders Players link between Matches and Stats', () => {
     render(<Navbar profile={null} roles={[]} pendingCount={0} />)
-    // Drawer is mount-gated on isOpen (false by default), so only desktop nav links are in the DOM
-    const links = screen.getAllByRole('link')
-    const hrefs = links.map((l) => l.getAttribute('href'))
-    const matchesIdx = hrefs.indexOf('/matches')
-    const playersIdx = hrefs.indexOf('/players')
-    const statsIdx = hrefs.indexOf('/stats')
-    expect(playersIdx).toBeGreaterThan(matchesIdx)
-    expect(playersIdx).toBeLessThan(statsIdx)
+    const matchesButton = screen.getByRole('button', { name: /nav.matches/ })
+    const playersLink = screen.getByRole('link', { name: 'nav.players' })
+    const statsLink = screen.getByRole('link', { name: 'nav.stats' })
+
+    expect(
+      matchesButton.compareDocumentPosition(playersLink) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(
+      playersLink.compareDocumentPosition(statsLink) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  })
+
+  it('opens match subroutes from the desktop Matches dropdown', () => {
+    render(<Navbar profile={null} roles={[]} pendingCount={0} />)
+    fireEvent.click(screen.getByRole('button', { name: /nav.matches/ }))
+
+    expect(screen.getByText('nav.matchesMenu.calendarDescription')).toBeInTheDocument()
+    expect(screen.getByText('nav.matchesMenu.resultsDescription')).toBeInTheDocument()
+    expect(screen.getByText('nav.matchesMenu.myGamesDescription')).toBeInTheDocument()
+  })
+
+  it('renders match subroute links in the mobile drawer', () => {
+    render(<Navbar profile={null} roles={[]} pendingCount={0} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+
+    expect(screen.getByRole('link', { name: 'nav.matchesMenu.calendar' })).toHaveAttribute(
+      'href',
+      '/matches/calendario',
+    )
+    expect(screen.getByRole('link', { name: 'nav.matchesMenu.results' })).toHaveAttribute(
+      'href',
+      '/matches/resultados',
+    )
+    expect(screen.getByRole('link', { name: 'nav.matchesMenu.myGames' })).toHaveAttribute(
+      'href',
+      '/matches/os-meus-jogos',
+    )
   })
 
   it('does not render the Manage nav link for mod users', () => {

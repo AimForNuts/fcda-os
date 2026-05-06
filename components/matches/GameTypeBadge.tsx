@@ -1,3 +1,6 @@
+'use client'
+
+import { useTranslation } from 'react-i18next'
 import { CompetitiveGameIcon, FriendlyGameIcon } from '@/components/matches/game-type-icons'
 import { cn } from '@/lib/utils'
 
@@ -15,8 +18,11 @@ export function GameTypeBadge({
   compact = false,
   variant = 'default',
 }: Props) {
+  const { t } = useTranslation()
   const Icon = competitive ? CompetitiveGameIcon : FriendlyGameIcon
-  const label = competitive ? 'Competitivo' : 'Amigável'
+  const label = competitive
+    ? t('matches.gameType.competitive')
+    : t('matches.gameType.friendly')
 
   const toneClasses =
     variant === 'onDark'
@@ -27,6 +33,8 @@ export function GameTypeBadge({
         ? 'border-fcda-blue/20 bg-fcda-blue/10 text-fcda-blue'
         : 'border-emerald-700/20 bg-emerald-50 text-emerald-700'
 
+  const ariaPhrase = t('matches.gameTypeAria', { type: label.toLowerCase() })
+
   return (
     <span
       className={cn(
@@ -35,8 +43,8 @@ export function GameTypeBadge({
         toneClasses,
         className
       )}
-      aria-label={`Jogo ${label.toLowerCase()}`}
-      title={`Jogo ${label.toLowerCase()}`}
+      aria-label={ariaPhrase}
+      title={ariaPhrase}
     >
       <Icon className={compact ? 'size-3.5' : 'size-3'} aria-hidden />
       {!compact ? <span>{label}</span> : null}

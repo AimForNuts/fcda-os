@@ -6,8 +6,10 @@ import { Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 export function MatchesDateFilter({ className }: { className?: string }) {
+  const { t } = useTranslation()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -33,11 +35,11 @@ export function MatchesDateFilter({ className }: { className?: string }) {
         className,
       )}
       role="search"
-      aria-label="Filtrar jogos por data"
+      aria-label={t('matches.dateFilter.aria')}
     >
       <Calendar className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
       <Input
-        aria-label="Data inicial"
+        aria-label={t('matches.dateFilter.from')}
         type="date"
         value={from}
         onChange={(e) => {
@@ -53,7 +55,7 @@ export function MatchesDateFilter({ className }: { className?: string }) {
         —
       </span>
       <Input
-        aria-label="Data final"
+        aria-label={t('matches.dateFilter.to')}
         type="date"
         value={to}
         onChange={(e) => {
@@ -78,7 +80,7 @@ export function MatchesDateFilter({ className }: { className?: string }) {
             })
           }}
         >
-          Limpar
+          {t('matches.dateFilter.clear')}
         </Button>
       ) : null}
     </div>
