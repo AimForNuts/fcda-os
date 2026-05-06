@@ -75,15 +75,15 @@ describe('MatchCard', () => {
     expect(screen.getByText('Agendado')).toBeInTheDocument()
   })
 
-  it('labels competitive games', () => {
+  it('labels competitive games with icon-only badge', () => {
     render(<MatchCard game={baseGame} />)
-    expect(screen.getByText('Competitivo')).toBeInTheDocument()
+    expect(screen.queryByText('Competitivo')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Jogo competitivo')).toBeInTheDocument()
   })
 
-  it('labels friendly games', () => {
+  it('labels friendly games with icon-only badge', () => {
     render(<MatchCard game={{ ...baseGame, counts_for_stats: false }} />)
-    expect(screen.getByText('Amigável')).toBeInTheDocument()
+    expect(screen.queryByText('Amigável')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Jogo amigável')).toBeInTheDocument()
   })
 
