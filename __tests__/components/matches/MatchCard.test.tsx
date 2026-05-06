@@ -2,13 +2,30 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MatchCard } from '@/components/matches/MatchCard'
 
+vi.mock('@/i18n/config', () => ({
+  LANGUAGE_STORAGE_KEY: 'fcda_language',
+  default: { language: 'pt-PT', isInitialized: true },
+}))
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (k: string) => {
+    t: (k: string, opts?: Record<string, string | number>) => {
+      if (k === 'matches.commentsAria' && opts && 'count' in opts) return `${opts.count} comentários`
+      if (k === 'matches.gameTypeAria' && opts?.type != null)
+        return `Jogo ${String(opts.type)}`
+      if (k === 'matches.statusAria' && opts?.status != null)
+        return `Jogo ${String(opts.status)}`
       const map: Record<string, string> = {
         'matches.status.scheduled': 'Agendado',
         'matches.status.finished': 'Concluído',
         'matches.status.cancelled': 'Cancelado',
+        'matches.gameType.competitive': 'Competitivo',
+        'matches.gameType.friendly': 'Amigável',
+        'matches.teamA': 'Equipa Branca',
+        'matches.teamB': 'Equipa Azul',
+        'matches.noGamePlayed': 'Sem jogo',
+        'matches.viewGame': 'Ver jogo',
+        'matches.captainAbbrev': '(C)',
       }
       return map[k] ?? k
     },

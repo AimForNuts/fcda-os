@@ -9,6 +9,14 @@
     "register": "Registar",
     "logout": "Sair",
     "admin": "Admin",
+    "matchesMenu": {
+      "calendar": "Calendário",
+      "calendarDescription": "Próximos jogos e datas",
+      "results": "Resultados",
+      "resultsDescription": "Jogos concluídos e marcadores",
+      "myGames": "Os meus jogos",
+      "myGamesDescription": "Jogos associados ao teu jogador"
+    },
     "userMenu": {
       "preferences": "Preferências",
       "preferencesDescription": "Conta, segurança e acesso",
@@ -86,6 +94,72 @@
   "matches": {
     "title": "Jogos",
     "noMatches": "Ainda não há jogos registados.",
+    "captainAbbrev": "(C)",
+    "gameType": {
+      "competitive": "Competitivo",
+      "friendly": "Amigável"
+    },
+    "gameTypeAria": "Jogo {{type}}",
+    "statusAria": "Jogo {{status}}",
+    "noGamePlayed": "Sem jogo",
+    "viewGame": "Ver jogo",
+    "commentsAria": "{{count}} comentários",
+    "page": {
+      "clubName": "Futebol Clube Dragões da Areosa",
+      "heroEmptyDescription": "Sem jogos agendados de momento. Consulta os últimos resultados e volta mais tarde para o próximo encontro.",
+      "heroSport": "Futebol",
+      "heroBrandLine": "FCDA · Jogos e resultados",
+      "heroSrTitle": "Jogos FCDA",
+      "heroHeadline": "{{date}} às {{time}}",
+      "headlineFallback": "Calendário e resultados",
+      "localDateTimeLabel": "Data e hora local",
+      "dateAtTime": "{{date}} às {{time}}",
+      "venueLabel": "Recinto",
+      "gatesOpenLabel": "Abertura de portas",
+      "tbd": "Por definir",
+      "defaultVenue": "Areosa",
+      "ticketsSoldOut": "Bilhetes esgotados",
+      "ticketsAvailable": "Bilhetes disponíveis nos locais habituais",
+      "tabsNavAriaLabel": "Tipo de jogos",
+      "tabs": {
+        "calendar": "Calendário",
+        "results": "Resultados",
+        "mine": "Os meus jogos"
+      },
+      "views": {
+        "calendar": {
+          "heading": "Calendário",
+          "countLabel": "Próximos jogos",
+          "empty": "Não há jogos agendados neste intervalo."
+        },
+        "results": {
+          "heading": "Resultados",
+          "countLabel": "Últimos resultados",
+          "empty": "Ainda não há resultados neste intervalo."
+        },
+        "mine": {
+          "heading": "Os meus jogos",
+          "countLabel": "Jogos em que estás convocado",
+          "empty": "Ainda não estás associado a nenhum jogo neste intervalo."
+        }
+      },
+      "empty": {
+        "login": "Inicia sessão para veres os teus jogos.",
+        "pending": "A tua conta ainda está pendente. Quando for aprovada, podes ver aqui os teus jogos.",
+        "noPlayer": "Ainda não tens um jogador associado ao teu perfil.",
+        "adjustFilter": "Nenhum jogo neste intervalo de datas. Ajusta as datas ou limpa o filtro."
+      },
+      "gameCount_one": "{{count}} jogo",
+      "gameCount_other": "{{count}} jogos",
+      "listColDate": "Data",
+      "listColDetails": "Detalhes"
+    },
+    "dateFilter": {
+      "aria": "Filtrar jogos por data",
+      "from": "Data inicial",
+      "to": "Data final",
+      "clear": "Limpar"
+    },
     "status": {
       "scheduled": "Agendado",
       "finished": "Concluído",

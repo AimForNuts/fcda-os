@@ -22,7 +22,8 @@ import { GameDateTime } from '@/components/matches/GameDateTime'
 import { ResetTeamsButton } from '@/components/matches/ResetTeamsButton'
 import { DeleteGameButton } from '@/components/matches/DeleteGameButton'
 import { MatchComments, type MatchComment } from '@/components/matches/MatchComments'
-import { GameStatusBadge, getGameStatusLabel } from '@/components/matches/GameStatusBadge'
+import { GameStatusBadge } from '@/components/matches/GameStatusBadge'
+import { GameStatusPlainText } from '@/components/matches/GameStatusPlainText'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { Button } from '@/components/ui/button'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
@@ -481,7 +482,7 @@ export default async function MatchDetailPage({
                   <Flag className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
                     <dt className="text-muted-foreground">Estado</dt>
-                    <dd className="mt-1 font-semibold">{getGameStatusLabel(game.status)}</dd>
+                    <dd className="mt-1 font-semibold"><GameStatusPlainText status={game.status} /></dd>
                   </div>
                 </div>
                 <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
