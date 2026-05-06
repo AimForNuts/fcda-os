@@ -1,26 +1,25 @@
 'use client'
 
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, Search } from 'lucide-react'
+import { ArrowRight, Loader2, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NationalityFlag } from '@/components/player/NationalityFlag'
 import { cn } from '@/lib/utils'
-import type { PlayerPublic } from '@/types'
+import type { PlayersListRow } from '@/lib/players/list'
 
-type PlayerRow = Omit<PlayerPublic, 'current_rating' | 'description'> & {
-  avatar_url?: string | null
-  preferred_positions: string[]
-  total_all: number
-}
+type PlayerRow = PlayersListRow
 
 type Props = {
   players: PlayerRow[]
   isApproved: boolean
   highlightedPlayerId?: string | null
+  initialHasMore?: boolean
+  pageSize?: number
 }
 
 function getInitials(name: string) {
@@ -50,20 +49,135 @@ function translateWithFallback(
   return translated === key ? fallback : translated
 }
 
-export function PlayersTable({ players, isApproved, highlightedPlayerId = null }: Props) {
+type PlayersListResponse = {
+  players: PlayerRow[]
+  hasMore: boolean
+  isApproved: boolean
+}
+
+export function PlayersTable({
+  players,
+  isApproved,
+  highlightedPlayerId = null,
+  initialHasMore = false,
+  pageSize = 12,
+}: Props) {
   const { t } = useTranslation()
+  const sentinelRef = useRef<HTMLDivElement>(null)
   const [searchValue, setSearchValue] = useState('')
+  const [rows, setRows] = useState(players)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const deferredSearchValue = useDeferredValue(searchValue)
+  const query = deferredSearchValue.trim()
 
-  const filteredPlayers = useMemo(() => {
-    const normalize = (s: string) =>
-      s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('pt-PT')
-    const query = normalize(deferredSearchValue.trim())
+  const fetchPlayers = useCallback(
+    async ({
+      offset,
+      search,
+      signal,
+    }: {
+      offset: number
+      search: string
+      signal?: AbortSignal
+    }) => {
+      const params = new URLSearchParams({
+        offset: String(offset),
+        limit: String(pageSize),
+      })
 
-    return players.filter((player) => {
-      return !query || normalize(player.display_name).includes(query)
+      if (search) {
+        params.set('q', search)
+      }
+
+      const response = await fetch(`/api/players/list?${params.toString()}`, {
+        signal,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to load players')
+      }
+
+      return (await response.json()) as PlayersListResponse
+    },
+    [pageSize],
+  )
+
+  const loadMore = useCallback(async () => {
+    if (isLoading || !hasMore) return
+
+    setIsLoading(true)
+    setLoadError(null)
+
+    try {
+      const result = await fetchPlayers({
+        offset: rows.length,
+        search: query,
+      })
+      setRows((currentRows) => [...currentRows, ...result.players])
+      setHasMore(result.hasMore)
+    } catch {
+      setLoadError(translateWithFallback(t, 'players.loadError', 'Nao foi possivel carregar mais jogadores.'))
+    } finally {
+      setIsLoading(false)
+    }
+  }, [fetchPlayers, hasMore, isLoading, query, rows.length, t])
+
+  useEffect(() => {
+    if (!query) {
+      setRows(players)
+      setHasMore(initialHasMore)
+      setLoadError(null)
+      return
+    }
+
+    const controller = new AbortController()
+    setIsLoading(true)
+    setLoadError(null)
+
+    fetchPlayers({
+      offset: 0,
+      search: query,
+      signal: controller.signal,
     })
-  }, [deferredSearchValue, players])
+      .then((result) => {
+        setRows(result.players)
+        setHasMore(result.hasMore)
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        setRows([])
+        setHasMore(false)
+        setLoadError(translateWithFallback(t, 'players.searchError', 'Nao foi possivel pesquisar jogadores.'))
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false)
+        }
+      })
+
+    return () => controller.abort()
+  }, [fetchPlayers, initialHasMore, players, query, t])
+
+  useEffect(() => {
+    if (!hasMore || isLoading || loadError) return
+
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          loadMore()
+        }
+      },
+      { rootMargin: '600px 0px' },
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasMore, isLoading, loadError, loadMore])
 
   return (
     <div className="space-y-6">
@@ -84,13 +198,13 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
         </div>
       </div>
 
-      {filteredPlayers.length === 0 ? (
+      {rows.length === 0 && !isLoading ? (
         <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center">
           <p className="text-sm text-muted-foreground">{t('stats.noPlayers')}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredPlayers.map((player) => {
+          {rows.map((player) => {
             const isHighlighted = player.id === highlightedPlayerId
             const shirtNumber =
               player.shirt_number != null
@@ -187,6 +301,23 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
           })}
         </div>
       )}
+
+      <div ref={sentinelRef} className="flex min-h-12 justify-center">
+        {isLoading ? (
+          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground" role="status">
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+            {translateWithFallback(t, 'common.loading', 'A carregar')}
+          </div>
+        ) : hasMore ? (
+          <Button type="button" variant="outline" onClick={loadMore}>
+            {translateWithFallback(t, 'players.loadMore', 'Carregar mais')}
+          </Button>
+        ) : null}
+      </div>
+
+      {loadError ? (
+        <p className="text-center text-sm text-destructive">{loadError}</p>
+      ) : null}
     </div>
   )
 }

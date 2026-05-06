@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { I18nProvider } from '@/components/providers/I18nProvider'
+import { WebVitalsReporter } from '@/components/performance/WebVitalsReporter'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 
 const geistSans = Geist({
@@ -24,7 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider defaultTheme="light">
-          <I18nProvider>{children}</I18nProvider>
+          <I18nProvider>
+            <WebVitalsReporter />
+            {children}
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

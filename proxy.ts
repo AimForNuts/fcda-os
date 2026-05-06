@@ -2,6 +2,17 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function proxy(request: NextRequest) {
+  const startedAt = performance.now()
+  const timings: string[] = []
+  const mark = (name: string, from: number) => {
+    timings.push(`${name};dur=${(performance.now() - from).toFixed(1)}`)
+  }
+  const withTimings = (response: NextResponse) => {
+    timings.push(`proxy;dur=${(performance.now() - startedAt).toFixed(1)}`)
+    response.headers.set('Server-Timing', timings.join(', '))
+    return response
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   // Refresh the session on every request (required by @supabase/ssr)
@@ -31,6 +42,7 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  mark('auth-user', startedAt)
 
   const { pathname } = request.nextUrl
 
@@ -45,29 +57,33 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     url.searchParams.set('redirectTo', pathname)
-    return NextResponse.redirect(url)
+    return withTimings(NextResponse.redirect(url))
   }
 
   if (user && isProtected) {
     // Check approval status
+    const profileStartedAt = performance.now()
     const { data: profile } = await supabase
       .from('profiles')
       .select('approved')
       .eq('id', user.id)
       .single()
+    mark('profile', profileStartedAt)
 
     if (!profile?.approved) {
       const url = request.nextUrl.clone()
       url.pathname = '/auth/pending'
-      return NextResponse.redirect(url)
+      return withTimings(NextResponse.redirect(url))
     }
 
     // Check role for mod/admin routes
     if (isModRoute || isAdminRoute) {
+      const rolesStartedAt = performance.now()
       const { data: roles } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
+      mark('roles', rolesStartedAt)
 
       const userRoles = roles?.map((r) => r.role) ?? []
       const hasAccess = isAdminRoute
@@ -77,12 +93,12 @@ export async function proxy(request: NextRequest) {
       if (!hasAccess) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
-        return NextResponse.redirect(url)
+        return withTimings(NextResponse.redirect(url))
       }
     }
   }
 
-  return supabaseResponse
+  return withTimings(supabaseResponse)
 }
 
 export const config = {
