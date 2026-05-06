@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { TriangleAlertIcon } from 'lucide-react'
+import { Info, TriangleAlertIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { canAccessMod, fetchSessionContext } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
@@ -54,8 +54,17 @@ function formatHeroDate(iso: string) {
   }
 }
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
+function isInLast24HoursBeforeKickoff(kickoffIso: string) {
+  const kickoff = new Date(kickoffIso).getTime()
+  const now = Date.now()
+  return now >= kickoff - MS_PER_DAY && now < kickoff
+}
+
 function MatchesHero({ game }: { game: Game | null }) {
   const formatted = game ? formatHeroDate(game.date) : null
+  const showSoldOutTickets = game ? isInLast24HoursBeforeKickoff(game.date) : false
 
   if (!game) {
     return (
@@ -104,7 +113,7 @@ function MatchesHero({ game }: { game: Game | null }) {
       <div className="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-blue-950/88 to-transparent" aria-hidden />
 
       <div className="container mx-auto flex min-h-[30rem] max-w-screen-xl flex-col px-4 pb-12 pt-12 md:pb-16 md:pt-16">
-        <div>
+        <div className="hidden md:block">
           <p className="text-lg font-semibold leading-tight">Futebol</p>
           <p className="text-sm font-medium text-white/55">FCDA · Jogos e resultados</p>
         </div>
@@ -148,13 +157,23 @@ function MatchesHero({ game }: { game: Game | null }) {
                 <p className="mt-1 font-semibold">{formatted?.openingTime ?? 'Por definir'}</p>
               </div>
             </div>
-            <div
-              role="status"
-              className="inline-flex max-w-full shrink-0 items-center gap-2.5 self-end rounded-lg border border-amber-400/45 bg-amber-500/[0.16] px-4 py-2.5 text-sm font-semibold tracking-tight text-amber-50 shadow-sm backdrop-blur-sm supports-[backdrop-filter]:bg-amber-500/[0.12] sm:text-base"
-            >
-              <TriangleAlertIcon className="size-5 shrink-0 text-amber-200 opacity-95" aria-hidden />
-              Bilhetes esgotados
-            </div>
+            {showSoldOutTickets ? (
+              <div
+                role="status"
+                className="flex w-full max-w-full items-center gap-2.5 rounded-lg border border-amber-400/45 bg-amber-500/[0.16] px-4 py-2.5 text-sm font-semibold tracking-tight text-amber-50 shadow-sm backdrop-blur-sm supports-[backdrop-filter]:bg-amber-500/[0.12] sm:inline-flex sm:w-auto sm:shrink-0 sm:self-end sm:text-base"
+              >
+                <TriangleAlertIcon className="size-5 shrink-0 text-amber-200 opacity-95" aria-hidden />
+                Bilhetes esgotados
+              </div>
+            ) : (
+              <div
+                role="status"
+                className="flex w-full max-w-full items-center gap-2.5 rounded-lg border border-white/28 bg-white/[0.1] px-4 py-2.5 text-sm font-semibold tracking-tight text-white/95 shadow-sm backdrop-blur-sm supports-[backdrop-filter]:bg-white/[0.08] sm:inline-flex sm:w-auto sm:shrink-0 sm:self-end sm:text-base"
+              >
+                <Info className="size-5 shrink-0 text-white/85" aria-hidden />
+                Bilhetes disponíveis nos locais habituais
+              </div>
+            )}
           </div>
         </div>
       </div>
