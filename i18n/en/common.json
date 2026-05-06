@@ -201,6 +201,8 @@
     "linkUser": "Link to user",
     "unlinkUser": "Unlink user",
     "guest": "Guest",
+    "filterGuestPlayers": "Guest players only",
+    "noGuestPlayers": "No guest players — everyone has a linked account.",
     "addAlias": "Add alias",
     "noPlayer": "—",
     "searchPlayer": "Search player...",

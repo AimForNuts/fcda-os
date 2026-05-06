@@ -201,6 +201,8 @@
     "linkUser": "Associar utilizador",
     "unlinkUser": "Desassociar utilizador",
     "guest": "Convidado",
+    "filterGuestPlayers": "Apenas convidados",
+    "noGuestPlayers": "Sem jogadores convidados — todos têm conta associada.",
     "addAlias": "Adicionar alias",
     "noPlayer": "—",
     "searchPlayer": "Procurar jogador...",

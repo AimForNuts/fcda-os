@@ -56,15 +56,17 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false)
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
+  const [guestOnly, setGuestOnly] = useState(false)
   const deferredSearchValue = useDeferredValue(searchValue)
   const userSearchAbort = useRef<AbortController | null>(null)
   const photoInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   const filteredRows = useMemo(() => {
+    const pool = guestOnly ? rows.filter((p) => p.profile_id == null) : rows
     const query = normalizeSearch(deferredSearchValue.trim())
-    if (!query) return rows
+    if (!query) return pool
 
-    return rows.filter((player) => {
+    return pool.filter((player) => {
       const values = [
         player.sheet_name,
         player.shirt_number?.toString() ?? '',
@@ -76,7 +78,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
 
       return values.some((value) => normalizeSearch(value).includes(query))
     })
-  }, [deferredSearchValue, rows])
+  }, [deferredSearchValue, guestOnly, rows])
 
   function setLoading(playerId: string, key: string | null) {
     setLoadingMap((prev) => {
@@ -382,17 +384,29 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
   return (
     <div className="min-w-0 space-y-3">
       <div className="sticky top-20 z-40 -mx-4 border-b border-border bg-background px-4 py-3 shadow-sm">
-        <div className="w-full">
-          <label htmlFor="admin-player-search" className="sr-only">
-            {t('admin.searchPlayers')}
-          </label>
-          <Input
-            id="admin-player-search"
-            type="search"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder={t('admin.searchPlayers')}
-          />
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <div className="min-w-0 flex-1">
+            <label htmlFor="admin-player-search" className="sr-only">
+              {t('admin.searchPlayers')}
+            </label>
+            <Input
+              id="admin-player-search"
+              type="search"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder={t('admin.searchPlayers')}
+            />
+          </div>
+          <Button
+            type="button"
+            variant={guestOnly ? 'secondary' : 'outline'}
+            size="sm"
+            className="shrink-0 sm:self-auto"
+            aria-pressed={guestOnly}
+            onClick={() => setGuestOnly((v) => !v)}
+          >
+            {t('admin.filterGuestPlayers')}
+          </Button>
         </div>
         <datalist id="admin-player-nationality-options">
           {NATIONALITY_OPTIONS.map((code) => (
@@ -874,7 +888,11 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
 
       {filteredRows.length === 0 && (
         <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">
-          {rows.length === 0 ? 'Sem jogadores registados.' : t('admin.noPlayersFound')}
+          {rows.length === 0
+            ? 'Sem jogadores registados.'
+            : guestOnly && !rows.some((p) => p.profile_id == null)
+              ? t('admin.noGuestPlayers')
+              : t('admin.noPlayersFound')}
         </p>
       )}
 
