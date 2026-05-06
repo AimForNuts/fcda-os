@@ -9,10 +9,12 @@ import i18n from '@/i18n/config'
 import { MatchesDateFilter } from '@/components/matches/MatchesDateFilter'
 import { NewGameModal } from '@/components/matches/NewGameModal'
 import { RecintoLink } from '@/components/matches/RecintoLink'
+import { WeatherSummary } from '@/components/matches/WeatherSummary'
 import { cn } from '@/lib/utils'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { bcp47ForI18nLanguage } from '@/lib/i18n/date-locale'
+import type { MatchWeather } from '@/lib/weather/open-meteo'
 import type { Game, Recinto } from '@/types'
 import type { MatchesView } from '@/lib/matches/matches-view'
 
@@ -77,7 +79,15 @@ function formatHeroDate(iso: string, lng: string, t: (key: string, opts?: Record
 
 type RecintoLinkData = Pick<Recinto, 'name' | 'google_place_id' | 'latitude' | 'longitude' | 'maps_url'>
 
-function MatchesHero({ game, recinto }: { game: Game | null; recinto?: RecintoLinkData | null }) {
+function MatchesHero({
+  game,
+  recinto,
+  weather,
+}: {
+  game: Game | null
+  recinto?: RecintoLinkData | null
+  weather?: MatchWeather | null
+}) {
   const { t } = useTranslation()
   const lng = i18n.language
   const formatted = game ? formatHeroDate(game.date, lng, t) : null
@@ -128,16 +138,6 @@ function MatchesHero({ game, recinto }: { game: Game | null; recinto?: RecintoLi
         aria-hidden
       />
       <div className="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-blue-950/88 to-transparent" aria-hidden />
-      {!showSoldOutTickets ? (
-        <div
-          role="status"
-          className="absolute bottom-6 right-4 z-10 flex max-w-[calc(100vw-2rem)] items-center gap-2.5 rounded-lg border border-white/28 bg-white/[0.1] px-4 py-2.5 text-sm font-semibold tracking-tight text-white/95 shadow-sm backdrop-blur-sm supports-[backdrop-filter]:bg-white/[0.08] sm:bottom-16 sm:right-6 sm:inline-flex sm:max-w-full sm:text-base md:right-8"
-        >
-          <Info className="size-5 shrink-0 text-white/85" aria-hidden />
-          {t('matches.page.ticketsAvailable')}
-        </div>
-      ) : null}
-
       <div className="container mx-auto flex min-h-[30rem] max-w-screen-xl flex-col px-4 pb-12 pt-12 md:pb-16 md:pt-16">
         <div className="mt-auto">
           <h1 className="sr-only">{t('matches.page.heroSrTitle')}</h1>
@@ -164,16 +164,13 @@ function MatchesHero({ game, recinto }: { game: Game | null; recinto?: RecintoLi
           </p>
 
           <div className="mt-8 flex flex-col items-stretch gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-8 md:gap-10">
-            <div className="grid w-fit grid-cols-3 gap-3 text-sm text-white/92 sm:gap-0">
-              <div className="min-w-0 border-r border-white/14 pr-4 sm:pr-5">
-                <p className="text-base font-medium text-white/38">{t('matches.page.localDateTimeLabel')}</p>
-                <p className="mt-1 font-semibold">
-                  {formatted
-                    ? t('matches.page.dateAtTime', { date: formatted.date, time: formatted.time })
-                    : t('matches.page.tbd')}
-                </p>
-              </div>
-              <div className="min-w-0 border-r border-white/14 px-4 sm:px-5">
+            <div
+              className={cn(
+                'grid w-fit gap-3 text-sm text-white/92 sm:gap-0',
+                weather ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2',
+              )}
+            >
+              <div className="min-w-0 border-r border-white/14 pr-4 sm:px-5 sm:pl-0">
                 <p className="text-base font-medium text-white/38">{t('matches.page.venueLabel')}</p>
                 <RecintoLink
                   location={game?.location ?? t('matches.page.defaultVenue')}
@@ -181,20 +178,38 @@ function MatchesHero({ game, recinto }: { game: Game | null; recinto?: RecintoLi
                   className="mt-1 inline-flex max-w-full items-center gap-1 font-semibold text-white hover:text-white hover:underline"
                 />
               </div>
-              <div className="min-w-0 pl-4 sm:pl-5">
+              <div className={cn('min-w-0 pl-4 sm:px-5', weather && 'sm:border-r sm:border-white/14')}>
                 <p className="text-base font-medium text-white/38">{t('matches.page.gatesOpenLabel')}</p>
                 <p className="mt-1 font-semibold">{formatted?.openingTime ?? t('matches.page.tbd')}</p>
               </div>
+              {weather ? (
+                <div className="hidden min-w-0 pl-5 sm:block">
+                  <p className="text-base font-medium text-white/38">Tempo</p>
+                  <WeatherSummary weather={weather} variant="hero" className="mt-1" />
+                </div>
+              ) : null}
             </div>
-            {showSoldOutTickets ? (
-              <div
-                role="status"
-                className="flex w-full max-w-full items-center gap-2.5 rounded-lg border border-amber-400/45 bg-amber-500/[0.16] px-4 py-2.5 text-sm font-semibold tracking-tight text-amber-50 shadow-sm backdrop-blur-sm supports-[backdrop-filter]:bg-amber-500/[0.12] sm:inline-flex sm:w-auto sm:shrink-0 sm:self-end sm:text-base"
-              >
-                <TriangleAlertIcon className="size-5 shrink-0 text-amber-200 opacity-95" aria-hidden />
-                {t('matches.page.ticketsSoldOut')}
-              </div>
-            ) : null}
+            <div
+              role="status"
+              className={cn(
+                'flex w-full max-w-full items-center justify-center gap-2.5 rounded-lg px-4 py-2.5 text-center text-sm font-semibold tracking-tight shadow-sm backdrop-blur-sm sm:inline-flex sm:w-auto sm:shrink-0 sm:self-end sm:text-base',
+                showSoldOutTickets
+                  ? 'border border-amber-400/45 bg-amber-500/[0.16] text-amber-50 supports-[backdrop-filter]:bg-amber-500/[0.12]'
+                  : 'border border-white/28 bg-white/[0.1] text-white/95 supports-[backdrop-filter]:bg-white/[0.08]',
+              )}
+            >
+              {showSoldOutTickets ? (
+                <>
+                  <TriangleAlertIcon className="size-5 shrink-0 text-amber-200 opacity-95" aria-hidden />
+                  {t('matches.page.ticketsSoldOut')}
+                </>
+              ) : (
+                <>
+                  <Info className="size-5 shrink-0 text-white/85" aria-hidden />
+                  {t('matches.page.ticketsAvailable')}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -218,14 +233,17 @@ function MatchesViewTabs({
   mineCount: number
 }) {
   const { t } = useTranslation()
-  const tabs: Array<{ view: MatchesView; labelKey: string; count: number }> = [
-    { view: 'calendar', labelKey: 'matches.page.tabs.calendar', count: calendarCount },
-    { view: 'results', labelKey: 'matches.page.tabs.results', count: resultsCount },
-    { view: 'mine', labelKey: 'matches.page.tabs.mine', count: mineCount },
+  const tabs: Array<{ view: MatchesView; labelKey: string; mobileLabel: string; count: number }> = [
+    { view: 'calendar', labelKey: 'matches.page.tabs.calendar', mobileLabel: 'Calendário', count: calendarCount },
+    { view: 'results', labelKey: 'matches.page.tabs.results', mobileLabel: 'Resultados', count: resultsCount },
+    { view: 'mine', labelKey: 'matches.page.tabs.mine', mobileLabel: 'Meus', count: mineCount },
   ]
 
   return (
-    <nav className="flex min-w-0 items-center gap-1" aria-label={t('matches.page.tabsNavAriaLabel')}>
+    <nav
+      className="grid min-w-0 grid-cols-3 gap-1 rounded-lg border border-border bg-muted/40 p-1 sm:flex sm:items-center sm:gap-1 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
+      aria-label={t('matches.page.tabsNavAriaLabel')}
+    >
       {tabs.map((tab) => {
         const active = activeView === tab.view
 
@@ -236,16 +254,17 @@ function MatchesViewTabs({
             scroll={false}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'inline-flex h-11 min-w-0 items-center gap-2 border-b-2 px-3 text-sm font-black uppercase tracking-normal transition-colors sm:px-5',
+              'inline-flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-black uppercase tracking-normal transition-colors sm:h-11 sm:justify-start sm:gap-2 sm:rounded-none sm:border-b-2 sm:px-5 sm:text-sm',
               active
-                ? 'border-fcda-blue text-fcda-blue'
-                : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
+                ? 'bg-white text-fcda-blue shadow-sm sm:border-fcda-blue sm:bg-transparent sm:shadow-none'
+                : 'text-muted-foreground hover:bg-background/60 hover:text-foreground sm:border-transparent sm:hover:border-border sm:hover:bg-transparent',
             )}
           >
-            <span>{t(tab.labelKey)}</span>
+            <span className="sm:hidden">{tab.mobileLabel}</span>
+            <span className="hidden sm:inline">{t(tab.labelKey)}</span>
             <span
               className={cn(
-                'rounded-full px-2 py-0.5 text-xs font-bold tabular-nums',
+                'rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums sm:px-2 sm:text-xs',
                 active ? 'bg-fcda-blue/10 text-fcda-blue' : 'bg-muted text-muted-foreground',
               )}
             >
@@ -263,6 +282,7 @@ export type PersonalEmptyKind = 'none' | 'login' | 'pending' | 'no_player'
 export function MatchesListingChrome({
   heroGame,
   heroRecinto,
+  heroWeather,
   activeView,
   from,
   to,
@@ -279,6 +299,7 @@ export function MatchesListingChrome({
 }: {
   heroGame: Game | null
   heroRecinto?: RecintoLinkData | null
+  heroWeather?: MatchWeather | null
   activeView: MatchesView
   from?: string
   to?: string
@@ -324,7 +345,7 @@ export function MatchesListingChrome({
 
   return (
     <div className="bg-white">
-      <MatchesHero game={heroGame} recinto={heroRecinto} />
+      <MatchesHero game={heroGame} recinto={heroRecinto} weather={heroWeather} />
 
       <main id="matches-list" className="container mx-auto max-w-screen-xl px-4 py-8 md:py-10">
         <div className="mb-8 border-b border-border">
@@ -349,7 +370,7 @@ export function MatchesListingChrome({
               {canCreateGame && <NewGameModal />}
             </div>
           </div>
-          <div className="mt-5 overflow-x-auto">
+          <div className="sticky top-16 z-30 -mx-4 mt-5 overflow-x-auto border-y border-border bg-white px-4 py-2 sm:top-20 sm:mx-0 sm:border-b sm:border-t-0 sm:px-0 sm:py-0">
             <MatchesViewTabs
               activeView={activeView}
               from={from}
