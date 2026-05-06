@@ -84,12 +84,31 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "confirm": "Confirm",
-    "back": "Back"
+    "back": "Back",
+    "close": "Close",
+    "retry": "Retry",
+    "remove": "Remove",
+    "saving": "Saving...",
+    "networkError": "Network error. Try again."
   },
   "home": {
     "nextMatch": "Next Match",
     "noNextMatch": "No upcoming matches.",
-    "viewAll": "View all matches"
+    "viewAll": "View all matches",
+    "clubType": "Football club",
+    "clubName": "Dragões da Areosa",
+    "heroSubtitleFull": "Follow matches, view stats, and manage the team.",
+    "scheduledGames": "Scheduled matches",
+    "completedGames": "Completed matches",
+    "noScheduledGames": "No scheduled matches right now.",
+    "noCompletedGames": "No completed matches yet.",
+    "squadSeason": "Squad 25-26",
+    "viewSquad": "View squad",
+    "versus": "VS",
+    "previousScheduledGame": "Previous scheduled match",
+    "nextScheduledGame": "Next scheduled match",
+    "previousCompletedGame": "Previous completed match",
+    "nextCompletedGame": "Next completed match"
   },
   "matches": {
     "title": "Matches",
@@ -183,6 +202,54 @@
     "feedbackPending": "Feedback pending",
     "errors": {
       "ratingFailed": "Failed to submit ratings."
+    },
+    "matchSheet": "Match sheet",
+    "ratingScoreLabel": "Rating (0-10)",
+    "feedbackOptionalPlaceholder": "Comment (optional)",
+    "recinto": {
+      "recent": "Recent venues",
+      "googleMaps": "Google Maps",
+      "searchError": "Failed to search venues.",
+      "loadError": "Failed to load venue."
+    },
+    "comments": {
+      "title": "Comments",
+      "comment": "Comment",
+      "placeholder": "Comment...",
+      "publish": "Publish",
+      "edit": "Edit comment",
+      "delete": "Delete comment",
+      "empty": "No comments.",
+      "loginPrompt": "Sign in to comment.",
+      "mention": "Mention",
+      "emoji": "Emoji",
+      "insertEmoji": "Insert {{emoji}}",
+      "confirmDelete": "Delete this comment?",
+      "errors": {
+        "publishFailed": "Could not publish.",
+        "updateFailed": "Could not update.",
+        "deleteFailed": "Could not delete."
+      }
+    },
+    "noAssignedPlayers": "No assigned players.",
+    "teamAKitAlt": "Team White kit",
+    "teamBKitAlt": "Team Blue kit",
+    "detail": {
+      "teamsAndPlayers": "Teams and players",
+      "playerCount_one": "{{count}} player",
+      "playerCount_other": "{{count}} players",
+      "conversation": "Conversation",
+      "commentCount_one": "{{count}} comment",
+      "commentCount_other": "{{count}} comments",
+      "summary": "Summary",
+      "date": "Date",
+      "weather": "Weather",
+      "status": "Status",
+      "playersCalled": "Called up",
+      "management": "Management",
+      "editGame": "Edit match",
+      "manageLineup": "Manage lineup",
+      "finishGame": "Finish match"
     }
   },
   "players": {
@@ -192,7 +259,43 @@
     "colNumber": "#",
     "colPlayer": "Player",
     "colGames": "Games",
-    "colRating": "Rating"
+    "colRating": "Rating",
+    "matchHistory": {
+      "title": "Match history",
+      "filterAria": "Filter by game type",
+      "filters": {
+        "all": "All"
+      },
+      "emptyFilter": "No matches in this filter."
+    },
+    "viewProfile": "View player profile",
+    "genericPlayer": "Player",
+    "personalProfile": "Personal profile",
+    "gamesLabel": "Games",
+    "biography": "Biography",
+    "viewProfileAria": "View {{name}} profile",
+    "detail": {
+      "squad": "Squad",
+      "games": "Games",
+      "statistics": "Statistics",
+      "biography": "Biography",
+      "gamesDescription": "Details for the matches linked to this player.",
+      "lastGame": "Last match",
+      "result": "Result",
+      "noCompletedGames": "No completed matches.",
+      "nextGame": "Next match",
+      "status": "Status",
+      "scheduled": "Scheduled",
+      "noUpcomingGame": "No upcoming match linked.",
+      "noGames": "No matches recorded.",
+      "updatedByCompletedGames": "Updated from completed matches.",
+      "competitiveRank": "{{rank}} in the competitive points ranking",
+      "noCompetitiveRank": "No competitive ranking position",
+      "ranking": "Ranking",
+      "viewFullRanking": "View full leaderboard",
+      "rankingCaption": "Competitive points leaderboard preview with wins, draws, and losses.",
+      "fallbackBiography": "{{name}} is part of the FCDA squad as {{positions}}. This profile gathers the player competitive record, including matches, points, results, and recent history.\n\nThis season, {{name}} has {{matches}} competitive matches, {{points}} points, and a {{winRate}}% competitive win rate. Data is updated from completed matches registered in the platform."
+    }
   },
   "stats": {
     "heroSubtitle": "Points table (3 for a win, 1 for a draw), with leaders, win rate, and points per game to compare the squad in competitive matches.",
@@ -283,7 +386,41 @@
       "current": "Current lineup",
       "noLineup": "No lineup set yet.",
       "errorParse": "Failed to parse lineup.",
-      "errorSave": "Failed to save lineup."
+      "errorSave": "Failed to save lineup.",
+      "finishedLocked": "This game has already finished. The lineup cannot be changed.",
+      "cancelledLocked": "This game was cancelled. The lineup cannot be changed.",
+      "aiModal": {
+        "generatedTitle": "Generated lineup",
+        "promptTitle": "AI team prompt",
+        "balanceSummary": "Rating delta {{ratingDelta}} ? Player count delta {{playerCountDelta}}",
+        "reviewingPrompt_one": "Reviewing prompt for {{count}} player",
+        "reviewingPrompt_other": "Reviewing prompt for {{count}} players",
+        "preparingPrompt_one": "Preparing prompt for {{count}} player",
+        "preparingPrompt_other": "Preparing prompt for {{count}} players",
+        "teamsTab": "Teams",
+        "reasoningTab": "Reasoning",
+        "regenerate": "Regenerate",
+        "generateTeams": "Generate teams",
+        "applying": "Applying...",
+        "applyToLineup": "Apply to lineup",
+        "balancing_one": "Balancing {{count}} player",
+        "balancing_other": "Balancing {{count}} players",
+        "generatingHint": "Ratings, positions, feedback and captain choices are being checked.",
+        "anchors": "Anchors",
+        "teamShape": "Team shape",
+        "captains": "Captains",
+        "creatingPrompt_one": "Creating prompt for {{count}} player",
+        "creatingPrompt_other": "Creating prompt for {{count}} players",
+        "preparingHint": "Ratings, recent form, win rate and feedback are being collected.",
+        "systemPrompt": "System prompt",
+        "userPrompt": "User prompt",
+        "playerCount_one": "{{count}} player",
+        "playerCount_other": "{{count}} players",
+        "ratingSummary": "Total {{total}} ? Avg {{average}}",
+        "noReasoning": "No reasoning returned.",
+        "notes": "Notes"
+      },
+      "teamAssignmentAria": "Team assignment"
     },
     "finish": {
       "title": "Finish Game",
@@ -293,7 +430,8 @@
       "warning": "This action cannot be undone.",
       "confirm": "Confirm & Finish",
       "alreadyFinished": "This game is already finished.",
-      "errorFinish": "Failed to finish game."
+      "errorFinish": "Failed to finish game.",
+      "cancelled": "This game was cancelled."
     }
   },
   "admin": {
@@ -379,6 +517,105 @@
       "linkFailed": "Failed to link.",
       "ratingFailed": "Failed to update rating.",
       "feedbackFailed": "Failed to update feedback."
+    },
+    "userCount_one": "{{count}} user",
+    "userCount_other": "{{count}} users",
+    "playerCount_one": "{{count}} player",
+    "playerCount_other": "{{count}} players",
+    "aiRating": {
+      "description": "Update player ratings with AI."
+    },
+    "replacePhoto": "Replace photo",
+    "addPhoto": "Add photo",
+    "removePhoto": "Remove photo",
+    "noRegisteredPlayers": "No registered players.",
+    "positionsValue": "Positions: {{positions}}",
+    "positionsEmpty": "Positions: -",
+    "noRegisteredUsers": "No registered users.",
+    "tableName": "Name",
+    "tablePlayerAliases": "Player / Aliases",
+    "tableStatus": "Status",
+    "tableRoles": "Roles",
+    "tableActions": "Actions"
+  },
+  "profile": {
+    "positions": {
+      "GK": "Goalkeeper",
+      "CB": "Defender",
+      "CM": "Midfielder",
+      "W": "Winger",
+      "ST": "Forward"
+    },
+    "account": {
+      "title": "Account details",
+      "description": "Update the name shown in the app and manage account access.",
+      "badge": "Account",
+      "name": "Name",
+      "email": "Login email",
+      "password": "Password",
+      "passwordHint": "Get an email link to set a new password.",
+      "resetByLink": "Reset by link",
+      "footerNote": "Email is used for login and account recovery.",
+      "save": "Save account",
+      "saved": "Account saved successfully.",
+      "errors": {
+        "nameRequired": "Name cannot be empty.",
+        "saveFailed": "Failed to save account details."
+      }
+    },
+    "player": {
+      "title": "Player details",
+      "description": "These details identify your profile and keep the team organized.",
+      "editable": "Editable",
+      "name": "Name",
+      "number": "Number",
+      "nationality": "Nationality",
+      "noNumber": "No number",
+      "choosePositions": "Choose your positions",
+      "photoTitle": "Photo",
+      "photoDescription": "Keep your image up to date for a more consistent presentation.",
+      "photoActive": "Active",
+      "photoOptional": "Optional",
+      "photoRequirements": "Use JPEG, PNG or WebP up to {{size}} MB. A simple, centered and well-lit photo works best.",
+      "uploadingPhoto": "Uploading...",
+      "replacePhoto": "Replace photo",
+      "uploadPhoto": "Upload photo",
+      "removingPhoto": "Removing...",
+      "preferredPositions": "Preferred positions",
+      "preferredPositionsHint": "Choose one or more positions where you prefer to play.",
+      "selectionCount_one": "{{count}} selection",
+      "selectionCount_other": "{{count}} selections",
+      "saved": "Profile saved successfully.",
+      "footerNote": "Changes are linked to your player and may be used in other areas of the app.",
+      "viewPublicPage": "View public page",
+      "saveChanges": "Save changes",
+      "errors": {
+        "saveFailed": "Failed to save.",
+        "photoUploadFailed": "Failed to upload photo.",
+        "photoRemoveFailed": "Failed to remove photo."
+      }
+    },
+    "page": {
+      "title": "Account",
+      "description": "Manage your access details and identity in the app.",
+      "emailUnavailable": "Email unavailable",
+      "playerPageTitle": "Player page",
+      "playerPageDescription": "Edit {{name}} public details on a separate page.",
+      "viewPublicPage": "View public page",
+      "editPlayerPage": "Edit player page",
+      "noLinkedPlayerTitle": "Account not linked to a player yet",
+      "noLinkedPlayerDescription": "Your account is not linked to a player yet. Contact an administrator to associate the profile.",
+      "calendarTitle": "Calendar sync",
+      "calendarDescription": "Copy the ICS URL to subscribe in your calendar.",
+      "calendarLocalhostWarning": "External calendars, such as Google Calendar, cannot access localhost. Use this URL from the published production version.",
+      "myGamesCalendar": "My games",
+      "allGamesCalendar": "All games"
+    },
+    "calendarSync": {
+      "copiedAria": "URL copied",
+      "copyUrlAria": "Copy {{label}} URL",
+      "copied": "Copied",
+      "copyUrl": "Copy URL"
     }
   }
 }

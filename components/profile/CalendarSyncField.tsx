@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,12 +9,15 @@ import { Label } from '@/components/ui/label'
 
 type Props = {
   id: string
-  label: string
+  label?: string
+  labelKey?: string
   value: string
 }
 
-export function CalendarSyncField({ id, label, value }: Props) {
+export function CalendarSyncField({ id, label, labelKey, value }: Props) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
+  const resolvedLabel = labelKey ? t(labelKey) : (label ?? '')
 
   async function copyUrl() {
     await navigator.clipboard.writeText(value)
@@ -25,7 +29,7 @@ export function CalendarSyncField({ id, label, value }: Props) {
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>{resolvedLabel}</Label>
       <div className="flex gap-2">
         <Input
           id={id}
@@ -38,8 +42,8 @@ export function CalendarSyncField({ id, label, value }: Props) {
           variant="outline"
           size="icon-lg"
           onClick={copyUrl}
-          aria-label={copied ? 'URL copiado' : `Copiar URL de ${label}`}
-          title={copied ? 'Copiado' : 'Copiar URL'}
+          aria-label={copied ? t('profile.calendarSync.copiedAria') : t('profile.calendarSync.copyUrlAria', { label: resolvedLabel })}
+          title={copied ? t('profile.calendarSync.copied') : t('profile.calendarSync.copyUrl')}
         >
           <Icon className="size-4" aria-hidden />
         </Button>

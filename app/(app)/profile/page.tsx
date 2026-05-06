@@ -10,6 +10,7 @@ import { createPlayerCalendarToken } from '@/lib/calendar/token'
 import { PlayerPhotoZoom } from '@/components/player/PlayerPhotoZoom'
 import { AccountForm } from '@/components/profile/AccountForm'
 import { CalendarSyncField } from '@/components/profile/CalendarSyncField'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -94,15 +95,15 @@ export default async function ProfilePage() {
                   {displayName}
                 </p>
                 <h1 className="text-3xl font-semibold tracking-tight text-fcda-navy md:text-4xl">
-                  Conta
+                  <TranslatedText i18nKey="profile.page.title" />
                 </h1>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">
-                  Gere os teus dados de acesso e identificação na aplicação.
+                  <TranslatedText i18nKey="profile.page.description" />
                 </p>
               </div>
             </div>
             <div className="inline-flex w-fit items-center rounded-full border border-border/70 bg-background/75 px-4 py-2 text-sm font-medium text-fcda-navy shadow-sm backdrop-blur">
-              {user?.email ?? 'Email não disponível'}
+              {user?.email ?? <TranslatedText i18nKey="profile.page.emailUnavailable" />}
             </div>
           </div>
         </div>
@@ -119,10 +120,10 @@ export default async function ProfilePage() {
             <CardContent className="flex flex-col justify-between gap-5 p-6 md:flex-row md:items-center md:p-8">
               <div>
                 <h2 className="text-xl font-semibold text-fcda-navy">
-                  Página de jogador
+                  <TranslatedText i18nKey="profile.page.playerPageTitle" />
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Edita os dados públicos de {player.sheet_name} numa página separada.
+                  <TranslatedText i18nKey="profile.page.playerPageDescription" values={{ name: player.sheet_name }} />
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -132,14 +133,14 @@ export default async function ProfilePage() {
                   render={<Link href={`/players/${player.id}`} />}
                 >
                   <ExternalLink className="size-4" />
-                  Ver página pública
+                  <TranslatedText i18nKey="profile.page.viewPublicPage" />
                 </Button>
                 <Button
                   nativeButton={false}
                   render={<Link href="/profile/player" />}
                   className="bg-fcda-navy text-white hover:bg-fcda-navy/90"
                 >
-                  Editar página de jogador
+                  <TranslatedText i18nKey="profile.page.editPlayerPage" />
                 </Button>
               </div>
             </CardContent>
@@ -152,11 +153,10 @@ export default async function ProfilePage() {
               </div>
               <div className="space-y-2">
                 <h2 className="text-xl font-semibold text-fcda-navy">
-                  Conta ainda sem ligação a jogador
+                  <TranslatedText i18nKey="profile.page.noLinkedPlayerTitle" />
                 </h2>
                 <p className="max-w-lg text-sm leading-6 text-muted-foreground">
-                  A tua conta ainda não está ligada a um jogador. Contacta um
-                  administrador para associar o perfil.
+                  <TranslatedText i18nKey="profile.page.noLinkedPlayerDescription" />
                 </p>
               </div>
             </CardContent>
@@ -171,15 +171,14 @@ export default async function ProfilePage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-fcda-navy">
-                  Sincronização de calendário
+                  <TranslatedText i18nKey="profile.page.calendarTitle" />
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Copia o URL ICS para subscrever no teu calendário.
+                  <TranslatedText i18nKey="profile.page.calendarDescription" />
                 </p>
                 {isLocalCalendarUrl ? (
                   <p className="mt-2 text-sm leading-6 text-amber-700">
-                    Calendários externos, como Google Calendar, não conseguem aceder a localhost.
-                    Usa este URL a partir da versão publicada em produção.
+                    <TranslatedText i18nKey="profile.page.calendarLocalhostWarning" />
                   </p>
                 ) : null}
               </div>
@@ -189,14 +188,14 @@ export default async function ProfilePage() {
               {playerCalendarUrl ? (
                 <CalendarSyncField
                   id="player-calendar-url"
-                  label="Os meus jogos"
+                  labelKey="profile.page.myGamesCalendar"
                   value={playerCalendarUrl}
                 />
               ) : null}
 
               <CalendarSyncField
                 id="all-games-calendar-url"
-                label="Todos os jogos"
+                labelKey="profile.page.allGamesCalendar"
                 value={allGamesCalendarUrl}
               />
             </div>

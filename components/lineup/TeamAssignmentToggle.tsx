@@ -1,5 +1,7 @@
 import Image from 'next/image'
-import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
+import { useTranslation } from 'react-i18next'
+import { useTranslatedTeamPresentation } from '@/components/i18n/useTranslatedTeamPresentation'
+import type { MatchTeam } from '@/lib/games/team-presentation'
 import { cn } from '@/lib/utils'
 
 type TeamOption = MatchTeam | null
@@ -14,8 +16,12 @@ type Props = {
 const TEAM_OPTIONS: TeamOption[] = ['a', 'b', null]
 
 export function TeamAssignmentToggle({ value, onChange, noTeamLabel, className }: Props) {
+  const { t } = useTranslation()
+  const teamA = useTranslatedTeamPresentation('a')
+  const teamB = useTranslatedTeamPresentation('b')
+
   return (
-    <div className={cn('flex items-center gap-1.5', className)} role="group" aria-label="Team assignment">
+    <div className={cn('flex items-center gap-1.5', className)} role="group" aria-label={t('mod.lineup.teamAssignmentAria')}>
       {TEAM_OPTIONS.map((team) => {
         const isSelected = value === team
 
@@ -39,7 +45,7 @@ export function TeamAssignmentToggle({ value, onChange, noTeamLabel, className }
           )
         }
 
-        const presentation = getTeamPresentation(team)
+        const presentation = team === 'a' ? teamA : teamB
 
         return (
           <button

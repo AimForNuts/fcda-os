@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupManager } from '@/components/lineup/LineupManager'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import { canAccessAdmin, fetchSessionContext } from '@/lib/auth/permissions'
 import type { Game, GamePlayer } from '@/types'
 
@@ -111,14 +112,14 @@ export default async function LineupPage({
   if (game.status !== 'scheduled') {
     return (
       <div className="max-w-4xl mx-auto space-y-4">
-        <h1 className="text-2xl font-bold text-fcda-navy">Convocados</h1>
+        <h1 className="text-2xl font-bold text-fcda-navy"><TranslatedText i18nKey="matches.lineup" /></h1>
         <p className="text-sm text-muted-foreground">
           {dateStr} · {timeStr} · {game.location}
         </p>
         <p className="text-sm text-amber-600 font-medium">
           {game.status === 'finished'
-            ? 'Este jogo já foi terminado — a convocatória não pode ser alterada.'
-            : 'Este jogo foi cancelado — a convocatória não pode ser alterada.'}
+            ? <TranslatedText i18nKey="mod.lineup.finishedLocked" />
+            : <TranslatedText i18nKey="mod.lineup.cancelledLocked" />}
         </p>
       </div>
     )
@@ -127,7 +128,7 @@ export default async function LineupPage({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-fcda-navy">Convocados</h1>
+        <h1 className="text-2xl font-bold text-fcda-navy"><TranslatedText i18nKey="matches.lineup" /></h1>
         <p className="text-sm text-muted-foreground mt-1">
           {dateStr} · {timeStr} · {game.location}
         </p>

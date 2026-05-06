@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import { AiRatingClient } from './AiRatingClient'
 
 export type PlayerRow = {
@@ -49,7 +50,7 @@ export default async function AiRatingPage() {
       <div>
         <h1 className="text-2xl font-bold text-fcda-navy">AI Rating</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Actualizar avaliações dos jogadores com IA
+          <TranslatedText i18nKey="admin.aiRating.description" />
         </p>
       </div>
       <AiRatingClient players={rows} />

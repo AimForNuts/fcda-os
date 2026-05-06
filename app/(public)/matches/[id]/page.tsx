@@ -29,6 +29,7 @@ import { RecintoLink } from '@/components/matches/RecintoLink'
 import { RecintoMapPreview } from '@/components/matches/RecintoMapPreview'
 import { WeatherSummary } from '@/components/matches/WeatherSummary'
 import { MatchFeedbackButton } from '@/components/matches/MatchFeedbackButton'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import { Button } from '@/components/ui/button'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
@@ -95,7 +96,7 @@ function formatMatchDateParts(iso: string) {
 }
 
 function getCenterLabel(game: Game, time: string) {
-  if (game.status === 'cancelled') return 'Sem jogo'
+  if (game.status === 'cancelled') return null
   if (game.status === 'finished' && game.score_a != null && game.score_b != null) {
     return `${game.score_a} - ${game.score_b}`
   }
@@ -149,7 +150,7 @@ function MatchDetailHero({
             className="inline-flex items-center gap-2 text-sm font-semibold text-white/72 transition-colors hover:text-white"
           >
             <ArrowLeft className="size-4" aria-hidden />
-            Jogos
+            <TranslatedText i18nKey="matches.title" />
           </Link>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <GameStatusBadge status={game.status} />
@@ -169,7 +170,7 @@ function MatchDetailHero({
                     winningTeam === 'a' && 'font-black',
                   )}
                 >
-                  {teamA.label}
+                  <TranslatedText i18nKey={teamA.labelKey} />
                 </span>
                 {winningTeam === 'a' ? (
                   <Trophy className="size-4 shrink-0 text-fcda-gold sm:size-5" aria-hidden />
@@ -191,7 +192,7 @@ function MatchDetailHero({
                     game.status === 'cancelled' && 'max-w-32 text-2xl uppercase sm:text-3xl lg:text-4xl',
                   )}
                 >
-                  {centerLabel}
+                  {centerLabel ?? <TranslatedText i18nKey="matches.noGamePlayed" />}
                 </span>
               </div>
 
@@ -213,7 +214,7 @@ function MatchDetailHero({
                     winningTeam === 'b' && 'font-black',
                   )}
                 >
-                  {teamB.label}
+                  <TranslatedText i18nKey={teamB.labelKey} />
                 </span>
               </div>
             </div>
@@ -223,8 +224,8 @@ function MatchDetailHero({
             <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3 border-b border-white/12 pb-3">
               <CalendarClock className="mt-0.5 size-5 text-white/45" aria-hidden />
               <div className="min-w-0">
-                <p className="font-semibold">{formatted.shortDate} às {formatted.time}</p>
-                <p className="mt-1 text-white/48">Hora local</p>
+                <p className="font-semibold"><TranslatedText i18nKey="matches.page.dateAtTime" values={{ date: formatted.shortDate, time: formatted.time }} /></p>
+                <p className="mt-1 text-white/48"><TranslatedText i18nKey="matches.page.localDateTimeLabel" /></p>
               </div>
             </div>
             <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3 border-b border-white/12 pb-3">
@@ -235,7 +236,7 @@ function MatchDetailHero({
                   recinto={recinto}
                   className="inline-flex max-w-full items-center gap-1 truncate font-semibold text-white hover:text-white hover:underline"
                 />
-                <p className="mt-1 text-white/48">Recinto</p>
+                <p className="mt-1 text-white/48"><TranslatedText i18nKey="matches.page.venueLabel" /></p>
               </div>
             </div>
             {weather ? (
@@ -453,13 +454,13 @@ export default async function MatchDetailPage({
           <div className="min-w-0 space-y-10">
             <section>
               <div className="mb-5 border-b border-border pb-4">
-                <p className="text-sm font-bold uppercase text-fcda-blue">Convocatória</p>
+                <p className="text-sm font-bold uppercase text-fcda-blue"><TranslatedText i18nKey="matches.lineup" /></p>
                 <div className="mt-1 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <h2 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
-                    Equipas e jogadores
+                    <TranslatedText i18nKey="matches.detail.teamsAndPlayers" />
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {players.length} {players.length === 1 ? 'jogador' : 'jogadores'}
+                    <TranslatedText i18nKey={players.length === 1 ? 'matches.detail.playerCount_one' : 'matches.detail.playerCount_other'} values={{ count: players.length }} />
                   </p>
                 </div>
               </div>
@@ -474,13 +475,13 @@ export default async function MatchDetailPage({
 
             <section>
               <div className="mb-5 border-b border-border pb-4">
-                <p className="text-sm font-bold uppercase text-fcda-blue">Conversa</p>
+                <p className="text-sm font-bold uppercase text-fcda-blue"><TranslatedText i18nKey="matches.detail.conversation" /></p>
                 <div className="mt-1 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <h2 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
-                    Comentários
+                    <TranslatedText i18nKey="matches.comments.title" />
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {comments.length} {comments.length === 1 ? 'comentário' : 'comentários'}
+                    <TranslatedText i18nKey={comments.length === 1 ? 'matches.detail.commentCount_one' : 'matches.detail.commentCount_other'} values={{ count: comments.length }} />
                   </p>
                 </div>
               </div>
@@ -505,7 +506,7 @@ export default async function MatchDetailPage({
             <section className="border-y border-border py-5">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-sm font-black uppercase text-muted-foreground">
-                  Resumo
+                  <TranslatedText i18nKey="matches.detail.summary" />
                 </h2>
                 <div className="flex flex-wrap items-center justify-end gap-2">
                   <GameStatusBadge status={game.status} />
@@ -517,7 +518,7 @@ export default async function MatchDetailPage({
                 <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
                   <CalendarClock className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
-                    <dt className="text-muted-foreground">Data</dt>
+                    <dt className="text-muted-foreground"><TranslatedText i18nKey="matches.detail.date" /></dt>
                     <dd className="mt-1 font-semibold">
                       <GameDateTime iso={game.date} />
                     </dd>
@@ -526,7 +527,7 @@ export default async function MatchDetailPage({
                 <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
                   <MapPin className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
-                    <dt className="text-muted-foreground">Recinto</dt>
+                    <dt className="text-muted-foreground"><TranslatedText i18nKey="matches.page.venueLabel" /></dt>
                     <dd className="mt-1">
                       <RecintoLink
                         location={game.location}
@@ -540,7 +541,7 @@ export default async function MatchDetailPage({
                   <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
                     <CloudSun className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                     <div className="min-w-0">
-                      <dt className="text-muted-foreground">Tempo</dt>
+                      <dt className="text-muted-foreground"><TranslatedText i18nKey="matches.detail.weather" /></dt>
                       <dd className="mt-1">
                         <WeatherSummary weather={weather} variant="plain" />
                       </dd>
@@ -550,21 +551,21 @@ export default async function MatchDetailPage({
                 <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
                   <Flag className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
-                    <dt className="text-muted-foreground">Estado</dt>
+                    <dt className="text-muted-foreground"><TranslatedText i18nKey="matches.detail.status" /></dt>
                     <dd className="mt-1 font-semibold"><GameStatusPlainText status={game.status} /></dd>
                   </div>
                 </div>
                 <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
                   <UsersRound className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
-                    <dt className="text-muted-foreground">Convocados</dt>
+                    <dt className="text-muted-foreground"><TranslatedText i18nKey="matches.detail.playersCalled" /></dt>
                     <dd className="mt-1 font-semibold tabular-nums">{players.length}</dd>
                   </div>
                 </div>
                 <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
                   <MessageCircle className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
-                    <dt className="text-muted-foreground">Comentários</dt>
+                    <dt className="text-muted-foreground"><TranslatedText i18nKey="matches.comments.title" /></dt>
                     <dd className="mt-1 font-semibold tabular-nums">{comments.length}</dd>
                   </div>
                 </div>
@@ -576,7 +577,7 @@ export default async function MatchDetailPage({
             {isMod && (
               <section className="border-y border-border py-5">
                 <h2 className="mb-4 text-sm font-black uppercase text-muted-foreground">
-                  Gestão
+                  <TranslatedText i18nKey="matches.detail.management" />
                 </h2>
                 <div className="grid gap-2">
                   <Button
@@ -587,7 +588,7 @@ export default async function MatchDetailPage({
                     render={<Link href={`/mod/games/${id}/edit`} />}
                   >
                     <Pencil className="size-4" aria-hidden />
-                    Editar jogo
+                    <TranslatedText i18nKey="matches.detail.editGame" />
                   </Button>
                   <Button
                     size="lg"
@@ -597,7 +598,7 @@ export default async function MatchDetailPage({
                     render={<Link href={`/mod/games/${id}/lineup`} />}
                   >
                     <UserRoundPlus className="size-4" aria-hidden />
-                    Gerir convocados
+                    <TranslatedText i18nKey="matches.detail.manageLineup" />
                   </Button>
                   {game.status === 'scheduled' && (
                     <Button
@@ -607,7 +608,7 @@ export default async function MatchDetailPage({
                       render={<Link href={`/mod/games/${id}/finish`} />}
                     >
                       <Trophy className="size-4" aria-hidden />
-                      Terminar jogo
+                      <TranslatedText i18nKey="matches.detail.finishGame" />
                     </Button>
                   )}
                   {game.status === 'scheduled' && hasTeamDefinitions && (

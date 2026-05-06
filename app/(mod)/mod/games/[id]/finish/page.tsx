@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import type { Game } from '@/types'
 import { FinishGameForm } from './FinishGameForm'
 
@@ -25,10 +26,12 @@ export default async function FinishGamePage({
   if (game.status !== 'scheduled') {
     return (
       <div className="max-w-lg mx-auto space-y-4">
-        <h1 className="text-2xl font-bold text-fcda-navy">Terminar Jogo</h1>
+        <h1 className="text-2xl font-bold text-fcda-navy"><TranslatedText i18nKey="mod.finish.title" /></h1>
         <p className="text-sm text-muted-foreground">{dateStr} · {game.location}</p>
         <p className="text-sm text-amber-600 font-medium">
-          {game.status === 'finished' ? 'Este jogo já foi terminado.' : 'Este jogo foi cancelado.'}
+          {game.status === 'finished'
+            ? <TranslatedText i18nKey="mod.finish.alreadyFinished" />
+            : <TranslatedText i18nKey="mod.finish.cancelled" />}
         </p>
         {game.status === 'finished' && game.score_a != null && game.score_b != null && (
           <p className="text-lg font-bold">{game.score_a} – {game.score_b}</p>
@@ -39,7 +42,7 @@ export default async function FinishGamePage({
 
   return (
     <div className="max-w-lg mx-auto space-y-4">
-      <h1 className="text-2xl font-bold text-fcda-navy">Terminar Jogo</h1>
+      <h1 className="text-2xl font-bold text-fcda-navy"><TranslatedText i18nKey="mod.finish.title" /></h1>
       <p className="text-sm text-muted-foreground">{dateStr} · {game.location}</p>
       <FinishGameForm gameId={id} />
     </div>

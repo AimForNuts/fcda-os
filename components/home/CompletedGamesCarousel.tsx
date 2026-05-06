@@ -4,16 +4,14 @@ import { useCallback, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, MessageCircle, Trophy } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { formatScheduleDate } from '@/lib/games/format-schedule-date'
-import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { WeatherSummary } from '@/components/matches/WeatherSummary'
+import { useTranslatedTeamPresentation } from '@/components/i18n/useTranslatedTeamPresentation'
 import { cn } from '@/lib/utils'
 import type { MatchWeather } from '@/lib/weather/open-meteo'
 import type { Game } from '@/types'
-
-const teamA = getTeamPresentation('a')
-const teamB = getTeamPresentation('b')
 
 function HomeGameCard({
   game,
@@ -26,7 +24,10 @@ function HomeGameCard({
   commentCount?: number
   weather?: MatchWeather | null
 }) {
-  const formatted = formatScheduleDate(game.date)
+  const { i18n, t } = useTranslation()
+  const formatted = formatScheduleDate(game.date, i18n.language)
+  const teamA = useTranslatedTeamPresentation('a')
+  const teamB = useTranslatedTeamPresentation('b')
   const score =
     game.score_a != null && game.score_b != null
       ? `${game.score_a} - ${game.score_b}`
@@ -65,8 +66,8 @@ function HomeGameCard({
             <div className="flex items-start justify-end gap-2">
               <span
                 className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground"
-                aria-label={`${commentCount} comentários`}
-                title={`${commentCount} comentários`}
+                aria-label={t('matches.commentsAria', { count: commentCount })}
+                title={t('matches.commentsAria', { count: commentCount })}
               >
                 <MessageCircle size={14} aria-hidden />
                 <span className="tabular-nums">{commentCount}</span>
@@ -137,7 +138,7 @@ function HomeGameCard({
           href={`/matches/${game.id}`}
           className="relative z-10 block border-t border-border/70 px-4 py-3 text-center text-sm font-bold text-foreground transition-colors hover:bg-muted/50"
         >
-          Detalhes
+          {t('matches.page.listColDetails')}
         </Link>
       </div>
     </article>
@@ -153,6 +154,7 @@ export function CompletedGamesCarousel({
   commentCounts?: Record<string, number>
   weatherByGameId?: Record<string, MatchWeather | null>
 }) {
+  const { t } = useTranslation()
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -208,7 +210,7 @@ export function CompletedGamesCarousel({
       <div
         ref={scrollerRef}
         className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-4 px-4 pb-2 touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:snap-none md:grid-cols-3 md:gap-5 md:overflow-visible md:px-0 md:pb-0"
-        aria-label="Jogos concluídos"
+        aria-label={t('home.completedGames')}
         onScroll={updateActiveIndex}
       >
         {games.map((game) => (
@@ -227,7 +229,7 @@ export function CompletedGamesCarousel({
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Jogo concluído anterior"
+            aria-label={t('home.previousCompletedGame')}
             disabled={!canGoBack}
             onClick={() => scrollToIndex(selectedIndex - 1)}
           >
@@ -251,7 +253,7 @@ export function CompletedGamesCarousel({
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Próximo jogo concluído"
+            aria-label={t('home.nextCompletedGame')}
             disabled={!canGoForward}
             onClick={() => scrollToIndex(selectedIndex + 1)}
           >
