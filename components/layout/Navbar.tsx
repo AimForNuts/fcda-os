@@ -47,10 +47,11 @@ type NavbarProps = {
   profile: Profile | null
   roles: UserRole[]
   pendingCount: number
+  pendingFeedbackCount?: number
   linkedPlayer?: LinkedPlayer | null
 }
 
-export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: NavbarProps) {
+export function Navbar({ profile, roles, pendingCount, pendingFeedbackCount = 0, linkedPlayer = null }: NavbarProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const pathname = usePathname()
@@ -199,16 +200,20 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
         <nav className="hidden h-full items-center gap-7 md:flex">
           <DropdownMenu>
             <DropdownMenuTrigger
-              className={`${mainNavLinkClass(isActiveHref('/matches'))} gap-1 bg-transparent focus-visible:outline-none`}
+              className={`${mainNavLinkClass(isActiveHref('/matches'))} relative gap-1 bg-transparent focus-visible:outline-none`}
               aria-current={isActiveHref('/matches') ? 'page' : undefined}
             >
               {t('nav.matches')}
               <ChevronDown className="size-3.5" aria-hidden />
+              {pendingFeedbackCount > 0 ? (
+                <span className="absolute right-0 top-5 h-2 w-2 rounded-full bg-red-500" />
+              ) : null}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-72 p-2">
               {matchesNavItems.map((item) => {
                 const Icon = item.icon
                 const active = isActiveHref(item.href)
+                const count = item.href === '/matches/os-meus-jogos' ? pendingFeedbackCount : 0
 
                 return (
                   <DropdownMenuItem
@@ -218,8 +223,13 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                   >
                     <Icon className={`mt-0.5 size-4 ${active ? 'text-fcda-blue' : 'text-fcda-navy'}`} />
                     <span className="min-w-0">
-                      <span className={`block font-medium ${active ? 'text-fcda-blue' : ''}`}>
+                      <span className={`flex items-center gap-2 font-medium ${active ? 'text-fcda-blue' : ''}`}>
                         {item.label}
+                        {count > 0 ? (
+                          <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                            {count}
+                          </span>
+                        ) : null}
                       </span>
                       <span className="mt-0.5 block text-xs text-muted-foreground">
                         {item.description}
@@ -474,6 +484,9 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                 aria-current={isActiveHref('/matches') ? 'page' : undefined}
               >
                 {t('nav.matches')}
+                {pendingFeedbackCount > 0 ? (
+                  <span className="ml-1 h-2 w-2 rounded-full bg-red-500" />
+                ) : null}
               </Link>
               <div className="border-b border-white/10 pb-2 pl-3">
                 {matchesNavItems.map((item) => (
@@ -488,7 +501,14 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                     }`}
                     aria-current={isActiveHref(item.href) ? 'page' : undefined}
                   >
-                    {item.label}
+                    <span className="inline-flex items-center gap-2">
+                      {item.label}
+                      {item.href === '/matches/os-meus-jogos' && pendingFeedbackCount > 0 ? (
+                        <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                          {pendingFeedbackCount}
+                        </span>
+                      ) : null}
+                    </span>
                   </Link>
                 ))}
               </div>

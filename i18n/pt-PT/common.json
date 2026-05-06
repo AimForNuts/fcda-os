@@ -171,6 +171,8 @@
     "noLineup": "Convocatória não disponível.",
     "rate": "Avaliar",
     "rateTeammates": "Avalia os teus colegas",
+    "giveFeedback": "Dar feedback",
+    "showFeedback": "Ver feedback",
     "ratingSubmitted": "Avaliações submetidas.",
     "ratingLocked": "Avaliações submetidas — aguarda revisão.",
     "ratingSubmit": "Submeter avaliações",
@@ -178,6 +180,7 @@
     "feedbackLabel": "Feedback",
     "feedbackPlaceholder": "Partilha a tua opinião sobre este jogo...",
     "feedbackHint": "Adiciona pelo menos uma avaliação para ativar o feedback.",
+    "feedbackPending": "Feedback pendente",
     "errors": {
       "ratingFailed": "Erro ao submeter avaliações."
     }

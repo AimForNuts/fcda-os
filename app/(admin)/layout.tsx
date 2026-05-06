@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { fetchSessionContext, canAccessAdmin } from '@/lib/auth/permissions'
+import { countPendingFeedbackGames } from '@/lib/matches/pending-feedback'
 import { resolveLinkedPlayerIdentity } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
 
@@ -30,6 +31,10 @@ export default async function AdminLayout({
     .select('*', { count: 'exact', head: true })
     .eq('approved', false)
   const linkedPlayer = await resolveLinkedPlayerIdentity(session.userId, true)
+  const pendingFeedbackCount = await countPendingFeedbackGames({
+    userId: session.userId,
+    linkedPlayerId: linkedPlayer?.id,
+  })
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -37,6 +42,7 @@ export default async function AdminLayout({
         profile={session.profile}
         roles={session.roles}
         pendingCount={count ?? 0}
+        pendingFeedbackCount={pendingFeedbackCount}
         linkedPlayer={linkedPlayer}
       />
       <main className="flex-1 container max-w-screen-xl mx-auto px-4 py-8">

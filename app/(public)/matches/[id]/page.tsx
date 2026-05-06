@@ -10,7 +10,6 @@ import {
   MapPin,
   MessageCircle,
   Pencil,
-  Star,
   Trophy,
   UserRoundPlus,
   UsersRound,
@@ -29,9 +28,11 @@ import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { RecintoLink } from '@/components/matches/RecintoLink'
 import { RecintoMapPreview } from '@/components/matches/RecintoMapPreview'
 import { WeatherSummary } from '@/components/matches/WeatherSummary'
+import { MatchFeedbackButton } from '@/components/matches/MatchFeedbackButton'
 import { Button } from '@/components/ui/button'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
+import { getFeedbackEligibilityStartIso } from '@/lib/matches/pending-feedback'
 import { fetchMatchWeather, type MatchWeather } from '@/lib/weather/open-meteo'
 import { cn } from '@/lib/utils'
 import type { PlayerPublic, GamePlayer, Game, Recinto } from '@/types'
@@ -116,11 +117,13 @@ function MatchDetailHero({
   recinto,
   weather,
   showRateButton,
+  hasSubmittedFeedback,
 }: {
   game: Game
   recinto: Recinto | null
   weather: MatchWeather | null
   showRateButton: boolean
+  hasSubmittedFeedback: boolean
 }) {
   const formatted = formatMatchDateParts(game.date)
   const teamA = getTeamPresentation('a')
@@ -242,14 +245,10 @@ function MatchDetailHero({
               </div>
             ) : null}
             {showRateButton && (
-              <Button
-                className="mt-2 h-10 bg-fcda-gold font-black text-fcda-navy hover:bg-fcda-gold/90"
-                nativeButton={false}
-                render={<Link href={`/matches/${game.id}/rate`} />}
-              >
-                <Star className="size-4" aria-hidden />
-                Avaliar colegas
-              </Button>
+              <MatchFeedbackButton
+                gameId={game.id}
+                hasSubmittedFeedback={hasSubmittedFeedback}
+              />
             )}
           </div>
         </div>
@@ -335,9 +334,26 @@ export default async function MatchDetailPage({
   const showRateButton =
     game.status === 'finished' &&
     game.counts_for_stats === true &&
+    game.date >= getFeedbackEligibilityStartIso() &&
     isApproved &&
     !!session &&
     players.some((p) => p.profile_id === session.userId)
+  let hasSubmittedFeedback = false
+
+  if (showRateButton && session) {
+    const { data: existingSubmission } = await supabase
+      .from('rating_submissions')
+      .select('id')
+      .eq('game_id', id)
+      .eq('submitted_by', session.userId)
+      .limit(1)
+      .maybeSingle() as {
+        data: { id: string } | null
+        error: unknown
+      }
+
+    hasSubmittedFeedback = Boolean(existingSubmission)
+  }
 
   const playerMap = new Map(players.map((p) => [p.id, p]))
   const gpList = gamePlayers ?? []
@@ -429,6 +445,7 @@ export default async function MatchDetailPage({
         recinto={recinto}
         weather={weather}
         showRateButton={showRateButton}
+        hasSubmittedFeedback={hasSubmittedFeedback}
       />
 
       <main className="container mx-auto max-w-screen-xl px-4 py-8 md:py-10">

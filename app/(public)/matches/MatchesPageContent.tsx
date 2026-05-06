@@ -8,6 +8,7 @@ import {
 } from '@/components/matches/MatchesListingChrome'
 import { filterGamesByDateRange } from '@/lib/games/filter-by-date-range'
 import { sortGames } from '@/lib/games/sort'
+import { getFeedbackEligibilityStartIso } from '@/lib/matches/pending-feedback'
 import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
 import { fetchMatchWeather } from '@/lib/weather/open-meteo'
 import type { MatchesView } from '@/lib/matches/matches-view'
@@ -70,6 +71,34 @@ export async function MatchesPageContent({
   const mineGames = linkedPlayer
     ? gameList.filter((game) => playerGameIds.has(game.id))
     : []
+  const pendingFeedbackGameIds = new Set<string>()
+
+  if (session && linkedPlayer && isApproved) {
+    const feedbackEligibilityStart = getFeedbackEligibilityStartIso()
+    const eligibleMineGameIds = mineGames
+      .filter((game) =>
+        game.status === 'finished' &&
+        game.counts_for_stats === true &&
+        game.date >= feedbackEligibilityStart
+      )
+      .map((game) => game.id)
+
+    if (eligibleMineGameIds.length > 0) {
+      const { data: submissions } = await supabase
+        .from('rating_submissions')
+        .select('game_id')
+        .eq('submitted_by', session.userId)
+        .in('game_id', eligibleMineGameIds) as {
+          data: Array<{ game_id: string }> | null
+          error: unknown
+        }
+
+      const submittedGameIds = new Set((submissions ?? []).map((submission) => submission.game_id))
+      for (const gameId of eligibleMineGameIds) {
+        if (!submittedGameIds.has(gameId)) pendingFeedbackGameIds.add(gameId)
+      }
+    }
+  }
   const visibleGames = activeView === 'calendar'
     ? calendarGames
     : activeView === 'results'
@@ -216,6 +245,7 @@ export async function MatchesPageContent({
           commentCount={commentCounts.get(g.id) ?? 0}
           recinto={g.recinto_id ? recintosById.get(g.recinto_id) : null}
           weather={weatherByGameId.get(g.id)}
+          feedbackPending={pendingFeedbackGameIds.has(g.id)}
         />
       ))}
     </MatchesListingChrome>
