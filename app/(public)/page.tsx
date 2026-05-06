@@ -1,99 +1,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Clock3, MessageCircle } from 'lucide-react'
 import { CompletedGamesCarousel } from '@/components/home/CompletedGamesCarousel'
-import { formatScheduleDate } from '@/lib/games/format-schedule-date'
+import { ScheduledGamesCarousel } from '@/components/home/ScheduledGamesCarousel'
 import { createClient } from '@/lib/supabase/server'
-import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
 import type { Game } from '@/types'
 
 export const metadata = { title: 'FCDA — Futebol Clube Dragões da Areosa' }
-
-const teamA = getTeamPresentation('a')
-const teamB = getTeamPresentation('b')
-
-function ScheduledGameFeature({
-  game,
-  commentCount = 0,
-}: {
-  game: Game
-  commentCount?: number
-}) {
-  const formatted = formatScheduleDate(game.date)
-
-  return (
-    <article className="relative overflow-hidden rounded-xl bg-fcda-navy text-white shadow-sm">
-      <Image
-        src="/crest.png"
-        alt=""
-        width={320}
-        height={320}
-        className="pointer-events-none absolute right-[-3rem] top-1/2 z-0 h-80 w-80 -translate-y-1/2 object-contain opacity-20"
-        aria-hidden
-      />
-      <span
-        className="absolute right-4 top-4 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium text-white ring-1 ring-white/15"
-        aria-label={`${commentCount} comentários`}
-        title={`${commentCount} comentários`}
-      >
-        <MessageCircle size={14} aria-hidden />
-        <span className="tabular-nums">{commentCount}</span>
-      </span>
-      <div className="relative z-10 grid gap-4 p-5 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center">
-        <div className="min-w-0 pr-16">
-          <div className="mb-4 inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold uppercase text-white ring-1 ring-white/15">
-            <Clock3 size={12} aria-hidden />
-            Agendado
-          </div>
-          <p className="text-sm font-medium text-white/70">Próximo jogo</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight">
-            {formatted.dayMonth}{' '}
-            <span className="font-medium text-white/65">{formatted.weekday}</span>
-          </h2>
-          <p className="mt-2 text-sm text-white/75">
-            {game.location} · {formatted.time}
-          </p>
-        </div>
-
-        <div className="mx-auto grid w-full max-w-sm grid-cols-[1fr_auto_1fr] items-center gap-4 justify-self-center md:col-start-2">
-          <div className="min-w-0 text-center">
-            <Image
-              src={teamA.imageSrc}
-              alt={teamA.imageAlt}
-              width={56}
-              height={77}
-              className="mx-auto h-14 w-auto object-contain drop-shadow-sm"
-            />
-            <p className="mt-3 truncate text-sm font-semibold">{teamA.label}</p>
-          </div>
-
-          <div className="rounded-full bg-white px-4 py-1.5 text-sm font-bold text-fcda-navy shadow-sm">
-            VS
-          </div>
-
-          <div className="min-w-0 text-center">
-            <Image
-              src={teamB.imageSrc}
-              alt={teamB.imageAlt}
-              width={56}
-              height={77}
-              className="mx-auto h-14 w-auto object-contain drop-shadow-sm"
-            />
-            <p className="mt-3 truncate text-sm font-semibold">{teamB.label}</p>
-          </div>
-        </div>
-      </div>
-
-      <Link
-        href={`/matches/${game.id}`}
-        className="relative z-10 block border-t border-white/15 bg-white px-4 py-3 text-center text-sm font-bold text-fcda-navy transition-colors hover:bg-white/90"
-      >
-        Detalhes
-      </Link>
-    </article>
-  )
-}
 
 function SquadSeparator() {
   return (
@@ -141,32 +54,32 @@ function SquadSeparator() {
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const [{ data: nextGame }, { data: completedGames }] = await Promise.all([
+  const [{ data: scheduledGames }, { data: completedGames }] = await Promise.all([
     supabase
       .from('games')
       .select('*')
       .eq('status', 'scheduled')
       .order('date', { ascending: true })
-      .limit(1)
-      .maybeSingle(),
+      .limit(3),
     supabase
       .from('games')
       .select('*')
       .eq('status', 'finished')
       .order('date', { ascending: false })
       .limit(3),
-  ]) as [
-    { data: Game | null; error: unknown },
-    { data: Game[] | null; error: unknown },
-  ]
+  ]) as [{ data: Game[] | null; error: unknown }, { data: Game[] | null; error: unknown }]
+  const scheduledGameList = scheduledGames ?? []
   const completedGameList = completedGames ?? []
   const commentCountGameIds = [
-    ...(nextGame ? [nextGame.id] : []),
+    ...scheduledGameList.map((game) => game.id),
     ...completedGameList.map((game) => game.id),
   ]
   const commentCounts = await fetchMatchCommentCounts(supabase, commentCountGameIds)
+  const scheduledCommentCounts = Object.fromEntries(
+    scheduledGameList.map((game) => [game.id, commentCounts.get(game.id) ?? 0]),
+  )
   const completedCommentCounts = Object.fromEntries(
-    completedGameList.map((game) => [game.id, commentCounts.get(game.id) ?? 0])
+    completedGameList.map((game) => [game.id, commentCounts.get(game.id) ?? 0]),
   )
 
   return (
@@ -212,11 +125,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Scheduled match section */}
+      {/* Scheduled matches section */}
       <section className="container mx-auto max-w-screen-lg px-4 py-10">
         <div className="mb-5 flex items-center justify-between gap-4">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Jogo Agendado
+            Jogos Agendados
           </h2>
           <Link
             href="/matches"
@@ -226,8 +139,11 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        {nextGame ? (
-          <ScheduledGameFeature game={nextGame} commentCount={commentCounts.get(nextGame.id) ?? 0} />
+        {scheduledGameList.length > 0 ? (
+          <ScheduledGamesCarousel
+            games={scheduledGameList}
+            commentCounts={scheduledCommentCounts}
+          />
         ) : (
           <p className="text-sm text-muted-foreground">
             Sem jogos agendados de momento.
