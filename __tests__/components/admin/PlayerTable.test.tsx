@@ -12,6 +12,7 @@ vi.mock('react-i18next', () => ({
         'admin.closeItem': 'Close',
         'admin.feedbackComment': 'Comment',
         'admin.feedbackGame': 'Game',
+        'admin.filterGuestPlayers': 'Guest players only',
         'admin.guest': 'Guest',
         'admin.noPlayersFound': 'No players found.',
         'admin.playerFeedbackSubmitted': 'Feedback submitted.',
@@ -47,6 +48,28 @@ const player: PlayerRow = {
     },
   ],
 }
+
+const linkedPlayer: PlayerRow = {
+  ...player,
+  id: '33333333-3333-4333-8333-333333333333',
+  sheet_name: 'Maria',
+  profile_id: '44444444-4444-4444-8444-444444444444',
+  profile_name: 'Maria Silva',
+}
+
+describe('Admin PlayerTable guest filter', () => {
+  it('shows only players without profile when guest filter is on', () => {
+    render(<PlayerTable players={[player, linkedPlayer]} />)
+
+    expect(screen.getByText('André')).toBeInTheDocument()
+    expect(screen.getByText('Maria')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Guest players only' }))
+
+    expect(screen.getByText('André')).toBeInTheDocument()
+    expect(screen.queryByText('Maria')).not.toBeInTheDocument()
+  })
+})
 
 describe('Admin PlayerTable feedback modal', () => {
   beforeEach(() => {
