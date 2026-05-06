@@ -1,7 +1,8 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Camera, Check, Flag, Hash, Save, UserRound } from 'lucide-react'
+import Link from 'next/link'
+import { Camera, Check, ExternalLink, Flag, Hash, Save, UserRound } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -34,6 +35,7 @@ const POSITIONS = [
 ]
 
 type Props = {
+  playerId: string
   playerName: string
   sheetName: string
   shirtNumber: number | null
@@ -50,6 +52,7 @@ function getInitials(name: string) {
 }
 
 export function ProfileForm({
+  playerId,
   playerName,
   sheetName,
   shirtNumber,
@@ -411,15 +414,26 @@ export function ProfileForm({
             As alterações ficam associadas ao teu jogador e podem ser usadas noutras áreas
             da aplicação.
           </p>
-          <Button
-            type="submit"
-            size="lg"
-            disabled={submitting || name.trim() === ''}
-            className="min-w-40"
-          >
-            <Save className="size-4" />
-            {submitting ? 'A guardar...' : 'Guardar alterações'}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<Link href={`/players/${playerId}`} />}
+              className="min-w-36"
+            >
+              <ExternalLink className="size-4" />
+              Ver página pública
+            </Button>
+            <Button
+              type="submit"
+              size="lg"
+              disabled={submitting || name.trim() === ''}
+              className="min-w-40"
+            >
+              <Save className="size-4" />
+              {submitting ? 'A guardar...' : 'Guardar alterações'}
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     </form>

@@ -3,12 +3,34 @@
     "home": "Início",
     "matches": "Jogos",
     "players": "Plantel",
-    "stats": "Classificação",
+    "stats": "Leaderboard",
     "profile": "Perfil",
     "login": "Entrar",
     "register": "Registar",
     "logout": "Sair",
-    "admin": "Admin"
+    "admin": "Admin",
+    "userMenu": {
+      "preferences": "Preferências",
+      "preferencesDescription": "Conta, segurança e acesso",
+      "editPlayer": "Editar jogador",
+      "editPlayerDescription": "Foto, número e posições",
+      "myPlayer": "O meu jogador",
+      "myPlayerDescription": "Ver a página pública",
+      "signOut": "Terminar sessão",
+      "admin": {
+        "title": "Administração",
+        "users": "Utilizadores",
+        "usersDescription": "Aprovações e permissões",
+        "players": "Jogadores",
+        "playersDescription": "Plantel, ligações e perfis",
+        "ratings": "Avaliações",
+        "ratingsDescription": "Notas e feedback de jogos",
+        "feedback": "Feedback",
+        "feedbackDescription": "Inbox e revisão",
+        "aiRating": "AI Rating",
+        "aiRatingDescription": "Processamento assistido"
+      }
+    }
   },
   "footer": {
     "club": "Clube",
@@ -87,6 +109,7 @@
     }
   },
   "players": {
+    "heroSubtitle": "Consulta os jogadores, entra no perfil individual e acompanha os jogos do grupo.",
     "nameLabel": "Nome",
     "searchPlaceholder": "Procurar jogador...",
     "colNumber": "#",
@@ -95,7 +118,8 @@
     "colRating": "Nota"
   },
   "stats": {
-    "title": "Classificação",
+    "heroSubtitle": "Classificação por pontos (3 por vitória, 1 por empate), com líderes, percentagem de vitórias e pontos por jogo para comparar o plantel nos jogos competitivos.",
+    "title": "Leaderboard",
     "player": "Jogador",
     "rating": "Nota",
     "noPlayers": "Ainda sem dados de jogadores.",
