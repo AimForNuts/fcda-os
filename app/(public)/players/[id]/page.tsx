@@ -3,12 +3,13 @@ import type { Metadata } from 'next'
 import { Fragment } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Medal } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { canAccessAdmin, fetchSessionContext } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
+import { CompetitiveGameIcon } from '@/components/matches/game-type-icons'
 import { PlayerMatchHistory } from '@/components/player/PlayerMatchHistory'
 import { PlayerDescriptionEditor } from '@/components/player/PlayerDescriptionEditor'
 import { NationalityFlag } from '@/components/player/NationalityFlag'
@@ -461,7 +462,7 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
           <section className="bg-card p-4 shadow-sm shadow-sm md:p-5">
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <div className="flex items-center gap-2">
-                <Medal className="size-5 shrink-0 text-fcda-gold" aria-hidden />
+                <CompetitiveGameIcon className="size-5 shrink-0 text-fcda-gold" aria-hidden />
                 <h3 className="text-lg font-black leading-tight text-foreground">Ranking</h3>
               </div>
               <Link
