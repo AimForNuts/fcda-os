@@ -68,13 +68,19 @@ WHERE g.recinto_id IS NULL
 
 ALTER TABLE public.recintos ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "recintos_select_public" ON public.recintos;
+
 CREATE POLICY "recintos_select_public" ON public.recintos
   FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "recintos_insert_mod" ON public.recintos;
 
 CREATE POLICY "recintos_insert_mod" ON public.recintos
   FOR INSERT WITH CHECK (
     auth.uid() IS NOT NULL AND (public.has_role('mod') OR public.has_role('admin'))
   );
+
+DROP POLICY IF EXISTS "recintos_update_mod" ON public.recintos;
 
 CREATE POLICY "recintos_update_mod" ON public.recintos
   FOR UPDATE USING (
