@@ -16,6 +16,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Bot,
+  CalendarDays,
+  ChevronDown,
   ExternalLink,
   Globe,
   LogOut,
@@ -25,12 +27,14 @@ import {
   Settings,
   ShieldCheck,
   Star,
+  Trophy,
+  UserCheck,
   UserRound,
   UsersRound,
   X,
 } from 'lucide-react'
 import type { Profile, UserRole } from '@/types'
-import i18n from '@/i18n/config'
+import i18n, { LANGUAGE_STORAGE_KEY } from '@/i18n/config'
 import { ThemeToggle } from './ThemeToggle'
 
 type LinkedPlayer = {
@@ -65,6 +69,11 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
   function toggleLanguage() {
     const next = i18n.language === 'en' ? 'pt-PT' : 'en'
     i18n.changeLanguage(next)
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, next)
+    } catch {
+      /* ignore quota / private mode */
+    }
   }
 
   const avatarLabel = linkedPlayer?.name ?? profile?.display_name ?? '?'
@@ -102,8 +111,27 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
 
   const drawerLinkClass =
     'block px-2 py-3 text-white/70 hover:text-white transition-colors text-sm border-b border-white/10 last:border-0'
+  const matchesNavItems = [
+    {
+      href: '/matches/calendario',
+      label: t('nav.matchesMenu.calendar'),
+      description: t('nav.matchesMenu.calendarDescription'),
+      icon: CalendarDays,
+    },
+    {
+      href: '/matches/resultados',
+      label: t('nav.matchesMenu.results'),
+      description: t('nav.matchesMenu.resultsDescription'),
+      icon: Trophy,
+    },
+    {
+      href: '/matches/os-meus-jogos',
+      label: t('nav.matchesMenu.myGames'),
+      description: t('nav.matchesMenu.myGamesDescription'),
+      icon: UserCheck,
+    },
+  ]
   const mainNavItems = [
-    { href: '/matches', label: t('nav.matches') },
     { href: '/players', label: t('nav.players') },
     { href: '/stats', label: t('nav.stats') },
   ]
@@ -146,7 +174,7 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
   ]
   const isActiveHref = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
   const mainNavLinkClass = (active: boolean) =>
-    `border-b-2 py-7 text-sm font-black uppercase transition-colors ${
+    `inline-flex h-full items-center border-b-2 py-7 text-sm font-black uppercase transition-colors ${
       active
         ? 'border-fcda-gold text-fcda-gold'
         : 'border-transparent text-white/70 hover:text-white'
@@ -169,6 +197,39 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
 
         {/* Desktop nav links */}
         <nav className="hidden h-full items-center gap-7 md:flex">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={`${mainNavLinkClass(isActiveHref('/matches'))} gap-1 bg-transparent focus-visible:outline-none`}
+              aria-current={isActiveHref('/matches') ? 'page' : undefined}
+            >
+              {t('nav.matches')}
+              <ChevronDown className="size-3.5" aria-hidden />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-72 p-2">
+              {matchesNavItems.map((item) => {
+                const Icon = item.icon
+                const active = isActiveHref(item.href)
+
+                return (
+                  <DropdownMenuItem
+                    key={item.href}
+                    onClick={() => router.push(item.href)}
+                    className="items-start gap-3 px-3 py-2.5"
+                  >
+                    <Icon className={`mt-0.5 size-4 ${active ? 'text-fcda-blue' : 'text-fcda-navy'}`} />
+                    <span className="min-w-0">
+                      <span className={`block font-medium ${active ? 'text-fcda-blue' : ''}`}>
+                        {item.label}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">
+                        {item.description}
+                      </span>
+                    </span>
+                  </DropdownMenuItem>
+                )
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {mainNavItems.map((item) => (
             <Link
               key={item.href}
@@ -406,6 +467,31 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
               <Link href="/" onClick={() => setIsOpen(false)} className={drawerNavLinkClass(pathname === '/')}>
                 {t('nav.home')}
               </Link>
+              <Link
+                href="/matches"
+                onClick={() => setIsOpen(false)}
+                className={drawerNavLinkClass(isActiveHref('/matches'))}
+                aria-current={isActiveHref('/matches') ? 'page' : undefined}
+              >
+                {t('nav.matches')}
+              </Link>
+              <div className="border-b border-white/10 pb-2 pl-3">
+                {matchesNavItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`block rounded px-2 py-2 text-sm transition-colors ${
+                      isActiveHref(item.href)
+                        ? 'text-fcda-gold'
+                        : 'text-white/55 hover:text-white'
+                    }`}
+                    aria-current={isActiveHref(item.href) ? 'page' : undefined}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
               {mainNavItems.map((item) => (
                 <Link
                   key={item.href}

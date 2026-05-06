@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronDown, ChevronRight, ChevronUp, MessageCircle, Trophy } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n/config'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NationalityFlag } from '@/components/player/NationalityFlag'
@@ -12,6 +14,7 @@ import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { TeamHeader } from '@/components/matches/TeamHeader'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
+import { bcp47ForI18nLanguage } from '@/lib/i18n/date-locale'
 import { cn } from '@/lib/utils'
 import type { Game } from '@/types'
 
@@ -56,10 +59,12 @@ function PlayerSummaryRow({
   player,
   showAvatars,
   muted = false,
+  captainAbbrev,
 }: {
   player: LineupSummaryPlayer
   showAvatars: boolean
   muted?: boolean
+  captainAbbrev: string
 }) {
   const displayName = toTitleCase(player.name)
 
@@ -87,28 +92,34 @@ function PlayerSummaryRow({
       <NationalityFlag nationality={player.nationality} className="h-4 w-6" />
       <span className="flex min-w-0 items-baseline gap-1.5 font-normal text-foreground">
         <span className="min-w-0 truncate group-hover:underline">{displayName}</span>
-        {player.is_captain ? <span className="shrink-0 text-current">(C)</span> : null}
+        {player.is_captain ? (
+          <span className="shrink-0 text-current">{captainAbbrev}</span>
+        ) : null}
       </span>
     </div>
   )
 }
 
 export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 }: Props) {
+  const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(
     game.status === 'finished' || game.status === 'cancelled'
   )
 
+  const dateLocale = bcp47ForI18nLanguage(i18n.language)
+  const captainAbbrev = t('matches.captainAbbrev')
+
   const d = new Date(game.date)
-  const fullDateStr = d.toLocaleDateString('pt-PT', {
+  const fullDateStr = d.toLocaleDateString(dateLocale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     timeZone: GAME_TIME_ZONE,
   })
-  const dayStr = d.toLocaleDateString('pt-PT', { day: '2-digit', timeZone: GAME_TIME_ZONE })
-  const monthStr = d.toLocaleDateString('pt-PT', { month: 'short', timeZone: GAME_TIME_ZONE }).replace('.', '')
-  const weekdayStr = d.toLocaleDateString('pt-PT', { weekday: 'short', timeZone: GAME_TIME_ZONE }).replace('.', '')
-  const timeStr = d.toLocaleTimeString('pt-PT', {
+  const dayStr = d.toLocaleDateString(dateLocale, { day: '2-digit', timeZone: GAME_TIME_ZONE })
+  const monthStr = d.toLocaleDateString(dateLocale, { month: 'short', timeZone: GAME_TIME_ZONE }).replace('.', '')
+  const weekdayStr = d.toLocaleDateString(dateLocale, { weekday: 'short', timeZone: GAME_TIME_ZONE }).replace('.', '')
+  const timeStr = d.toLocaleTimeString(dateLocale, {
     hour: '2-digit',
     minute: '2-digit',
     timeZone: GAME_TIME_ZONE,
@@ -159,7 +170,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                       winningTeam === 'a' && 'font-black',
                     )}
                   >
-                    Equipa Branca
+                    {t('matches.teamA')}
                   </span>
                   {winningTeam === 'a' ? (
                     <Trophy className="size-4 shrink-0 text-fcda-gold sm:size-5" aria-hidden />
@@ -181,7 +192,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                     </span>
                   ) : game.status === 'cancelled' ? (
                     <span className="rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-black uppercase text-destructive">
-                      Sem jogo
+                      {t('matches.noGamePlayed')}
                     </span>
                   ) : (
                     <span className="text-3xl font-black leading-none text-foreground tabular-nums sm:text-4xl">
@@ -208,7 +219,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                       winningTeam === 'b' && 'font-black',
                     )}
                   >
-                    Equipa Azul
+                    {t('matches.teamB')}
                   </span>
                 </div>
               </div>
@@ -220,14 +231,14 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                 <GameTypeBadge competitive={game.counts_for_stats} compact />
                 <span
                   className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground"
-                  aria-label={`${commentCount} comentários`}
-                  title={`${commentCount} comentários`}
+                  aria-label={t('matches.commentsAria', { count: commentCount })}
+                  title={t('matches.commentsAria', { count: commentCount })}
                 >
                   <MessageCircle size={15} aria-hidden />
                   <span className="tabular-nums">{commentCount}</span>
                 </span>
                 <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">
-                  Ver jogo
+                  {t('matches.viewGame')}
                   <ChevronRight className="size-4" aria-hidden />
                 </span>
               </div>
@@ -258,6 +269,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                       key={player.id}
                       player={player}
                       showAvatars={showAvatars}
+                      captainAbbrev={captainAbbrev}
                     />
                   ))}
                 </div>
@@ -270,6 +282,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                       key={player.id}
                       player={player}
                       showAvatars={showAvatars}
+                      captainAbbrev={captainAbbrev}
                     />
                   ))}
                 </div>
@@ -285,6 +298,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
                   player={player}
                   showAvatars={showAvatars}
                   muted
+                  captainAbbrev={captainAbbrev}
                 />
               ))}
             </div>

@@ -4,6 +4,9 @@ import { initReactI18next } from 'react-i18next'
 import enCommon from './en/common.json'
 import ptPTCommon from './pt-PT/common.json'
 
+/** Key used by I18nProvider and language toggle — keep in sync everywhere. */
+export const LANGUAGE_STORAGE_KEY = 'fcda_language'
+
 // Do NOT use LanguageDetector here — it reads localStorage which only exists
 // on the client, causing a server/client hydration mismatch. Language detection
 // is handled in I18nProvider via useEffect after hydration.

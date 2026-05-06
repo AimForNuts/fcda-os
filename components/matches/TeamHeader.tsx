@@ -1,5 +1,8 @@
+'use client'
+
 import Image from 'next/image'
 import { Trophy } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
 import { cn } from '@/lib/utils'
 
@@ -11,7 +14,9 @@ type Props = {
 }
 
 export function TeamHeader({ team, className, isWinner = false, variant = 'surface' }: Props) {
+  const { t } = useTranslation()
   const presentation = getTeamPresentation(team)
+  const label = team === 'a' ? t('matches.teamA') : t('matches.teamB')
 
   if (variant === 'plain') {
     return (
@@ -24,7 +29,7 @@ export function TeamHeader({ team, className, isWinner = false, variant = 'surfa
           className="h-10 w-auto shrink-0 object-contain drop-shadow-sm"
         />
         <h3 className="min-w-0 truncate text-sm font-black text-foreground">
-          {presentation.label}
+          {label}
         </h3>
         {isWinner ? (
           <Trophy className="size-4 shrink-0 text-fcda-gold sm:size-5" aria-hidden />
@@ -51,7 +56,7 @@ export function TeamHeader({ team, className, isWinner = false, variant = 'surfa
         />
         <div className="min-w-0">
           <p className={cn('truncate text-sm font-semibold', presentation.headerLabelClassName)}>
-            {presentation.label}
+            {label}
           </p>
         </div>
         {isWinner ? (
