@@ -217,7 +217,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0 
             <div className="flex min-w-0 items-center justify-between gap-3 border-t border-border pt-4 lg:justify-end lg:border-t-0 lg:pt-0">
               <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
                 <GameStatusBadge status={game.status} />
-                <GameTypeBadge competitive={game.counts_for_stats} />
+                <GameTypeBadge competitive={game.counts_for_stats} compact />
                 <span
                   className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground"
                   aria-label={`${commentCount} comentários`}

@@ -13,7 +13,7 @@ import {
 } from '@/lib/stats/leaderboard'
 import type { PlayerStats } from '@/types'
 
-export const metadata = { title: 'Classificação — FCDA' }
+export const metadata = { title: 'Classificação competitiva — FCDA' }
 
 export default async function StatsPage() {
   const supabase = await createClient()
@@ -94,7 +94,7 @@ export default async function StatsPage() {
               Futebol Clube Dragões da Areosa
             </p>
             <h1 className="mt-3 text-5xl font-black uppercase tracking-tight md:text-7xl">
-              Classificação
+              Classificação Competitiva
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 md:text-base">
               Classificação por pontos (3 por vitória, 1 por empate), com líderes,
