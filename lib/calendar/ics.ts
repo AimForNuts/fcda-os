@@ -2,6 +2,10 @@ type CalendarGame = {
   id: string
   date: string
   location: string
+  mapLocation?: string | null
+  mapsUrl?: string | null
+  latitude?: number | null
+  longitude?: number | null
   playerTeamLabel?: string | null
 }
 type CalendarOptions = {
@@ -87,7 +91,13 @@ export function buildCalendarIcs({
       `DTSTART:${formatIcsDate(startsAt)}`,
       `DTEND:${formatIcsDate(endsAt)}`,
       `SUMMARY:${escapeIcsText(eventSummary(game))}`,
-      `LOCATION:${escapeIcsText(game.location)}`,
+      `LOCATION:${escapeIcsText(game.mapLocation ?? game.location)}`,
+      ...(game.latitude != null && game.longitude != null
+        ? [
+            `GEO:${game.latitude};${game.longitude}`,
+            `X-APPLE-STRUCTURED-LOCATION;VALUE=URI;X-ADDRESS=${escapeIcsText(game.mapLocation ?? game.location)}:geo:${game.latitude},${game.longitude}`,
+          ]
+        : []),
       `DESCRIPTION:${escapeIcsText(eventDescription(game, matchUrl, startsAt, endsAt))}`,
       `URL:${matchUrl}`,
       'END:VEVENT'
@@ -120,6 +130,7 @@ export function buildPlayerCalendarIcs({
     eventDescription: (game, matchUrl, startsAt, endsAt) => [
       `Game time: ${formatPortugalTimeRange(startsAt, endsAt)}`,
       `Location: ${game.location}`,
+      ...(game.mapsUrl ? [`Map: ${game.mapsUrl}`] : []),
       `Ficha de jogo: ${matchUrl}`,
     ].join('\n'),
   })
@@ -144,6 +155,7 @@ export function buildAllGamesCalendarIcs({
     eventDescription: (game, matchUrl, startsAt, endsAt) => [
       `Game time: ${formatPortugalTimeRange(startsAt, endsAt)}`,
       `Location: ${game.location}`,
+      ...(game.mapsUrl ? [`Map: ${game.mapsUrl}`] : []),
       `Ficha de jogo: ${matchUrl}`,
     ].join('\n'),
   })

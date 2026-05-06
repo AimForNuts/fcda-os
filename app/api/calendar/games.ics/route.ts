@@ -1,7 +1,8 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { buildAllGamesCalendarIcs, buildPlayerCalendarIcs } from '@/lib/calendar/ics'
 import { readPlayerCalendarToken } from '@/lib/calendar/token'
-import type { Game } from '@/types'
+import { getRecintoMapsUrl } from '@/lib/recintos/google-maps'
+import type { Game, Recinto } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,7 +10,12 @@ function getOrigin(request: Request) {
   return new URL(request.url).origin
 }
 
-type CalendarGame = Pick<Game, 'id' | 'date' | 'location'>
+type CalendarGame = Pick<Game, 'id' | 'date' | 'location' | 'recinto_id'> & {
+  mapLocation?: string | null
+  mapsUrl?: string | null
+  latitude?: number | null
+  longitude?: number | null
+}
 type PlayerTeam = 'a' | 'b'
 
 const TEAM_LABELS: Record<PlayerTeam, string> = {
@@ -23,7 +29,7 @@ async function fetchGames(gameIds?: string[]) {
   const admin = createServiceClient()
   let query = admin
     .from('games')
-    .select('id, date, location')
+    .select('id, date, location, recinto_id')
     .neq('status', 'cancelled')
     .order('date', { ascending: true })
 
@@ -37,7 +43,34 @@ async function fetchGames(gameIds?: string[]) {
   }
 
   if (error) throw error
-  return data ?? []
+  const games = data ?? []
+  const recintoIds = [...new Set(games.map((game) => game.recinto_id).filter((id): id is string => Boolean(id)))]
+
+  if (recintoIds.length === 0) return games
+
+  const { data: recintos, error: recintosError } = await admin
+    .from('recintos')
+    .select('id, name, google_place_id, formatted_address, latitude, longitude, maps_url')
+    .in('id', recintoIds) as {
+      data: Array<Pick<Recinto, 'id' | 'name' | 'google_place_id' | 'formatted_address' | 'latitude' | 'longitude' | 'maps_url'>> | null
+      error: unknown
+    }
+
+  if (recintosError) throw recintosError
+
+  const recintosById = new Map((recintos ?? []).map((recinto) => [recinto.id, recinto]))
+
+  return games.map((game) => {
+    const recinto = game.recinto_id ? recintosById.get(game.recinto_id) : null
+
+    return {
+      ...game,
+      mapLocation: recinto?.formatted_address ?? recinto?.name ?? game.location,
+      mapsUrl: getRecintoMapsUrl(recinto),
+      latitude: recinto?.latitude ?? null,
+      longitude: recinto?.longitude ?? null,
+    }
+  })
 }
 
 export async function GET(request: Request) {
