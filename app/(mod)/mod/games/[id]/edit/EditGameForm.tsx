@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
+import { CompetitiveGameIcon } from '@/components/matches/game-type-icons'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -111,7 +112,8 @@ export function EditGameForm({ gameId, defaultDate, defaultLocation, defaultCoun
                 className="h-4 w-4"
                 {...register('counts_for_stats')}
               />
-              <Label htmlFor="counts_for_stats" className="cursor-pointer">
+              <Label htmlFor="counts_for_stats" className="flex cursor-pointer items-center gap-2">
+                <CompetitiveGameIcon className="size-4 shrink-0 text-fcda-blue" aria-hidden />
                 {t('mod.countsForStats')}
               </Label>
             </div>

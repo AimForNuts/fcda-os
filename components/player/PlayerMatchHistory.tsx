@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
+import { CompetitiveGameIcon, FriendlyGameIcon } from '@/components/matches/game-type-icons'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import {
   matchTeam,
@@ -79,6 +80,11 @@ export function PlayerMatchHistory({ matches }: { matches: PlayerMatchHistoryRow
                     : 'border-border bg-background text-muted-foreground hover:border-fcda-gold/50 hover:text-foreground',
                 )}
               >
+                {value === 'competitive' ? (
+                  <CompetitiveGameIcon className="size-3.5 shrink-0 sm:size-4" aria-hidden />
+                ) : value === 'friendly' ? (
+                  <FriendlyGameIcon className="size-3.5 shrink-0 sm:size-4" aria-hidden />
+                ) : null}
                 {label}
                 <span className="tabular-nums text-muted-foreground">({count})</span>
               </button>

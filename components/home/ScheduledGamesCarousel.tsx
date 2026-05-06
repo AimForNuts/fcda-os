@@ -50,7 +50,7 @@ function ScheduledGameCard({
           <div className="min-w-0 pr-16">
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <GameStatusBadge status={game.status} />
-              <GameTypeBadge competitive={game.counts_for_stats} />
+              <GameTypeBadge competitive={game.counts_for_stats} variant="onDark" />
             </div>
             <p
               className={cn(
