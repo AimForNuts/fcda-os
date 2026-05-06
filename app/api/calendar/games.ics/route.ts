@@ -10,6 +10,12 @@ function getOrigin(request: Request) {
 }
 
 type CalendarGame = Pick<Game, 'id' | 'date' | 'location'>
+type PlayerTeam = 'a' | 'b'
+
+const TEAM_LABELS: Record<PlayerTeam, string> = {
+  a: 'Team White',
+  b: 'Team Blue',
+}
 
 async function fetchGames(gameIds?: string[]) {
   if (gameIds && gameIds.length === 0) return []
@@ -80,9 +86,9 @@ export async function GET(request: Request) {
 
   const { data: gamePlayers, error: gamePlayersError } = await admin
     .from('game_players')
-    .select('game_id')
+    .select('game_id, team')
     .eq('player_id', player.id) as {
-      data: Array<{ game_id: string }> | null
+      data: Array<{ game_id: string; team: PlayerTeam | null }> | null
       error: unknown
     }
 
@@ -92,7 +98,15 @@ export async function GET(request: Request) {
   }
 
   const gameIds = [...new Set((gamePlayers ?? []).map((row) => row.game_id))]
-  const games = await fetchGames(gameIds)
+  const teamByGameId = new Map((gamePlayers ?? []).map((row) => [row.game_id, row.team]))
+  const games = (await fetchGames(gameIds)).map((game) => {
+    const team = teamByGameId.get(game.id)
+
+    return {
+      ...game,
+      playerTeamLabel: team ? TEAM_LABELS[team] : null,
+    }
+  })
   const body = buildPlayerCalendarIcs({
     playerName: player.sheet_name,
     games,
