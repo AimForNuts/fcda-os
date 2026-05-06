@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { LineupManager } from '@/components/lineup/LineupManager'
+import { canAccessAdmin, fetchSessionContext } from '@/lib/auth/permissions'
 import type { Game, GamePlayer } from '@/types'
 
 export default async function LineupPage({
@@ -11,6 +12,8 @@ export default async function LineupPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
+  const session = await fetchSessionContext()
+  const isAdmin = session ? canAccessAdmin(session.roles) : false
 
   const { data: game } = await supabase
     .from('games')
@@ -34,23 +37,53 @@ export default async function LineupPage({
     sheet_name: string
     shirt_number: number | null
     nationality: string
+    current_rating: number | null
     avatar_url: string | null
+    total_games: number
+    wins: number
   }> = []
   if (playerIds.length > 0) {
+    const playerSelect = isAdmin
+      ? 'id, sheet_name, shirt_number, nationality, current_rating, avatar_path'
+      : 'id, sheet_name, shirt_number, nationality, avatar_path'
     const { data } = await supabase
       .from('players')
-      .select('id, sheet_name, shirt_number, nationality, avatar_path')
+      .select(playerSelect)
       .in('id', playerIds) as {
         data: Array<{
           id: string
           sheet_name: string
           shirt_number: number | null
           nationality: string
+          current_rating?: number | null
           avatar_path: string | null
         }> | null
         error: unknown
       }
-    playerDetails = await signPlayerAvatarRecords(data ?? [], true)
+    const signedPlayers = await signPlayerAvatarRecords(data ?? [], true)
+
+    let statsRows: Array<{ id: string; total_all: number; wins_all: number }> | null = null
+    if (isAdmin) {
+      const { data } = await supabase
+        .from('player_stats')
+        .select('id, total_all, wins_all')
+        .in('id', playerIds) as {
+          data: Array<{ id: string; total_all: number; wins_all: number }> | null
+          error: unknown
+        }
+      statsRows = data
+    }
+    const statsMap = new Map((statsRows ?? []).map((row) => [row.id, row]))
+
+    playerDetails = signedPlayers.map((player) => {
+      const stats = statsMap.get(player.id)
+      return {
+        ...player,
+        current_rating: player.current_rating ?? null,
+        total_games: stats?.total_all ?? 0,
+        wins: stats?.wins_all ?? 0,
+      }
+    })
   }
 
   const playerMap = new Map(playerDetails.map((p) => [p.id, p]))
@@ -62,7 +95,10 @@ export default async function LineupPage({
       sheet_name: p?.sheet_name ?? '?',
       shirt_number: p?.shirt_number ?? null,
       nationality: p?.nationality ?? 'PT',
+      current_rating: p?.current_rating ?? null,
       avatar_url: p?.avatar_url ?? null,
+      total_games: p?.total_games ?? 0,
+      wins: p?.wins ?? 0,
       team: gp.team,
       is_captain: gp.is_captain,
     }
@@ -96,7 +132,7 @@ export default async function LineupPage({
           {dateStr} · {timeStr} · {game.location}
         </p>
       </div>
-      <LineupManager gameId={id} currentLineup={currentLineup} />
+      <LineupManager gameId={id} currentLineup={currentLineup} showTeamStats={isAdmin} />
     </div>
   )
 }

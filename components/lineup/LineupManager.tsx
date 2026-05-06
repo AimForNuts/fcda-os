@@ -38,7 +38,10 @@ type CurrentPlayer = {
   sheet_name: string
   shirt_number: number | null
   nationality: string
+  current_rating: number | null
   avatar_url: string | null
+  total_games: number
+  wins: number
   team: 'a' | 'b' | null
   is_captain: boolean
 }
@@ -46,6 +49,7 @@ type CurrentPlayer = {
 type Props = {
   gameId: string
   currentLineup: CurrentPlayer[]
+  showTeamStats?: boolean
 }
 
 type SearchResult = {
@@ -56,7 +60,7 @@ type SearchResult = {
   avatar_url: string | null
 }
 
-export function LineupManager({ gameId, currentLineup }: Props) {
+export function LineupManager({ gameId, currentLineup, showTeamStats = false }: Props) {
   const { t } = useTranslation()
   const router = useRouter()
 
@@ -468,6 +472,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
                 setDraggedPlayerId={setDraggedPlayerId}
                 onDrop={handleDrop}
                 onCaptain={setCurrentCaptain}
+                showStats={showTeamStats}
                 captainLabel={t('mod.lineup.captain')}
                 makeCaptainLabel={t('mod.lineup.makeCaptain')}
                 captainColumnLabel={t('mod.lineup.captainShort')}
@@ -480,6 +485,7 @@ export function LineupManager({ gameId, currentLineup }: Props) {
             setDraggedPlayerId={setDraggedPlayerId}
             onDrop={handleDrop}
             onCaptain={setCurrentCaptain}
+            showStats={showTeamStats}
             captainLabel={t('mod.lineup.captain')}
             makeCaptainLabel={t('mod.lineup.makeCaptain')}
             captainColumnLabel={t('mod.lineup.captainShort')}
@@ -659,6 +665,7 @@ function CurrentTeamDropZone({
   setDraggedPlayerId,
   onDrop,
   onCaptain,
+  showStats,
   captainLabel,
   makeCaptainLabel,
   captainColumnLabel,
@@ -670,12 +677,15 @@ function CurrentTeamDropZone({
   setDraggedPlayerId: (playerId: string | null) => void
   onDrop: (team: 'a' | 'b' | null, event: DragEvent<HTMLElement>) => void
   onCaptain: (playerId: string) => void
+  showStats: boolean
   captainLabel: string
   makeCaptainLabel: string
   captainColumnLabel: string
   emptyLabel?: string
   title?: string
 }) {
+  const teamStats = showStats && team ? calculateTeamStats(players) : null
+
   return (
     <section
       data-testid={team ? `drop-team-${team}` : 'drop-unassigned'}
@@ -693,9 +703,29 @@ function CurrentTeamDropZone({
 
       <div className="rounded-lg border border-border bg-card">
         <div className="grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-2 border-b border-border px-2.5 py-1.5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {players.length} {players.length === 1 ? 'player' : 'players'}
-          </p>
+          <div className="min-w-0 space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {players.length} {players.length === 1 ? 'player' : 'players'}
+            </p>
+            {teamStats && (
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                <span>
+                  Avg rating:{' '}
+                  <strong className="font-semibold text-foreground">
+                    {teamStats.averageRating ?? '—'}
+                  </strong>
+                  <span className="ml-1">({teamStats.ratedPlayers}/{players.length})</span>
+                </span>
+                <span>
+                  Avg win:{' '}
+                  <strong className="font-semibold text-foreground">
+                    {teamStats.averageWinRate != null ? `${teamStats.averageWinRate}%` : '—'}
+                  </strong>
+                  <span className="ml-1">({teamStats.playersWithGames}/{players.length})</span>
+                </span>
+              </div>
+            )}
+          </div>
           <p className="text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {captainColumnLabel}
           </p>
@@ -749,4 +779,21 @@ function CurrentTeamDropZone({
       </div>
     </section>
   )
+}
+
+function calculateTeamStats(players: CurrentPlayer[]) {
+  const ratedPlayers = players.filter((player) => player.current_rating != null && player.current_rating > 0)
+  const playersWithGames = players.filter((player) => player.total_games > 0)
+  const ratingTotal = ratedPlayers.reduce((sum, player) => sum + player.current_rating!, 0)
+  const winRateTotal = playersWithGames.reduce(
+    (sum, player) => sum + (player.wins / player.total_games) * 100,
+    0
+  )
+
+  return {
+    averageRating: ratedPlayers.length > 0 ? (ratingTotal / ratedPlayers.length).toFixed(1) : null,
+    averageWinRate: playersWithGames.length > 0 ? Math.round(winRateTotal / playersWithGames.length) : null,
+    ratedPlayers: ratedPlayers.length,
+    playersWithGames: playersWithGames.length,
+  }
 }

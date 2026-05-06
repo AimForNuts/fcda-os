@@ -1,14 +1,16 @@
 import OpenAI from 'openai'
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 import { zodResponseFormat } from 'openai/helpers/zod'
 import { z } from 'zod'
 import { fetchSessionContext, canAccessMod } from '@/lib/auth/permissions'
 import { createClient } from '@/lib/supabase/server'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import {
-  AiLineupSchema,
   buildLineupPreview,
   buildPlayerTable,
+  createAiLineupSchema,
   validateAiLineup,
+  type AiLineup,
   type PlayerForAiLineup,
 } from '@/lib/ai-assistant/lineup'
 
@@ -56,6 +58,7 @@ Rule 6: Equal playtime weighting
 - team_a = Team White (Equipa Branca), team_b = Team Blue (Equipa Azul).
 - Each team object must contain a label and a players array.
 - Every player object must contain player_id and is_captain.
+- Use every provided player_id exactly once across both teams. Do not duplicate a player_id and do not omit any provided player_id.
 - Mark exactly one player per team with is_captain: true.
 - Include notes as an array. Use [] if no notes are needed.
 - Include reasoning as an array of 3-6 short bullets explaining the main balancing decisions.
@@ -200,7 +203,8 @@ function sleep(ms: number) {
 
 async function parseLineupWithRetries(
   openai: OpenAI,
-  messages: Array<{ role: 'system' | 'user'; content: string }>
+  messages: ChatCompletionMessageParam[],
+  responseSchema: z.ZodType<AiLineup>
 ) {
   let lastError: unknown
 
@@ -209,7 +213,7 @@ async function parseLineupWithRetries(
       return await openai.chat.completions.parse({
         model: 'gpt-5.4-mini',
         messages,
-        response_format: zodResponseFormat(AiLineupSchema, 'lineup'),
+        response_format: zodResponseFormat(responseSchema, 'lineup'),
       })
     } catch (err) {
       lastError = err
@@ -220,6 +224,56 @@ async function parseLineupWithRetries(
   }
 
   throw lastError
+}
+
+type LineupGenerationResult =
+  | { lineup: AiLineup }
+  | { error: Response }
+
+async function generateValidLineupWithRetries(
+  openai: OpenAI,
+  messages: ChatCompletionMessageParam[],
+  responseSchema: z.ZodType<AiLineup>,
+  rosterPlayerIds: string[],
+  playerLabels: Map<string, string>
+): Promise<LineupGenerationResult> {
+  let retryMessages = messages
+  let lastValidationErrors: string[] = []
+
+  for (let attempt = 0; attempt <= MAX_OPENAI_RETRIES; attempt += 1) {
+    const completion = await parseLineupWithRetries(openai, retryMessages, responseSchema)
+
+    const message = completion.choices[0].message
+    if (message.refusal) return { error: Response.json({ error: message.refusal }, { status: 422 }) }
+
+    const parsed = message.parsed
+    if (!parsed) return { error: Response.json({ error: 'AI returned no result' }, { status: 500 }) }
+
+    const validation = validateAiLineup(parsed, rosterPlayerIds, { playerLabels })
+    if (validation.ok) return { lineup: parsed }
+
+    lastValidationErrors = validation.errors
+    retryMessages = [
+      ...messages,
+      {
+        role: 'user',
+        content: [
+          'The previous lineup was invalid.',
+          `Validation errors: ${validation.errors.join('; ')}`,
+          'Return a corrected JSON object using every roster player exactly once, no duplicate players, no missing players, and exactly one captain per team.',
+        ].join('\n'),
+      },
+    ]
+
+    if (attempt < MAX_OPENAI_RETRIES) await sleep(500 * (attempt + 1))
+  }
+
+  return {
+    error: Response.json(
+      { error: 'AI returned an invalid lineup', details: lastValidationErrors },
+      { status: 422 }
+    ),
+  }
 }
 
 export async function POST(request: Request) {
@@ -239,24 +293,18 @@ export async function POST(request: Request) {
   const playerTable = buildPlayerTable(context.players)
   const userMessage = `Generate teams for this week's game. Do not ask for more information — all player data is provided below.\n\n${playerTable}`
 
+  const lineupSchema = createAiLineupSchema(context.playerIds)
+  const playerLabels = new Map(context.players.map((player) => [player.id, player.sheet_name]))
+
   const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY })
   try {
-    const completion = await parseLineupWithRetries(openai, [
+    const result = await generateValidLineupWithRetries(openai, [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userMessage },
-    ])
+    ], lineupSchema, context.playerIds, playerLabels)
+    if ('error' in result) return result.error
 
-    const message = completion.choices[0].message
-    if (message.refusal) return Response.json({ error: message.refusal }, { status: 422 })
-    const parsed = message.parsed
-    if (!parsed) return Response.json({ error: 'AI returned no result' }, { status: 500 })
-
-    const validation = validateAiLineup(parsed, context.playerIds)
-    if (!validation.ok) {
-      return Response.json({ error: 'AI returned an invalid lineup', details: validation.errors }, { status: 422 })
-    }
-
-    return Response.json(buildLineupPreview(parsedBody.data.gameId, parsed, context.players))
+    return Response.json(buildLineupPreview(parsedBody.data.gameId, result.lineup, context.players))
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     return Response.json({ error: `Failed to contact AI: ${message}` }, { status: 500 })

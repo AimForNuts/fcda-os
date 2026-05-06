@@ -43,6 +43,10 @@ next-env.d.ts
 
 # superpowers plans
 /docs/superpowers/plans/
+/.superpowers/
+
+# editor settings
+/.vscode/
 
 # git worktrees
 /.worktrees/
