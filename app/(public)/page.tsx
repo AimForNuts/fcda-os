@@ -4,7 +4,8 @@ import { CompletedGamesCarousel } from '@/components/home/CompletedGamesCarousel
 import { ScheduledGamesCarousel } from '@/components/home/ScheduledGamesCarousel'
 import { createClient } from '@/lib/supabase/server'
 import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
-import type { Game } from '@/types'
+import { fetchMatchWeather, type MatchWeather } from '@/lib/weather/open-meteo'
+import type { Game, Recinto } from '@/types'
 
 export const metadata = { title: 'FCDA — Futebol Clube Dragões da Areosa' }
 
@@ -81,6 +82,34 @@ export default async function HomePage() {
   const completedCommentCounts = Object.fromEntries(
     completedGameList.map((game) => [game.id, commentCounts.get(game.id) ?? 0]),
   )
+  const gamesForWeather = [...scheduledGameList, ...completedGameList]
+  const recintoIds = [
+    ...new Set(
+      gamesForWeather
+        .map((game) => game.recinto_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ]
+  const recintosById = new Map<string, Recinto>()
+
+  if (recintoIds.length > 0) {
+    const { data: recintos } = await supabase
+      .from('recintos')
+      .select('*')
+      .in('id', recintoIds) as { data: Recinto[] | null; error: unknown }
+
+    for (const recinto of recintos ?? []) {
+      recintosById.set(recinto.id, recinto)
+    }
+  }
+
+  const weatherEntries = await Promise.all(
+    gamesForWeather.map(async (game) => {
+      const recinto = game.recinto_id ? recintosById.get(game.recinto_id) : null
+      return [game.id, await fetchMatchWeather(recinto, game.date)] as const
+    }),
+  )
+  const weatherByGameId: Record<string, MatchWeather | null> = Object.fromEntries(weatherEntries)
 
   return (
     <div className="flex flex-col">
@@ -126,7 +155,7 @@ export default async function HomePage() {
       </section>
 
       {/* Scheduled matches section */}
-      <section className="container mx-auto max-w-screen-lg px-4 py-10">
+      <section className="container mx-auto max-w-screen-xl px-4 py-10">
         <div className="mb-5 flex items-center justify-between gap-4">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Jogos Agendados
@@ -143,6 +172,7 @@ export default async function HomePage() {
           <ScheduledGamesCarousel
             games={scheduledGameList}
             commentCounts={scheduledCommentCounts}
+            weatherByGameId={weatherByGameId}
           />
         ) : (
           <p className="text-sm text-muted-foreground">
@@ -153,7 +183,7 @@ export default async function HomePage() {
 
       {/* Completed matches section */}
       <section className="bg-muted/30 py-10">
-        <div className="container mx-auto max-w-screen-lg px-4">
+        <div className="container mx-auto max-w-screen-xl px-4">
           <div className="mb-5 flex items-center justify-between gap-4">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Jogos Concluídos
@@ -167,7 +197,11 @@ export default async function HomePage() {
           </div>
 
           {completedGameList.length > 0 ? (
-            <CompletedGamesCarousel games={completedGameList} commentCounts={completedCommentCounts} />
+            <CompletedGamesCarousel
+              games={completedGameList}
+              commentCounts={completedCommentCounts}
+              weatherByGameId={weatherByGameId}
+            />
           ) : (
             <p className="text-sm text-muted-foreground">
               Ainda não há jogos concluídos.

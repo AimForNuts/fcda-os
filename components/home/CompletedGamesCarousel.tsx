@@ -7,7 +7,9 @@ import { ChevronLeft, ChevronRight, MessageCircle, Trophy } from 'lucide-react'
 import { formatScheduleDate } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
+import { WeatherSummary } from '@/components/matches/WeatherSummary'
 import { cn } from '@/lib/utils'
+import type { MatchWeather } from '@/lib/weather/open-meteo'
 import type { Game } from '@/types'
 
 const teamA = getTeamPresentation('a')
@@ -17,10 +19,12 @@ function HomeGameCard({
   game,
   className,
   commentCount = 0,
+  weather,
 }: {
   game: Game
   className?: string
   commentCount?: number
+  weather?: MatchWeather | null
 }) {
   const formatted = formatScheduleDate(game.date)
   const score =
@@ -52,6 +56,7 @@ function HomeGameCard({
             <div className="min-w-0">
               <div className="mb-1 flex flex-wrap items-center gap-1.5">
                 <GameTypeBadge competitive={game.counts_for_stats} />
+                <WeatherSummary weather={weather} />
               </div>
               <p className="truncate text-xs text-muted-foreground">{game.location}</p>
             </div>
@@ -142,9 +147,11 @@ function HomeGameCard({
 export function CompletedGamesCarousel({
   games,
   commentCounts = {},
+  weatherByGameId = {},
 }: {
   games: Game[]
   commentCounts?: Record<string, number>
+  weatherByGameId?: Record<string, MatchWeather | null>
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -209,6 +216,7 @@ export function CompletedGamesCarousel({
             key={game.id}
             game={game}
             commentCount={commentCounts[game.id] ?? 0}
+            weather={weatherByGameId[game.id]}
             className="w-[calc(100vw-3rem)] max-w-sm shrink-0 snap-start md:w-auto md:max-w-none md:shrink"
           />
         ))}

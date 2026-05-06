@@ -5,6 +5,7 @@ import Image from 'next/image'
 import {
   ArrowLeft,
   CalendarClock,
+  CloudSun,
   Flag,
   MapPin,
   MessageCircle,
@@ -27,9 +28,11 @@ import { GameStatusPlainText } from '@/components/matches/GameStatusPlainText'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { RecintoLink } from '@/components/matches/RecintoLink'
 import { RecintoMapPreview } from '@/components/matches/RecintoMapPreview'
+import { WeatherSummary } from '@/components/matches/WeatherSummary'
 import { Button } from '@/components/ui/button'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
+import { fetchMatchWeather, type MatchWeather } from '@/lib/weather/open-meteo'
 import { cn } from '@/lib/utils'
 import type { PlayerPublic, GamePlayer, Game, Recinto } from '@/types'
 
@@ -111,10 +114,12 @@ function getWinningTeam(game: Game): MatchTeam | null {
 function MatchDetailHero({
   game,
   recinto,
+  weather,
   showRateButton,
 }: {
   game: Game
   recinto: Recinto | null
+  weather: MatchWeather | null
   showRateButton: boolean
 }) {
   const formatted = formatMatchDateParts(game.date)
@@ -230,6 +235,12 @@ function MatchDetailHero({
                 <p className="mt-1 text-white/48">Recinto</p>
               </div>
             </div>
+            {weather ? (
+              <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3 border-b border-white/12 pb-3">
+                <CloudSun className="mt-0.5 size-5 text-white/45" aria-hidden />
+                <WeatherSummary weather={weather} variant="hero" />
+              </div>
+            ) : null}
             {showRateButton && (
               <Button
                 className="mt-2 h-10 bg-fcda-gold font-black text-fcda-navy hover:bg-fcda-gold/90"
@@ -299,6 +310,10 @@ export default async function MatchDetailPage({
       .maybeSingle() as { data: Recinto | null; error: unknown }
     recinto = data
   }
+
+  const weather = game.status === 'scheduled'
+    ? await fetchMatchWeather(recinto, game.date)
+    : null
 
   const { data: gamePlayers } = await supabase
     .from('game_players')
@@ -412,6 +427,7 @@ export default async function MatchDetailPage({
       <MatchDetailHero
         game={game}
         recinto={recinto}
+        weather={weather}
         showRateButton={showRateButton}
       />
 
@@ -503,6 +519,17 @@ export default async function MatchDetailPage({
                     </dd>
                   </div>
                 </div>
+                {weather ? (
+                  <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
+                    <CloudSun className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
+                    <div className="min-w-0">
+                      <dt className="text-muted-foreground">Tempo</dt>
+                      <dd className="mt-1">
+                        <WeatherSummary weather={weather} variant="plain" />
+                      </dd>
+                    </div>
+                  </div>
+                ) : null}
                 <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
                   <Flag className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
