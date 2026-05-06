@@ -119,21 +119,12 @@ function MatchesHero({ game }: { game: Game | null }) {
         className="absolute inset-0 -z-30 object-cover object-[right_24%]"
         aria-hidden
       />
-      <div className="absolute inset-0 -z-20 bg-blue-950/76" aria-hidden />
+      <div className="absolute inset-0 -z-20 bg-blue-950/58" aria-hidden />
       <div
-        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(0,32,116,0.96)_0%,rgba(0,65,190,0.74)_48%,rgba(0,94,230,0.45)_100%)]"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(0,32,116,0.88)_0%,rgba(0,65,190,0.58)_48%,rgba(0,94,230,0.28)_100%)]"
         aria-hidden
       />
       <div className="absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-blue-950/88 to-transparent" aria-hidden />
-      {!showSoldOutTickets ? (
-        <Image
-          src="/cartao_continente.png"
-          alt="Cartão Continente"
-          width={96}
-          height={96}
-          className="absolute right-4 top-4 z-10 h-16 w-16 object-contain drop-shadow-lg sm:right-6 sm:top-6 sm:h-20 sm:w-20 md:right-8 md:top-8 md:h-24 md:w-24"
-        />
-      ) : null}
       {!showSoldOutTickets ? (
         <div
           role="status"
