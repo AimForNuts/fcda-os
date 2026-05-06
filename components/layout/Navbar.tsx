@@ -167,17 +167,27 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-64">
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium">{profile.display_name}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push('/profile')}>
-                  {t('nav.profile')}
+                  Preferências
                 </DropdownMenuItem>
+                {linkedPlayer ? (
+                  <>
+                    <DropdownMenuItem onClick={() => router.push('/profile/player')}>
+                      Editar jogador
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push(`/players/${linkedPlayer.id}`)}>
+                      O meu jogador
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                  {t('nav.logout')}
+                  Terminar sessão
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -283,14 +293,32 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                 {profile ? (
                   <>
                     <Link href="/profile" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
-                      {t('nav.profile')}
+                      Preferências
                     </Link>
+                    {linkedPlayer ? (
+                      <>
+                        <Link
+                          href="/profile/player"
+                          onClick={() => setIsOpen(false)}
+                          className={drawerLinkClass}
+                        >
+                          Editar jogador
+                        </Link>
+                        <Link
+                          href={`/players/${linkedPlayer.id}`}
+                          onClick={() => setIsOpen(false)}
+                          className={drawerLinkClass}
+                        >
+                          O meu jogador
+                        </Link>
+                      </>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => { setIsOpen(false); handleLogout() }}
                       className={`${drawerLinkClass} w-full text-left text-red-400 hover:text-red-300`}
                     >
-                      {t('nav.logout')}
+                      Terminar sessão
                     </button>
                   </>
                 ) : (

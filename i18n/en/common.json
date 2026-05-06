@@ -95,6 +95,7 @@
     "colRating": "Rating"
   },
   "stats": {
+    "heroSubtitle": "Points table (3 for a win, 1 for a draw), with leaders, win rate, and points per game to compare the squad in competitive matches.",
     "title": "Leaderboard",
     "player": "Player",
     "rating": "Rating",

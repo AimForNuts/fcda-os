@@ -3,7 +3,7 @@
     "home": "Início",
     "matches": "Jogos",
     "players": "Plantel",
-    "stats": "Classificação",
+    "stats": "Leaderboard",
     "profile": "Perfil",
     "login": "Entrar",
     "register": "Registar",
@@ -95,7 +95,8 @@
     "colRating": "Nota"
   },
   "stats": {
-    "title": "Classificação",
+    "heroSubtitle": "Classificação por pontos (3 por vitória, 1 por empate), com líderes, percentagem de vitórias e pontos por jogo para comparar o plantel nos jogos competitivos.",
+    "title": "Leaderboard",
     "player": "Jogador",
     "rating": "Nota",
     "noPlayers": "Ainda sem dados de jogadores.",
