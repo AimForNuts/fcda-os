@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
+import { CompetitiveGameIcon } from '@/components/matches/game-type-icons'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -139,7 +140,8 @@ export function NewGameModal() {
                     className="h-4 w-4"
                     {...register('counts_for_stats')}
                   />
-                  <Label htmlFor="new-game-counts-for-stats" className="cursor-pointer">
+                  <Label htmlFor="new-game-counts-for-stats" className="flex cursor-pointer items-center gap-2">
+                    <CompetitiveGameIcon className="size-4 shrink-0 text-fcda-blue" aria-hidden />
                     {t('mod.countsForStats')}
                   </Label>
                 </div>

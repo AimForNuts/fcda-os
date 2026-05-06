@@ -1,4 +1,4 @@
-import { Handshake, Medal } from 'lucide-react'
+import { CompetitiveGameIcon, FriendlyGameIcon } from '@/components/matches/game-type-icons'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -15,7 +15,7 @@ export function GameTypeBadge({
   compact = false,
   variant = 'default',
 }: Props) {
-  const Icon = competitive ? Medal : Handshake
+  const Icon = competitive ? CompetitiveGameIcon : FriendlyGameIcon
   const label = competitive ? 'Competitivo' : 'Amigável'
 
   const toneClasses =
