@@ -21,6 +21,8 @@ vi.mock('react-i18next', () => ({
         'stats.colWinRate': 'Vit. %',
         'stats.leadersTitle': 'Líderes atuais',
         'stats.leadersSubtitle': 'Top três por pontos em jogos competitivos.',
+        'stats.leadersSubtitleAllGames': 'Top três incluindo amigáveis.',
+        'stats.includeFriendlyMatchesLabel': 'Incluir amigáveis',
         'stats.tableTitle': 'Classificação completa',
         'stats.yourRank': 'A tua posição',
         'stats.recordLabel': `${options?.wins}V ${options?.draws}E ${options?.losses}D`,
@@ -150,10 +152,27 @@ describe('StatsTable', () => {
     expect(screen.queryByRole('link', { name: 'Carlos Silva' })).not.toBeInTheDocument()
   })
 
-  it('does not render leaderboard mode controls', () => {
+  it('does not render friendly toggle unless enabled', () => {
     render(<StatsTable players={players} isAnonymised={false} />)
-    expect(screen.queryByRole('button', { name: 'Todos' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Competitivos' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('switch', { name: /Incluir amigáveis/i })).not.toBeInTheDocument()
+  })
+
+  it('renders friendly toggle when requested', () => {
+    render(
+      <StatsTable players={players} isAnonymised={false} friendlyRankingToggle />
+    )
+    expect(screen.getByRole('switch', { name: /Incluir amigáveis/i })).toBeInTheDocument()
+    expect(screen.getByText(/Top três por pontos em jogos competitivos/)).toBeInTheDocument()
+  })
+
+  it('uses all-match totals when friendly toggle is on', () => {
+    render(
+      <StatsTable players={players} isAnonymised={false} friendlyRankingToggle />
+    )
+    fireEvent.click(screen.getByRole('switch', { name: /Incluir amigáveis/i }))
+    expect(screen.getByText(/Top três incluindo amigáveis/)).toBeInTheDocument()
+    const carlosRow = getTableRowForPlayer('Carlos Silva')
+    expect(within(carlosRow).getAllByRole('cell')[6]).toHaveTextContent('20')
   })
 
   it('displays competitive totals', () => {

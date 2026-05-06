@@ -102,6 +102,8 @@
     "anonymisedNote": "Inicia sessão para ver os nomes dos jogadores.",
     "leadersTitle": "Líderes atuais",
     "leadersSubtitle": "Top três por pontos em jogos competitivos.",
+    "leadersSubtitleAllGames": "Top três por pontos em todos os jogos contabilizados (incluindo amigáveis).",
+    "includeFriendlyMatchesLabel": "Incluir amigáveis",
     "tableTitle": "Classificação completa",
     "yourRank": "A tua posição",
     "colGames": "Jogos",

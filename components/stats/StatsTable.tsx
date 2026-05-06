@@ -13,6 +13,7 @@ import {
   filterLeaderboardRows,
   type LeaderboardFormByPlayerId,
   type LeaderboardFormResult,
+  type LeaderboardMode,
   type LeaderboardPlayer,
   type LeaderboardRow,
 } from '@/lib/stats/leaderboard'
@@ -23,6 +24,8 @@ type Props = {
   formByPlayerId?: LeaderboardFormByPlayerId
   isAnonymised: boolean
   highlightedPlayerId?: string | null
+  /** When set, `/stats` can offer a switch to rank by all finished games including friendlies */
+  friendlyRankingToggle?: boolean
 }
 
 function formatPercent(value: number) {
@@ -265,14 +268,19 @@ export function StatsTable({
   formByPlayerId = {},
   isAnonymised,
   highlightedPlayerId = null,
+  friendlyRankingToggle = false,
 }: Props) {
   const { t } = useTranslation()
   const [searchValue, setSearchValue] = useState('')
   const deferredSearchValue = useDeferredValue(searchValue)
+  const [includeFriendlyMatches, setIncludeFriendlyMatches] = useState(false)
+
+  const leaderboardMode: LeaderboardMode =
+    friendlyRankingToggle && includeFriendlyMatches ? 'all' : 'competitive'
 
   const leaderboardRows = useMemo(
-    () => buildLeaderboardRows(players, 'competitive', formByPlayerId),
-    [formByPlayerId, players]
+    () => buildLeaderboardRows(players, leaderboardMode, formByPlayerId),
+    [formByPlayerId, leaderboardMode, players]
   )
   const rows = useMemo(
     () => filterLeaderboardRows(leaderboardRows, deferredSearchValue),
@@ -402,7 +410,11 @@ export function StatsTable({
             <h2 id="leaderboard-leaders-title" className="text-lg font-black text-fcda-navy">
               {t('stats.leadersTitle')}
             </h2>
-            <p className="text-sm text-muted-foreground">{t('stats.leadersSubtitle')}</p>
+            <p className="text-sm text-muted-foreground">
+              {leaderboardMode === 'all'
+                ? t('stats.leadersSubtitleAllGames')
+                : t('stats.leadersSubtitle')}
+            </p>
           </div>
           {highlightedRow ? (
             <div className="rounded-lg border border-fcda-gold bg-fcda-gold/10 px-3 py-2 text-sm">
@@ -447,6 +459,32 @@ export function StatsTable({
               />
             </div>
           </div>
+          {friendlyRankingToggle ? (
+            <div className="flex shrink-0 items-center gap-3 md:pb-0.5">
+              <Label htmlFor="stats-include-friendly" className="cursor-pointer text-xs font-normal text-muted-foreground">
+                {t('stats.includeFriendlyMatchesLabel')}
+              </Label>
+              <button
+                type="button"
+                role="switch"
+                id="stats-include-friendly"
+                aria-checked={includeFriendlyMatches}
+                onClick={() => setIncludeFriendlyMatches((v) => !v)}
+                className={cn(
+                  'relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fcda-navy focus-visible:ring-offset-2',
+                  includeFriendlyMatches ? 'bg-fcda-navy' : 'bg-muted'
+                )}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    'pointer-events-none inline-block size-6 rounded-full bg-white shadow ring-0 transition-transform',
+                    includeFriendlyMatches ? 'translate-x-5' : 'translate-x-0.5'
+                  )}
+                />
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <p className="text-xs text-muted-foreground">{t('stats.tiebreakerNote')}</p>

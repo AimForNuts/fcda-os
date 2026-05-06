@@ -124,6 +124,7 @@ export default async function StatsPage() {
           formByPlayerId={formByPlayerId}
           isAnonymised={!isApproved}
           highlightedPlayerId={linkedPlayer?.id ?? null}
+          friendlyRankingToggle
         />
       </main>
     </div>
