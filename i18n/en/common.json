@@ -171,6 +171,8 @@
     "noLineup": "Lineup not available.",
     "rate": "Rate",
     "rateTeammates": "Rate your teammates",
+    "giveFeedback": "Give feedback",
+    "showFeedback": "Show feedback",
     "ratingSubmitted": "Ratings submitted.",
     "ratingLocked": "Ratings submitted — awaiting review.",
     "ratingSubmit": "Submit ratings",
@@ -178,6 +180,7 @@
     "feedbackLabel": "Feedback",
     "feedbackPlaceholder": "Share your thoughts about this game...",
     "feedbackHint": "Add at least one rating to enable feedback.",
+    "feedbackPending": "Feedback pending",
     "errors": {
       "ratingFailed": "Failed to submit ratings."
     }

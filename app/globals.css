@@ -134,3 +134,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes fcda-feedback-pending {
+  0%, 100% {
+    box-shadow: 0 0 0 0 oklch(0.72 0.13 78 / 48%);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 0 0.35rem oklch(0.72 0.13 78 / 0%);
+    filter: brightness(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-feedback-pending {
+    animation: fcda-feedback-pending 1.8s ease-in-out infinite;
+  }
+}

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronDown, ChevronRight, ChevronUp, ExternalLink, MessageCircle, Trophy } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronUp, ExternalLink, MessageCircle, MessageSquareWarning, Trophy } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n/config'
 import { Card, CardContent } from '@/components/ui/card'
@@ -58,6 +58,7 @@ type Props = {
   commentCount?: number
   recinto?: Pick<Recinto, 'name' | 'google_place_id' | 'latitude' | 'longitude' | 'maps_url'> | null
   weather?: MatchWeather | null
+  feedbackPending?: boolean
 }
 
 function PlayerSummaryRow({
@@ -105,7 +106,7 @@ function PlayerSummaryRow({
   )
 }
 
-export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0, recinto, weather }: Props) {
+export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0, recinto, weather, feedbackPending = false }: Props) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(
     game.status === 'finished' || game.status === 'cancelled'
@@ -254,6 +255,12 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
               <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
                 <GameStatusBadge status={game.status} />
                 <GameTypeBadge competitive={game.counts_for_stats} compact />
+                {feedbackPending ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-0.5 text-xs font-black text-white">
+                    <MessageSquareWarning className="size-3.5" aria-hidden />
+                    {t('matches.feedbackPending', { defaultValue: 'Feedback pending' })}
+                  </span>
+                ) : null}
                 <span
                   className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground"
                   aria-label={t('matches.commentsAria', { count: commentCount })}
