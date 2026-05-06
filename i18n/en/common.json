@@ -8,7 +8,29 @@
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
-    "admin": "Admin"
+    "admin": "Admin",
+    "userMenu": {
+      "preferences": "Preferences",
+      "preferencesDescription": "Account, security, and access",
+      "editPlayer": "Edit player",
+      "editPlayerDescription": "Photo, number, and positions",
+      "myPlayer": "My player",
+      "myPlayerDescription": "View the public page",
+      "signOut": "Sign out",
+      "admin": {
+        "title": "Administration",
+        "users": "Users",
+        "usersDescription": "Approvals and permissions",
+        "players": "Players",
+        "playersDescription": "Squad, links, and profiles",
+        "ratings": "Ratings",
+        "ratingsDescription": "Match ratings and feedback",
+        "feedback": "Feedback",
+        "feedbackDescription": "Inbox and review",
+        "aiRating": "AI Rating",
+        "aiRatingDescription": "Assisted processing"
+      }
+    }
   },
   "footer": {
     "club": "Club",

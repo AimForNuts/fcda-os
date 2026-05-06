@@ -110,36 +110,36 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
   const adminMenuItems = [
     {
       href: '/admin/users',
-      label: 'Utilizadores',
-      description: 'Aprovações e permissões',
+      label: t('nav.userMenu.admin.users'),
+      description: t('nav.userMenu.admin.usersDescription'),
       icon: UsersRound,
       count: pendingCount,
     },
     {
       href: '/admin/players',
-      label: 'Jogadores',
-      description: 'Plantel, ligações e perfis',
+      label: t('nav.userMenu.admin.players'),
+      description: t('nav.userMenu.admin.playersDescription'),
       icon: UserRound,
       count: 0,
     },
     {
       href: '/admin/ratings',
-      label: 'Avaliações',
-      description: 'Notas e feedback de jogos',
+      label: t('nav.userMenu.admin.ratings'),
+      description: t('nav.userMenu.admin.ratingsDescription'),
       icon: Star,
       count: 0,
     },
     {
       href: '/admin/feedback',
-      label: 'Feedback',
-      description: 'Inbox e revisão',
+      label: t('nav.userMenu.admin.feedback'),
+      description: t('nav.userMenu.admin.feedbackDescription'),
       icon: MessageSquareText,
       count: 0,
     },
     {
       href: '/admin/ai-rating',
-      label: 'AI Rating',
-      description: 'Processamento assistido',
+      label: t('nav.userMenu.admin.aiRating'),
+      description: t('nav.userMenu.admin.aiRatingDescription'),
       icon: Bot,
       count: 0,
     },
@@ -252,9 +252,11 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                 >
                   <Settings className="mt-0.5 size-4 text-fcda-navy" />
                   <span className="min-w-0">
-                    <span className="block font-medium">Preferências</span>
+                    <span className="block font-medium">
+                      {t('nav.userMenu.preferences')}
+                    </span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
-                      Conta, segurança e acesso
+                      {t('nav.userMenu.preferencesDescription')}
                     </span>
                   </span>
                 </DropdownMenuItem>
@@ -266,9 +268,11 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                     >
                       <Pencil className="mt-0.5 size-4 text-fcda-navy" />
                       <span className="min-w-0">
-                        <span className="block font-medium">Editar jogador</span>
+                        <span className="block font-medium">
+                          {t('nav.userMenu.editPlayer')}
+                        </span>
                         <span className="mt-0.5 block text-xs text-muted-foreground">
-                          Foto, número e posições
+                          {t('nav.userMenu.editPlayerDescription')}
                         </span>
                       </span>
                     </DropdownMenuItem>
@@ -279,11 +283,11 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                       <UserRound className="mt-0.5 size-4 text-fcda-navy" />
                       <span className="min-w-0">
                         <span className="flex items-center gap-1 font-medium">
-                          O meu jogador
+                          {t('nav.userMenu.myPlayer')}
                           <ExternalLink className="size-3 text-muted-foreground" />
                         </span>
                         <span className="mt-0.5 block text-xs text-muted-foreground">
-                          Ver a página pública
+                          {t('nav.userMenu.myPlayerDescription')}
                         </span>
                       </span>
                     </DropdownMenuItem>
@@ -293,7 +297,7 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                   <>
                     <DropdownMenuSeparator className="my-2" />
                     <div className="px-3 pb-1 pt-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      Administração
+                      {t('nav.userMenu.admin.title')}
                     </div>
                     {adminMenuItems.map((item) => {
                       const Icon = item.icon
@@ -329,7 +333,7 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                   className="items-center gap-3 px-3 py-2.5 text-destructive"
                 >
                   <LogOut className="size-4" />
-                  <span className="font-medium">Terminar sessão</span>
+                  <span className="font-medium">{t('nav.userMenu.signOut')}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -435,7 +439,7 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                 {profile ? (
                   <>
                     <Link href="/profile" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
-                      Preferências
+                      {t('nav.userMenu.preferences')}
                     </Link>
                     {linkedPlayer ? (
                       <>
@@ -444,21 +448,21 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                           onClick={() => setIsOpen(false)}
                           className={drawerLinkClass}
                         >
-                          Editar jogador
+                          {t('nav.userMenu.editPlayer')}
                         </Link>
                         <Link
                           href={`/players/${linkedPlayer.id}`}
                           onClick={() => setIsOpen(false)}
                           className={drawerLinkClass}
                         >
-                          O meu jogador
+                          {t('nav.userMenu.myPlayer')}
                         </Link>
                       </>
                     ) : null}
                     {isAdmin ? (
                       <div className="border-b border-white/10 py-3">
                         <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/40">
-                          Administração
+                          {t('nav.userMenu.admin.title')}
                         </p>
                         {adminMenuItems.map((item) => (
                           <Link
@@ -482,7 +486,7 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                       onClick={() => { setIsOpen(false); handleLogout() }}
                       className={`${drawerLinkClass} w-full text-left text-red-400 hover:text-red-300`}
                     >
-                      Terminar sessão
+                      {t('nav.userMenu.signOut')}
                     </button>
                   </>
                 ) : (

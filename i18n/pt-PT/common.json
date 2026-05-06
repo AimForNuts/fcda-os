@@ -8,7 +8,29 @@
     "login": "Entrar",
     "register": "Registar",
     "logout": "Sair",
-    "admin": "Admin"
+    "admin": "Admin",
+    "userMenu": {
+      "preferences": "Preferências",
+      "preferencesDescription": "Conta, segurança e acesso",
+      "editPlayer": "Editar jogador",
+      "editPlayerDescription": "Foto, número e posições",
+      "myPlayer": "O meu jogador",
+      "myPlayerDescription": "Ver a página pública",
+      "signOut": "Terminar sessão",
+      "admin": {
+        "title": "Administração",
+        "users": "Utilizadores",
+        "usersDescription": "Aprovações e permissões",
+        "players": "Jogadores",
+        "playersDescription": "Plantel, ligações e perfis",
+        "ratings": "Avaliações",
+        "ratingsDescription": "Notas e feedback de jogos",
+        "feedback": "Feedback",
+        "feedbackDescription": "Inbox e revisão",
+        "aiRating": "AI Rating",
+        "aiRatingDescription": "Processamento assistido"
+      }
+    }
   },
   "footer": {
     "club": "Clube",
