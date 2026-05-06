@@ -3,11 +3,13 @@
 import { useState, useCallback, useRef, type DragEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import { Plus, UserPlus } from 'lucide-react'
 import { WhatsAppPasteBox } from './WhatsAppPasteBox'
 import { PlayerChip } from './PlayerChip'
 import { TeamAssignmentToggle } from './TeamAssignmentToggle'
-import { AiGeneratedLineupModal, type AiGeneratedLineup } from './AiGeneratedLineupModal'
+import { AiGeneratedLineupModal, type AiGeneratedLineup, type AiLineupPromptPreview } from './AiGeneratedLineupModal'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { TeamHeader } from '@/components/matches/TeamHeader'
 import { DEFAULT_NATIONALITY } from '@/lib/nationality'
 import type { ParsedEntry } from '@/lib/whatsapp/parser'
@@ -83,10 +85,18 @@ export function LineupManager({ gameId, currentLineup, showTeamStats = false }: 
   const [teamsError, setTeamsError] = useState<string | null>(null)
   const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null)
   const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+  const [isPreparingAiPrompt, setIsPreparingAiPrompt] = useState(false)
   const [isGeneratingAi, setIsGeneratingAi] = useState(false)
   const [generatedTeams, setGeneratedTeams] = useState<AiGeneratedLineup | null>(null)
+  const [aiPromptPreview, setAiPromptPreview] = useState<AiLineupPromptPreview | null>(null)
+  const [aiPromptDraft, setAiPromptDraft] = useState<AiLineupPromptPreview['prompt'] | null>(null)
   const [aiError, setAiError] = useState<string | null>(null)
   const [isApplyingAi, setIsApplyingAi] = useState(false)
+  const [lineupSearchQuery, setLineupSearchQuery] = useState('')
+  const [lineupSearchResults, setLineupSearchResults] = useState<SearchResult[]>([])
+  const [isAddingLineupGuest, setIsAddingLineupGuest] = useState(false)
+  const [addLineupError, setAddLineupError] = useState<string | null>(null)
+  const lineupSearchAbortRef = useRef<AbortController | null>(null)
 
   // ── Current lineup team editing ────────────────────────────────────────
   function setCurrentTeam(playerId: string, team: 'a' | 'b' | null) {
@@ -186,9 +196,117 @@ export function LineupManager({ gameId, currentLineup, showTeamStats = false }: 
     setIsClearingTeams(false)
   }
 
-  async function generateAiTeams() {
+  function addPlayerToCurrentLineup(player: SearchResult) {
+    setAddLineupError(null)
+    if (editableLineup.some((p) => p.player_id === player.id)) {
+      setAddLineupError(t('mod.lineup.alreadyInLineup'))
+      return
+    }
+    setEditableLineup((prev) => {
+      if (prev.some((p) => p.player_id === player.id)) return prev
+      return [
+        ...prev,
+        {
+          player_id: player.id,
+          sheet_name: player.sheet_name,
+          shirt_number: player.shirt_number,
+          nationality: player.nationality ?? DEFAULT_NATIONALITY,
+          current_rating: null,
+          avatar_url: player.avatar_url,
+          total_games: 0,
+          wins: 0,
+          team: null,
+          is_captain: false,
+        },
+      ]
+    })
+    setLineupSearchQuery('')
+    setLineupSearchResults([])
+  }
+
+  async function searchLineupPlayers(q: string) {
+    setLineupSearchQuery(q)
+    setAddLineupError(null)
+    if (!q.trim()) {
+      setLineupSearchResults([])
+      return
+    }
+    lineupSearchAbortRef.current?.abort()
+    const controller = new AbortController()
+    lineupSearchAbortRef.current = controller
+    try {
+      const res = await fetch(`/api/players?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+      if (res.ok) {
+        const data: SearchResult[] = await res.json()
+        setLineupSearchResults(data.filter((p) => !editableLineup.some((current) => current.player_id === p.id)))
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
+      setLineupSearchResults([])
+    }
+  }
+
+  async function addGuestToCurrentLineup() {
+    const sheetName = lineupSearchQuery.trim()
+    if (!sheetName || isAddingLineupGuest) return
+    setIsAddingLineupGuest(true)
+    setAddLineupError(null)
+    try {
+      const res = await fetch('/api/players', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheet_name: sheetName }),
+      })
+      if (!res.ok) {
+        setAddLineupError(t('mod.lineup.errorSave'))
+        return
+      }
+      const player: { id: string; sheet_name: string; nationality: string } = await res.json()
+      addPlayerToCurrentLineup({
+        id: player.id,
+        sheet_name: player.sheet_name,
+        shirt_number: null,
+        nationality: player.nationality,
+        avatar_url: null,
+      })
+    } catch {
+      setAddLineupError(t('mod.lineup.errorSave'))
+    } finally {
+      setIsAddingLineupGuest(false)
+    }
+  }
+
+  async function prepareAiPrompt() {
     if (editableLineup.length === 0) return
     setIsAiModalOpen(true)
+    setGeneratedTeams(null)
+    setAiPromptPreview(null)
+    setAiPromptDraft(null)
+    setIsPreparingAiPrompt(true)
+    setAiError(null)
+    try {
+      const res = await fetch('/api/mod/ai-assistant/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameId, mode: 'prompt' }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setAiError(data?.error ?? t('mod.lineup.aiGenerateError'))
+        return
+      }
+      setAiPromptPreview(data)
+      setAiPromptDraft(data.prompt)
+    } catch {
+      setAiError(t('mod.lineup.aiGenerateError'))
+    } finally {
+      setIsPreparingAiPrompt(false)
+    }
+  }
+
+  async function generateAiTeams() {
+    if (editableLineup.length === 0) return
+    const promptForRequest = aiPromptDraft ?? aiPromptPreview?.prompt
     setIsGeneratingAi(true)
     setGeneratedTeams(null)
     setAiError(null)
@@ -196,7 +314,7 @@ export function LineupManager({ gameId, currentLineup, showTeamStats = false }: 
       const res = await fetch('/api/mod/ai-assistant/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameId }),
+        body: JSON.stringify({ gameId, mode: 'generate', prompt: promptForRequest }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -426,6 +544,50 @@ export function LineupManager({ gameId, currentLineup, showTeamStats = false }: 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border border-border bg-card p-3">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Input
+            type="text"
+            value={lineupSearchQuery}
+            onChange={(event) => searchLineupPlayers(event.target.value)}
+            placeholder={t('mod.lineup.addPlayerPlaceholder', { defaultValue: 'Player name...' })}
+            aria-label={t('mod.lineup.addPlayer', { defaultValue: 'Add player' })}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addGuestToCurrentLineup}
+            disabled={!lineupSearchQuery.trim() || isAddingLineupGuest}
+          >
+            <UserPlus aria-hidden="true" />
+            {isAddingLineupGuest ? t('common.loading') : t('mod.lineup.addGuest')}
+          </Button>
+        </div>
+        {lineupSearchResults.length > 0 && (
+          <ul className="mt-2 max-h-44 overflow-y-auto rounded-lg border border-input bg-background text-sm divide-y">
+            {lineupSearchResults.map((player) => (
+              <li key={player.id}>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-3 px-2 py-1.5 text-left hover:bg-muted"
+                  onClick={() => addPlayerToCurrentLineup(player)}
+                >
+                  <PlayerChip
+                    name={player.sheet_name}
+                    shirtNumber={player.shirt_number}
+                    nationality={player.nationality}
+                    avatarUrl={player.avatar_url}
+                    status="matched"
+                    className="min-w-0"
+                  />
+                  <Plus className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {addLineupError && <p role="alert" className="mt-2 text-sm text-destructive">{addLineupError}</p>}
+      </div>
       {/* Current lineup (if set) — editable team assignments */}
       {editableLineup.length > 0 && (
         <div className="space-y-3">
@@ -438,10 +600,12 @@ export function LineupManager({ gameId, currentLineup, showTeamStats = false }: 
                 type="button"
                 size="sm"
                 className="bg-fcda-gold text-fcda-navy font-semibold hover:bg-fcda-gold/90"
-                onClick={generateAiTeams}
-                disabled={isGeneratingAi || editableLineup.length === 0}
+                onClick={prepareAiPrompt}
+                disabled={isPreparingAiPrompt || isGeneratingAi || editableLineup.length === 0}
               >
-                {isGeneratingAi ? t('mod.lineup.aiGenerating') : t('mod.lineup.aiGenerate')}
+                {isPreparingAiPrompt
+                  ? t('common.loading')
+                  : t('mod.lineup.aiCreatePrompt', { defaultValue: 'Create prompt' })}
               </Button>
               <Button
                 type="button"
@@ -496,12 +660,17 @@ export function LineupManager({ gameId, currentLineup, showTeamStats = false }: 
           {isAiModalOpen && (
             <AiGeneratedLineupModal
               teams={generatedTeams}
+              promptPreview={aiPromptPreview}
+              promptDraft={aiPromptDraft}
               playerCount={editableLineup.length}
+              isPreparingPrompt={isPreparingAiPrompt}
               isGenerating={isGeneratingAi}
               isApplying={isApplyingAi}
               error={aiError}
+              onPromptDraftChange={setAiPromptDraft}
+              onGenerate={generateAiTeams}
               onApply={applyAiTeams}
-              onRegenerate={generateAiTeams}
+              onRegenerate={generatedTeams || aiPromptPreview ? () => generateAiTeams() : prepareAiPrompt}
               onClose={() => setIsAiModalOpen(false)}
             />
           )}

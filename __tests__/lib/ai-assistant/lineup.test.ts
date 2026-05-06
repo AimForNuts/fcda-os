@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { createAiLineupSchema, validateAiLineup } from '@/lib/ai-assistant/lineup'
+import {
+  buildPlayerTable,
+  createAiLineupSchema,
+  randomizeAiLineupCaptains,
+  validateAiLineup,
+} from '@/lib/ai-assistant/lineup'
 import type { AiLineup } from '@/lib/ai-assistant/lineup'
 
 const p1 = '11111111-1111-4111-8111-111111111111'
@@ -167,5 +172,57 @@ describe('createAiLineupSchema', () => {
     )
 
     expect(result.success).toBe(false)
+  })
+})
+
+describe('buildPlayerTable', () => {
+  it('includes last 5 ratings, overall win percent, and last 5 win percent', () => {
+    const table = buildPlayerTable([{
+      id: p1,
+      sheet_name: 'Player One',
+      shirt_number: 10,
+      nationality: 'PT',
+      current_rating: 7.25,
+      preferred_positions: ['W'],
+      last5Ratings: [8, 7, 7.5, 6, 8.5],
+      totalGames: 20,
+      winPct: 55,
+      last5Games: 5,
+      last5WinPct: 80,
+      recentFeedback: ['Fast transitions.'],
+    }])
+
+    expect(table).toContain('Last 5 ratings: 8.0 / 7.0 / 7.5 / 6.0 / 8.5')
+    expect(table).toContain('Overall win %: 55% over 20')
+    expect(table).toContain('Last 5 win %: 80% over 5')
+  })
+})
+
+describe('randomizeAiLineupCaptains', () => {
+  it('assigns exactly one random captain per team without changing team membership', () => {
+    const randomized = randomizeAiLineupCaptains(
+      lineup({
+        team_a: {
+          label: 'Equipa Branca',
+          players: [
+            { player_id: p1, is_captain: true },
+            { player_id: p2, is_captain: false },
+          ],
+        },
+        team_b: {
+          label: 'Equipa Azul',
+          players: [
+            { player_id: p3, is_captain: true },
+            { player_id: p4, is_captain: false },
+          ],
+        },
+      }),
+      () => 1
+    )
+
+    expect(randomized.team_a.players.map((player) => player.player_id)).toEqual([p1, p2])
+    expect(randomized.team_b.players.map((player) => player.player_id)).toEqual([p3, p4])
+    expect(randomized.team_a.players.map((player) => player.is_captain)).toEqual([false, true])
+    expect(randomized.team_b.players.map((player) => player.is_captain)).toEqual([false, true])
   })
 })

@@ -46,9 +46,11 @@ export type PlayerForAiLineup = {
   nationality: string
   current_rating: number | null
   preferred_positions: string[]
-  last3Ratings: number[]
+  last5Ratings: number[]
   totalGames: number
   winPct: number | null
+  last5Games: number
+  last5WinPct: number | null
   recentFeedback: string[]
 }
 
@@ -85,16 +87,26 @@ export type AiLineupPreview = {
   reasoning: string[]
 }
 
+export type AiLineupPromptPreview = {
+  system: string
+  user: string
+}
+
 export function buildPlayerTable(players: PlayerForAiLineup[]): string {
   const lines = players.map((p) => {
     const rating = p.current_rating != null && p.current_rating > 0 ? p.current_rating.toFixed(1) : 'unrated'
     const pos = p.preferred_positions.length > 0 ? p.preferred_positions.join(', ') : 'no position'
-    const last3 = p.last3Ratings.length > 0 ? p.last3Ratings.map((r) => r.toFixed(1)).join(' / ') : '-'
-    const games = p.totalGames > 0 ? `${p.totalGames} (Win: ${p.winPct}%)` : '0'
+    const last5Ratings = p.last5Ratings.length > 0 ? p.last5Ratings.map((r) => r.toFixed(1)).join(' / ') : '-'
+    const overallWin = p.totalGames > 0 && p.winPct != null ? `${p.winPct}% over ${p.totalGames}` : '-'
+    const last5Win = p.last5Games > 0 && p.last5WinPct != null ? `${p.last5WinPct}% over ${p.last5Games}` : '-'
     const feedback = p.recentFeedback.length > 0 ? p.recentFeedback.map((f) => `"${f}"`).join(' ') : '-'
-    return `- ${p.sheet_name} (player_id: ${p.id}) | Rating: ${rating} | Positions: ${pos} | Last 3: ${last3} | Games: ${games} | Feedback data: ${feedback}`
+    return `- ${p.sheet_name} (player_id: ${p.id}) | Rating: ${rating} | Positions: ${pos} | Last 5 ratings: ${last5Ratings} | Overall win %: ${overallWin} | Last 5 win %: ${last5Win} | Feedback data: ${feedback}`
   })
   return `Current player ratings table:\n${lines.join('\n')}`
+}
+
+export function buildAiLineupUserPrompt(playerTable: string) {
+  return `Generate teams for this week's game. Do not ask for more information — all player data is provided below.\n\n${playerTable}`
 }
 
 type ValidateAiLineupOptions = {
@@ -147,6 +159,35 @@ export function validateAiLineup(
   return {
     ok: errors.length === 0,
     errors,
+  }
+}
+
+function randomizeTeamCaptain(
+  players: AiLineupPlayer[],
+  randomIndex: (length: number) => number
+) {
+  if (players.length === 0) return []
+  const captainIndex = randomIndex(players.length)
+  return players.map((player, index) => ({
+    ...player,
+    is_captain: index === captainIndex,
+  }))
+}
+
+export function randomizeAiLineupCaptains(
+  lineup: AiLineup,
+  randomIndex = (length: number) => Math.floor(Math.random() * length)
+): AiLineup {
+  return {
+    ...lineup,
+    team_a: {
+      ...lineup.team_a,
+      players: randomizeTeamCaptain(lineup.team_a.players, randomIndex),
+    },
+    team_b: {
+      ...lineup.team_b,
+      players: randomizeTeamCaptain(lineup.team_b.players, randomIndex),
+    },
   }
 }
 

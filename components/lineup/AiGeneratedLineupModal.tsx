@@ -18,6 +18,15 @@ export type AiGeneratedLineup = {
   reasoning: string[]
 }
 
+export type AiLineupPromptPreview = {
+  game_id: string
+  player_count: number
+  prompt: {
+    system: string
+    user: string
+  }
+}
+
 export type TeamPreview = {
   label: string
   players: PlayerPreview[]
@@ -38,10 +47,15 @@ export type PlayerPreview = {
 
 type Props = {
   teams: AiGeneratedLineup | null
+  promptPreview: AiLineupPromptPreview | null
+  promptDraft: AiLineupPromptPreview['prompt'] | null
   playerCount: number
+  isPreparingPrompt: boolean
   isGenerating: boolean
   isApplying: boolean
   error: string | null
+  onPromptDraftChange: (prompt: AiLineupPromptPreview['prompt']) => void
+  onGenerate: () => void
   onApply: () => void
   onRegenerate: () => void
   onClose: () => void
@@ -49,16 +63,21 @@ type Props = {
 
 export function AiGeneratedLineupModal({
   teams,
+  promptPreview,
+  promptDraft,
   playerCount,
+  isPreparingPrompt,
   isGenerating,
   isApplying,
   error,
+  onPromptDraftChange,
+  onGenerate,
   onApply,
   onRegenerate,
   onClose,
 }: Props) {
   const [tab, setTab] = useState<'lineup' | 'reasoning'>('lineup')
-  const title = teams ? 'Generated Lineup' : 'Generate Teams with AI'
+  const title = teams ? 'Generated Lineup' : 'AI Team Prompt'
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
@@ -76,7 +95,9 @@ export function AiGeneratedLineupModal({
             <p className="text-xs text-muted-foreground">
               {teams
                 ? `Rating delta ${teams.balance.rating_delta.toFixed(1)} · Player count delta ${teams.balance.player_count_delta}`
-                : `Balancing ${playerCount} players from this game`}
+                : promptPreview
+                  ? `Reviewing prompt for ${promptPreview.player_count} players`
+                  : `Preparing prompt for ${playerCount} players`}
             </p>
           </div>
           <button
@@ -115,7 +136,9 @@ export function AiGeneratedLineupModal({
         )}
 
         <div className="max-h-[58vh] overflow-y-auto px-4 py-4 sm:px-5">
-          {isGenerating ? (
+          {isPreparingPrompt ? (
+            <PreparingPromptState playerCount={playerCount} />
+          ) : isGenerating ? (
             <GeneratingState playerCount={playerCount} />
           ) : error ? (
             <div role="alert" className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
@@ -129,13 +152,29 @@ export function AiGeneratedLineupModal({
             </div>
           ) : teams ? (
             <ReasoningPanel reasoning={teams.reasoning} notes={teams.notes} />
+          ) : promptDraft ? (
+            <PromptPreviewPanel
+              prompt={promptDraft}
+              onChange={onPromptDraftChange}
+            />
           ) : null}
         </div>
 
         <div className="flex flex-wrap justify-end gap-3 border-t border-border px-4 py-4 sm:px-5">
-          <Button variant="outline" onClick={onRegenerate} disabled={isGenerating || isApplying}>
-            {teams || error ? 'Regenerate' : 'Retry'}
-          </Button>
+          {(teams || error) && (
+            <Button variant="outline" onClick={onRegenerate} disabled={isPreparingPrompt || isGenerating || isApplying}>
+              {teams ? 'Regenerate' : 'Retry'}
+            </Button>
+          )}
+          {promptPreview && !teams && !error && (
+            <Button
+              className="bg-fcda-gold text-fcda-navy font-semibold hover:bg-fcda-gold/90"
+              onClick={onGenerate}
+              disabled={isGenerating || isPreparingPrompt || !promptDraft?.system.trim() || !promptDraft.user.trim()}
+            >
+              {isGenerating ? 'Generating...' : 'Generate Teams'}
+            </Button>
+          )}
           {teams && (
             <Button
               className="bg-fcda-gold text-fcda-navy font-semibold hover:bg-fcda-gold/90"
@@ -174,6 +213,73 @@ function GeneratingState({ playerCount }: { playerCount: number }) {
         ))}
       </div>
     </div>
+  )
+}
+
+function PreparingPromptState({ playerCount }: { playerCount: number }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-fcda-navy">Creating prompt for {playerCount} players</p>
+          <p className="text-xs text-muted-foreground">
+            Ratings, recent form, win rate and feedback are being collected.
+          </p>
+        </div>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-fcda-gold border-t-fcda-navy" />
+      </div>
+    </div>
+  )
+}
+
+function PromptPreviewPanel({
+  prompt,
+  onChange,
+}: {
+  prompt: AiLineupPromptPreview['prompt']
+  onChange: (prompt: AiLineupPromptPreview['prompt']) => void
+}) {
+  return (
+    <div className="space-y-4">
+      <PromptBlock
+        title="System prompt"
+        value={prompt.system}
+        onChange={(system) => onChange({ ...prompt, system })}
+      />
+      <PromptBlock
+        title="User prompt"
+        value={prompt.user}
+        onChange={(user) => onChange({ ...prompt, user })}
+      />
+    </div>
+  )
+}
+
+function PromptBlock({
+  title,
+  value,
+  onChange,
+}: {
+  title: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  const id = title.toLowerCase().replace(/\s+/g, '-')
+  return (
+    <section className="rounded-lg border border-border bg-card">
+      <div className="border-b border-border px-3 py-2">
+        <label htmlFor={id} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {title}
+        </label>
+      </div>
+      <textarea
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="min-h-56 w-full resize-y border-0 bg-transparent px-3 py-3 font-mono text-xs leading-5 text-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+        spellCheck={false}
+      />
+    </section>
   )
 }
 
