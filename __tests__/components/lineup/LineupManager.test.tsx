@@ -48,7 +48,11 @@ function currentLineup() {
       player_id: playerA,
       sheet_name: 'Carlos',
       shirt_number: 10,
+      nationality: 'PT',
+      current_rating: 7,
       avatar_url: null,
+      total_games: 4,
+      wins: 3,
       team: 'a' as const,
       is_captain: true,
     },
@@ -56,7 +60,11 @@ function currentLineup() {
       player_id: playerB,
       sheet_name: 'João',
       shirt_number: 5,
+      nationality: 'PT',
+      current_rating: null,
       avatar_url: null,
+      total_games: 0,
+      wins: 0,
       team: 'b' as const,
       is_captain: true,
     },
@@ -157,6 +165,14 @@ describe('LineupManager', () => {
         })
       )
     })
+  })
+
+  it('shows admin-only team averages without counting unrated players or players with no games', () => {
+    render(<LineupManager gameId="game-1" currentLineup={currentLineup()} showTeamStats />)
+
+    expect(screen.getByText('7.0')).toBeInTheDocument()
+    expect(screen.getByText('75%')).toBeInTheDocument()
+    expect(screen.getAllByText('—')).toHaveLength(2)
   })
 
   it('generates teams with AI, shows reasoning, applies, and refreshes', async () => {

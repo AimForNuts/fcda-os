@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateAiLineup } from '@/lib/ai-assistant/lineup'
+import { createAiLineupSchema, validateAiLineup } from '@/lib/ai-assistant/lineup'
 import type { AiLineup } from '@/lib/ai-assistant/lineup'
 
 const p1 = '11111111-1111-4111-8111-111111111111'
@@ -78,6 +78,24 @@ describe('validateAiLineup', () => {
     expect(result.errors.join(' ')).toContain('Duplicate players')
   })
 
+  it('includes player names in validation errors when labels are provided', () => {
+    const result = validateAiLineup(
+      lineup({
+        team_b: {
+          label: 'Equipa Azul',
+          players: [
+            { player_id: p1, is_captain: true },
+            { player_id: p4, is_captain: false },
+          ],
+        },
+      }),
+      [p1, p2, p3, p4],
+      { playerLabels: new Map([[p1, 'Player One']]) }
+    )
+
+    expect(result.errors).toContain(`Duplicate players: Player One (${p1})`)
+  })
+
   it('rejects players outside the roster', () => {
     const result = validateAiLineup(
       lineup({
@@ -130,5 +148,24 @@ describe('validateAiLineup', () => {
 
     expect(result.ok).toBe(false)
     expect(result.errors).toContain('Team Blue must have exactly one captain')
+  })
+})
+
+describe('createAiLineupSchema', () => {
+  it('rejects UUID-shaped player ids that are not in the roster', () => {
+    const schema = createAiLineupSchema([p1, p2, p3, p4])
+    const result = schema.safeParse(
+      lineup({
+        team_b: {
+          label: 'Equipa Azul',
+          players: [
+            { player_id: p3, is_captain: true },
+            { player_id: outsider, is_captain: false },
+          ],
+        },
+      })
+    )
+
+    expect(result.success).toBe(false)
   })
 })

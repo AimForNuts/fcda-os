@@ -22,6 +22,23 @@ export type AiLineup = z.infer<typeof AiLineupSchema>
 export type AiLineupPlayer = z.infer<typeof AiLineupPlayerSchema>
 export type MatchTeam = 'a' | 'b'
 
+export function createAiLineupSchema(rosterPlayerIds: string[]) {
+  if (rosterPlayerIds.length === 0) return AiLineupSchema
+
+  const rosterPlayerIdSchema = z.enum(rosterPlayerIds as [string, ...string[]])
+  const rosterLineupPlayerSchema = AiLineupPlayerSchema.extend({
+    player_id: rosterPlayerIdSchema,
+  })
+  const rosterLineupTeamSchema = AiLineupTeamSchema.extend({
+    players: z.array(rosterLineupPlayerSchema),
+  })
+
+  return AiLineupSchema.extend({
+    team_a: rosterLineupTeamSchema,
+    team_b: rosterLineupTeamSchema,
+  })
+}
+
 export type PlayerForAiLineup = {
   id: string
   sheet_name: string
@@ -80,7 +97,24 @@ export function buildPlayerTable(players: PlayerForAiLineup[]): string {
   return `Current player ratings table:\n${lines.join('\n')}`
 }
 
-export function validateAiLineup(lineup: AiLineup, rosterPlayerIds: string[]) {
+type ValidateAiLineupOptions = {
+  playerLabels?: Map<string, string> | Record<string, string>
+}
+
+function formatPlayerId(playerId: string, playerLabels?: ValidateAiLineupOptions['playerLabels']) {
+  const label = playerLabels instanceof Map ? playerLabels.get(playerId) : playerLabels?.[playerId]
+  return label ? `${label} (${playerId})` : playerId
+}
+
+function formatPlayerIds(playerIds: string[], playerLabels?: ValidateAiLineupOptions['playerLabels']) {
+  return playerIds.map((id) => formatPlayerId(id, playerLabels)).join(', ')
+}
+
+export function validateAiLineup(
+  lineup: AiLineup,
+  rosterPlayerIds: string[],
+  options: ValidateAiLineupOptions = {}
+) {
   const rosterSet = new Set(rosterPlayerIds)
   const seen = new Set<string>()
   const duplicateIds = new Set<string>()
@@ -98,9 +132,15 @@ export function validateAiLineup(lineup: AiLineup, rosterPlayerIds: string[]) {
   const captainCountB = lineup.team_b.players.filter((p) => p.is_captain).length
 
   const errors: string[] = []
-  if (duplicateIds.size > 0) errors.push(`Duplicate players: ${[...duplicateIds].join(', ')}`)
-  if (outsiderIds.size > 0) errors.push(`Players outside roster: ${[...outsiderIds].join(', ')}`)
-  if (missingIds.length > 0) errors.push(`Missing players: ${missingIds.join(', ')}`)
+  if (duplicateIds.size > 0) {
+    errors.push(`Duplicate players: ${formatPlayerIds([...duplicateIds], options.playerLabels)}`)
+  }
+  if (outsiderIds.size > 0) {
+    errors.push(`Players outside roster: ${formatPlayerIds([...outsiderIds], options.playerLabels)}`)
+  }
+  if (missingIds.length > 0) {
+    errors.push(`Missing players: ${formatPlayerIds(missingIds, options.playerLabels)}`)
+  }
   if (captainCountA !== 1) errors.push('Team White must have exactly one captain')
   if (captainCountB !== 1) errors.push('Team Blue must have exactly one captain')
 
