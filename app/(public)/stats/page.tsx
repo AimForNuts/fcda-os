@@ -5,6 +5,7 @@ import {
   resolveLinkedPlayerIdentity,
   signPlayerAvatarRecords,
 } from '@/lib/players/avatar.server'
+import { CompetitiveGameIcon } from '@/components/matches/game-type-icons'
 import { StatsTable } from '@/components/stats/StatsTable'
 import {
   buildLeaderboardFormByPlayerId,
@@ -13,7 +14,7 @@ import {
 } from '@/lib/stats/leaderboard'
 import type { PlayerStats } from '@/types'
 
-export const metadata = { title: 'Classificação — FCDA' }
+export const metadata = { title: 'Classificação competitiva — FCDA' }
 
 export default async function StatsPage() {
   const supabase = await createClient()
@@ -93,8 +94,12 @@ export default async function StatsPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-fcda-gold">
               Futebol Clube Dragões da Areosa
             </p>
-            <h1 className="mt-3 text-5xl font-black uppercase tracking-tight md:text-7xl">
-              Classificação
+            <h1 className="mt-3 flex flex-wrap items-center gap-3 text-5xl font-black uppercase tracking-tight md:gap-4 md:text-7xl">
+              <CompetitiveGameIcon
+                className="size-9 shrink-0 text-fcda-gold md:size-12"
+                aria-hidden
+              />
+              <span>Classificação Competitiva</span>
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 md:text-base">
               Classificação por pontos (3 por vitória, 1 por empate), com líderes,
