@@ -414,9 +414,9 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
       <nav className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80">
         <div className="container mx-auto flex max-w-screen-xl gap-6 overflow-x-auto px-4 sm:gap-8">
           {[
-            ['Biografia', '#biografia'],
-            ['Estatísticas', '#estatisticas'],
             ['Jogos', '#jogos'],
+            ['Estatísticas', '#estatisticas'],
+            ['Biografia', '#biografia'],
           ].map(([label, href]) => (
             <a
               key={href}
@@ -430,131 +430,6 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
       </nav>
 
       <main className="container mx-auto max-w-screen-xl space-y-10 px-4 py-8 md:space-y-12 md:py-14">
-        <section id="biografia" className="scroll-mt-24">
-          <article className="bg-card p-5 shadow-sm shadow-sm md:p-8">
-            <h2 className="text-2xl font-black tracking-normal text-foreground md:text-4xl">
-              Biografia
-            </h2>
-            <div className="mt-6 max-w-4xl">
-              <PlayerDescriptionEditor
-                playerId={resolvedPlayer.id}
-                initialDescription={resolvedPlayer.description}
-                fallbackDescription={fallbackBiography}
-                canEdit={canEditDescription}
-              />
-            </div>
-          </article>
-        </section>
-
-        <section id="estatisticas" className="scroll-mt-24 space-y-6">
-          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="text-2xl font-black tracking-normal text-foreground md:text-4xl">
-                Estatísticas
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground">Atualizado por jogos concluídos.</p>
-            </div>
-            <p className="text-sm font-semibold text-muted-foreground">
-              {playerRank ? `${playerRank}.º no ranking competitivo por pontos` : 'Sem posição no ranking competitivo'}
-            </p>
-          </div>
-
-          <section className="bg-card p-4 shadow-sm shadow-sm md:p-5">
-            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-              <div className="flex items-center gap-2">
-                <CompetitiveGameIcon className="size-5 shrink-0 text-fcda-gold" aria-hidden />
-                <h3 className="text-lg font-black leading-tight text-foreground">Ranking</h3>
-              </div>
-              <Link
-                href="/stats"
-                className="shrink-0 text-xs font-semibold uppercase tracking-wide text-primary underline underline-offset-2 hover:text-primary/80"
-              >
-                Ver classificação completa
-              </Link>
-            </div>
-            <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[34rem] border-separate border-spacing-y-1 text-xs">
-                <caption className="sr-only">
-                  Pré-visualização da classificação competitiva por pontos com vitórias, empates e derrotas.
-                </caption>
-                <thead>
-                <tr className="text-left font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th scope="col" className="w-9 px-3 pb-1 align-bottom font-semibold">
-                    #
-                  </th>
-                  <th scope="col" className="min-w-[7rem] px-1 pb-1 align-bottom font-semibold">
-                    Jogador
-                  </th>
-                  <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
-                    V
-                  </th>
-                  <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
-                    E
-                  </th>
-                  <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
-                    D
-                  </th>
-                  <th scope="col" className="w-11 px-3 pb-1 text-right align-bottom font-semibold tabular-nums">
-                    Pts
-                  </th>
-                </tr>
-                </thead>
-                <tbody>
-                {rankingPreview.map(({ row, rank }) => {
-                  const isSelf = row.id === id
-                  const avatarUrl = rankingPreviewAvatarUrlById.get(row.id) ?? null
-
-                  return (
-                    <tr
-                      key={row.id}
-                      className={cn(
-                        isSelf ? 'bg-fcda-gold text-fcda-navy' : 'bg-muted/55 text-foreground'
-                      )}
-                    >
-                    <td className="rounded-l-md px-3 py-1.5 align-middle font-black tabular-nums">{rank}</td>
-                    <td className="max-w-[min(100%,16rem)] px-1 py-1.5 align-middle sm:max-w-none">
-                      <div className="flex min-w-0 items-center gap-1.5">
-                        <RankingPreviewAvatar
-                          name={row.display_name}
-                          avatarUrl={avatarUrl}
-                          isHighlighted={isSelf}
-                        />
-                        {isApproved ? (
-                          <Link
-                            href={`/players/${row.id}`}
-                            className={cn(
-                              'min-w-0 truncate font-semibold hover:underline',
-                              isSelf && 'text-fcda-navy'
-                            )}
-                          >
-                            {row.display_name}
-                          </Link>
-                        ) : (
-                          <span className="min-w-0 truncate font-semibold">{row.display_name}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-1 py-1.5 text-right align-middle tabular-nums font-medium">
-                      {row.wins_comp}
-                    </td>
-                    <td className="px-1 py-1.5 text-right align-middle tabular-nums font-medium">
-                      {row.draws_comp}
-                    </td>
-                    <td className="px-1 py-1.5 text-right align-middle tabular-nums font-medium">
-                      {row.losses_comp}
-                    </td>
-                    <td className="rounded-r-md px-3 py-1.5 text-right align-middle font-black tabular-nums">
-                      {row.points}
-                    </td>
-                    </tr>
-                  )
-                })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </section>
-
         <section id="jogos" className="scroll-mt-24 space-y-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
@@ -727,6 +602,131 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
               <p className="text-sm text-muted-foreground">Sem jogos registados.</p>
             </section>
           )}
+        </section>
+
+        <section id="estatisticas" className="scroll-mt-24 space-y-6">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-black tracking-normal text-foreground md:text-4xl">
+                Estatísticas
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">Atualizado por jogos concluídos.</p>
+            </div>
+            <p className="text-sm font-semibold text-muted-foreground">
+              {playerRank ? `${playerRank}.º no ranking competitivo por pontos` : 'Sem posição no ranking competitivo'}
+            </p>
+          </div>
+
+          <section className="bg-card p-4 shadow-sm shadow-sm md:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <div className="flex items-center gap-2">
+                <CompetitiveGameIcon className="size-5 shrink-0 text-fcda-gold" aria-hidden />
+                <h3 className="text-lg font-black leading-tight text-foreground">Ranking</h3>
+              </div>
+              <Link
+                href="/stats"
+                className="shrink-0 text-xs font-semibold uppercase tracking-wide text-primary underline underline-offset-2 hover:text-primary/80"
+              >
+                Ver classificação completa
+              </Link>
+            </div>
+            <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[34rem] border-separate border-spacing-y-1 text-xs">
+                <caption className="sr-only">
+                  Pré-visualização da classificação competitiva por pontos com vitórias, empates e derrotas.
+                </caption>
+                <thead>
+                <tr className="text-left font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th scope="col" className="w-9 px-3 pb-1 align-bottom font-semibold">
+                    #
+                  </th>
+                  <th scope="col" className="min-w-[7rem] px-1 pb-1 align-bottom font-semibold">
+                    Jogador
+                  </th>
+                  <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
+                    V
+                  </th>
+                  <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
+                    E
+                  </th>
+                  <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
+                    D
+                  </th>
+                  <th scope="col" className="w-11 px-3 pb-1 text-right align-bottom font-semibold tabular-nums">
+                    Pts
+                  </th>
+                </tr>
+                </thead>
+                <tbody>
+                {rankingPreview.map(({ row, rank }) => {
+                  const isSelf = row.id === id
+                  const avatarUrl = rankingPreviewAvatarUrlById.get(row.id) ?? null
+
+                  return (
+                    <tr
+                      key={row.id}
+                      className={cn(
+                        isSelf ? 'bg-fcda-gold text-fcda-navy' : 'bg-muted/55 text-foreground'
+                      )}
+                    >
+                    <td className="rounded-l-md px-3 py-1.5 align-middle font-black tabular-nums">{rank}</td>
+                    <td className="max-w-[min(100%,16rem)] px-1 py-1.5 align-middle sm:max-w-none">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <RankingPreviewAvatar
+                          name={row.display_name}
+                          avatarUrl={avatarUrl}
+                          isHighlighted={isSelf}
+                        />
+                        {isApproved ? (
+                          <Link
+                            href={`/players/${row.id}`}
+                            className={cn(
+                              'min-w-0 truncate font-semibold hover:underline',
+                              isSelf && 'text-fcda-navy'
+                            )}
+                          >
+                            {row.display_name}
+                          </Link>
+                        ) : (
+                          <span className="min-w-0 truncate font-semibold">{row.display_name}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-1 py-1.5 text-right align-middle tabular-nums font-medium">
+                      {row.wins_comp}
+                    </td>
+                    <td className="px-1 py-1.5 text-right align-middle tabular-nums font-medium">
+                      {row.draws_comp}
+                    </td>
+                    <td className="px-1 py-1.5 text-right align-middle tabular-nums font-medium">
+                      {row.losses_comp}
+                    </td>
+                    <td className="rounded-r-md px-3 py-1.5 text-right align-middle font-black tabular-nums">
+                      {row.points}
+                    </td>
+                    </tr>
+                  )
+                })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section id="biografia" className="scroll-mt-24">
+          <article className="bg-card p-5 shadow-sm shadow-sm md:p-8">
+            <h2 className="text-2xl font-black tracking-normal text-foreground md:text-4xl">
+              Biografia
+            </h2>
+            <div className="mt-6 max-w-4xl">
+              <PlayerDescriptionEditor
+                playerId={resolvedPlayer.id}
+                initialDescription={resolvedPlayer.description}
+                fallbackDescription={fallbackBiography}
+                canEdit={canEditDescription}
+              />
+            </div>
+          </article>
         </section>
       </main>
     </div>
