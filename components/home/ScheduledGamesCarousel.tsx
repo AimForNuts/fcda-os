@@ -8,7 +8,9 @@ import { formatScheduleDate } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { GameStatusBadge } from '@/components/matches/GameStatusBadge'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
+import { WeatherSummary } from '@/components/matches/WeatherSummary'
 import { cn } from '@/lib/utils'
+import type { MatchWeather } from '@/lib/weather/open-meteo'
 import type { Game } from '@/types'
 
 const teamA = getTeamPresentation('a')
@@ -18,11 +20,13 @@ function ScheduledGameCard({
   game,
   className,
   commentCount = 0,
+  weather,
   showNextMatchLabel = false,
 }: {
   game: Game
   className?: string
   commentCount?: number
+  weather?: MatchWeather | null
   showNextMatchLabel?: boolean
 }) {
   const formatted = formatScheduleDate(game.date)
@@ -68,6 +72,7 @@ function ScheduledGameCard({
             <p className="mt-2 text-sm text-white/75">
               {game.location} · {formatted.time}
             </p>
+            <WeatherSummary weather={weather} className="mt-2" />
           </div>
 
           <div className="mx-auto grid w-full max-w-sm grid-cols-[1fr_auto_1fr] items-center gap-4 justify-self-center md:col-start-2">
@@ -113,9 +118,11 @@ function ScheduledGameCard({
 export function ScheduledGamesCarousel({
   games,
   commentCounts = {},
+  weatherByGameId = {},
 }: {
   games: Game[]
   commentCounts?: Record<string, number>
+  weatherByGameId?: Record<string, MatchWeather | null>
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -180,6 +187,7 @@ export function ScheduledGamesCarousel({
             key={game.id}
             game={game}
             commentCount={commentCounts[game.id] ?? 0}
+            weather={weatherByGameId[game.id]}
             showNextMatchLabel={index === 0}
             className="min-w-0 shrink-0 basis-full snap-start"
           />

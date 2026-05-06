@@ -11,12 +11,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NationalityFlag } from '@/components/player/NationalityFlag'
 import { GameStatusBadge } from '@/components/matches/GameStatusBadge'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
+import { WeatherSummary } from '@/components/matches/WeatherSummary'
 import { TeamHeader } from '@/components/matches/TeamHeader'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { bcp47ForI18nLanguage } from '@/lib/i18n/date-locale'
 import { getRecintoMapsUrl } from '@/lib/recintos/google-maps'
 import { cn } from '@/lib/utils'
+import type { MatchWeather } from '@/lib/weather/open-meteo'
 import type { Game, Recinto } from '@/types'
 
 type LineupSummaryPlayer = {
@@ -55,6 +57,7 @@ type Props = {
   showAvatars?: boolean
   commentCount?: number
   recinto?: Pick<Recinto, 'name' | 'google_place_id' | 'latitude' | 'longitude' | 'maps_url'> | null
+  weather?: MatchWeather | null
 }
 
 function PlayerSummaryRow({
@@ -102,7 +105,7 @@ function PlayerSummaryRow({
   )
 }
 
-export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0, recinto }: Props) {
+export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0, recinto, weather }: Props) {
   const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState(
     game.status === 'finished' || game.status === 'cancelled'
@@ -149,17 +152,20 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
     <Link href={`/matches/${game.id}`} className="block" aria-label={`${game.location} — ${fullDateStr}`}>
       <Card className="cursor-pointer rounded-lg border-0 py-0 shadow-none ring-1 ring-border transition-colors hover:bg-muted/30 lg:rounded-none lg:ring-0 lg:ring-inset lg:hover:bg-muted/20">
         <CardContent className="px-0 py-0">
-          <div className="grid min-h-32 gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(8rem,14rem)_1fr_minmax(10rem,14rem)] lg:items-center lg:gap-6 lg:border-b lg:border-border">
-            <div className="flex items-center justify-between gap-4 lg:justify-start">
-              <div>
+          <div className="grid min-h-32 gap-4 p-4 sm:gap-5 sm:p-5 lg:grid-cols-[minmax(8rem,14rem)_1fr_minmax(10rem,14rem)] lg:items-center lg:gap-6 lg:border-b lg:border-border">
+            <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-4 lg:flex lg:items-center lg:justify-start">
+              <div className="rounded-lg bg-muted/40 px-3 py-2 text-center lg:bg-transparent lg:px-0 lg:py-0 lg:text-left">
                 <p className="text-xs font-black uppercase text-muted-foreground">{monthStr}</p>
-                <p className="mt-0.5 text-4xl font-black leading-none text-primary tabular-nums">
+                <p className="mt-0.5 text-3xl font-black leading-none text-primary tabular-nums sm:text-4xl">
                   {dayStr}
                 </p>
                 <p className="mt-1 text-xs font-bold uppercase text-muted-foreground">{weekdayStr}</p>
               </div>
-              <div className="min-w-0 text-right lg:text-left">
-                <p className="truncate text-sm font-bold text-foreground">{timeStr}</p>
+              <div className="min-w-0 text-left">
+                <div className="flex min-w-0 items-center gap-2 lg:block">
+                  <p className="shrink-0 text-sm font-bold text-foreground">{timeStr}</p>
+                  <WeatherSummary weather={weather} className="max-w-full lg:mt-2" />
+                </div>
                 {mapsUrl ? (
                   <button
                     type="button"
@@ -181,11 +187,11 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
             </div>
 
             <div className="min-w-0">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
+              <div className="grid grid-cols-[minmax(4rem,1fr)_auto_minmax(4rem,1fr)] items-center gap-3 sm:gap-6">
                 <div className="flex min-w-0 items-center justify-end gap-2 text-right">
                   <span
                     className={cn(
-                      'min-w-0 truncate text-sm font-semibold text-foreground sm:text-base',
+                      'hidden min-w-0 truncate text-sm font-semibold text-foreground sm:inline sm:text-base',
                       winningTeam === 'a' && 'font-black',
                     )}
                   >
@@ -199,7 +205,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
                     alt=""
                     width={44}
                     height={61}
-                    className="h-12 w-auto shrink-0 object-contain sm:h-14"
+                    className="h-14 w-auto shrink-0 object-contain sm:h-14"
                     aria-hidden
                   />
                 </div>
@@ -226,7 +232,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
                     alt=""
                     width={44}
                     height={61}
-                    className="h-12 w-auto shrink-0 object-contain sm:h-14"
+                    className="h-14 w-auto shrink-0 object-contain sm:h-14"
                     aria-hidden
                   />
                   {winningTeam === 'b' ? (
@@ -234,7 +240,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
                   ) : null}
                   <span
                     className={cn(
-                      'min-w-0 truncate text-sm font-semibold text-foreground sm:text-base',
+                      'hidden min-w-0 truncate text-sm font-semibold text-foreground sm:inline sm:text-base',
                       winningTeam === 'b' && 'font-black',
                     )}
                   >
@@ -244,7 +250,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
               </div>
             </div>
 
-            <div className="flex min-w-0 items-center justify-between gap-3 border-t border-border pt-4 lg:justify-end lg:border-t-0 lg:pt-0">
+            <div className="flex min-w-0 items-center justify-between gap-3 border-t border-border pt-3 lg:justify-end lg:border-t-0 lg:pt-0">
               <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
                 <GameStatusBadge status={game.status} />
                 <GameTypeBadge competitive={game.counts_for_stats} compact />
@@ -256,7 +262,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
                   <MessageCircle size={15} aria-hidden />
                   <span className="tabular-nums">{commentCount}</span>
                 </span>
-                <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">
+                <span className="ml-auto inline-flex items-center gap-1 text-sm font-bold text-primary lg:ml-0">
                   {t('matches.viewGame')}
                   <ChevronRight className="size-4" aria-hidden />
                 </span>
@@ -281,7 +287,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
           {!collapsed && hasTeams && (
             <div className="grid gap-4 border-b border-border bg-muted/20 p-4 sm:grid-cols-2 sm:p-5">
               <div className="space-y-2">
-                <TeamHeader team="a" variant="plain" />
+                <TeamHeader team="a" variant="plain" className="[&_h3]:hidden sm:[&_h3]:block" />
                 <div className="space-y-1">
                   {lineup!.teamA.map((player) => (
                     <PlayerSummaryRow
@@ -294,7 +300,7 @@ export function MatchCard({ game, lineup, showAvatars = false, commentCount = 0,
                 </div>
               </div>
               <div className="space-y-2">
-                <TeamHeader team="b" variant="plain" />
+                <TeamHeader team="b" variant="plain" className="[&_h3]:hidden sm:[&_h3]:block" />
                 <div className="space-y-1">
                   {lineup!.teamB.map((player) => (
                     <PlayerSummaryRow

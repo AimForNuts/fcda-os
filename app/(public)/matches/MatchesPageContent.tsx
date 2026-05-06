@@ -9,6 +9,7 @@ import {
 import { filterGamesByDateRange } from '@/lib/games/filter-by-date-range'
 import { sortGames } from '@/lib/games/sort'
 import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
+import { fetchMatchWeather } from '@/lib/weather/open-meteo'
 import type { MatchesView } from '@/lib/matches/matches-view'
 import type { Game, Recinto } from '@/types'
 
@@ -167,11 +168,33 @@ export async function MatchesPageContent({
     }
   }
 
+  const weatherByGameId = new Map<string, Awaited<ReturnType<typeof fetchMatchWeather>>>()
+  const weatherGamesById = new Map<string, Game>()
+  for (const game of [heroGame, ...visibleGames]) {
+    if (game?.status === 'scheduled') {
+      weatherGamesById.set(game.id, game)
+    }
+  }
+
+  if (weatherGamesById.size > 0) {
+    const weatherEntries = await Promise.all(
+      [...weatherGamesById.values()].map(async (game) => {
+        const recinto = game.recinto_id ? recintosById.get(game.recinto_id) : null
+        return [game.id, await fetchMatchWeather(recinto, game.date)] as const
+      }),
+    )
+
+    for (const [gameId, weather] of weatherEntries) {
+      weatherByGameId.set(gameId, weather)
+    }
+  }
+
   return (
-    <MatchesListingChrome
-      heroGame={heroGame}
-      heroRecinto={heroGame?.recinto_id ? recintosById.get(heroGame.recinto_id) : null}
-      activeView={activeView}
+      <MatchesListingChrome
+        heroGame={heroGame}
+        heroRecinto={heroGame?.recinto_id ? recintosById.get(heroGame.recinto_id) : null}
+        heroWeather={heroGame ? weatherByGameId.get(heroGame.id) : null}
+        activeView={activeView}
       from={from}
       to={to}
       calendarCount={calendarGames.length}
@@ -192,6 +215,7 @@ export async function MatchesPageContent({
           showAvatars={isApproved}
           commentCount={commentCounts.get(g.id) ?? 0}
           recinto={g.recinto_id ? recintosById.get(g.recinto_id) : null}
+          weather={weatherByGameId.get(g.id)}
         />
       ))}
     </MatchesListingChrome>
