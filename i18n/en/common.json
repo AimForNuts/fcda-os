@@ -87,6 +87,7 @@
     }
   },
   "players": {
+    "heroSubtitle": "Browse players, open individual profiles, and keep up with the squad's matches.",
     "nameLabel": "Name",
     "searchPlaceholder": "Search player...",
     "colNumber": "#",

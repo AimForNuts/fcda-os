@@ -87,6 +87,7 @@
     }
   },
   "players": {
+    "heroSubtitle": "Consulta os jogadores, entra no perfil individual e acompanha os jogos do grupo.",
     "nameLabel": "Nome",
     "searchPlaceholder": "Procurar jogador...",
     "colNumber": "#",

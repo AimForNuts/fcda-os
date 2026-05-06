@@ -1,15 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, ExternalLink, Flag, Hash, ShieldAlert, Sparkles } from 'lucide-react'
+import { ArrowLeft, ExternalLink, ShieldAlert } from 'lucide-react'
 import { signPlayerAvatarPath } from '@/lib/players/avatar.server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
 import { PlayerPhotoZoom } from '@/components/player/PlayerPhotoZoom'
 import { ProfileForm } from '@/components/profile/ProfileForm'
 import { Card, CardContent } from '@/components/ui/card'
-import { NationalityFlag } from '@/components/player/NationalityFlag'
-import { getNationalityLabel } from '@/lib/nationality'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = { title: 'Editar jogador — FCDA' }
@@ -78,92 +76,54 @@ export default async function PlayerProfileSettingsPage() {
 
   const avatarUrl = await signPlayerAvatarPath(player.avatar_path, true)
   const preferredPositions = player.preferred_positions ?? []
-  const profileStats = [
-    {
-      label: 'Número',
-      value: player.shirt_number != null ? `#${player.shirt_number}` : 'Por definir',
-      icon: Hash,
-    },
-    {
-      label: 'Nacionalidade',
-      value: (
-        <span className="inline-flex min-w-0 items-center gap-2">
-          <NationalityFlag nationality={player.nationality} />
-          <span className="truncate">{getNationalityLabel(player.nationality)}</span>
-        </span>
-      ),
-      icon: Flag,
-    },
-    {
-      label: 'Posições',
-      value: preferredPositions.length > 0 ? preferredPositions.join(' · ') : 'Sem seleção',
-      icon: Sparkles,
-    },
-  ]
 
   return (
     <div className="container mx-auto max-w-screen-xl px-4 py-8 md:py-10">
       <section className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-gradient-to-br from-fcda-ice/90 via-background to-background shadow-sm">
         <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-r from-fcda-navy/6 via-transparent to-fcda-gold/15" />
-        <div className="absolute -right-12 top-10 h-40 w-40 rounded-full bg-fcda-gold/10 blur-3xl" />
-        <div className="absolute left-8 top-20 h-32 w-32 rounded-full bg-fcda-navy/8 blur-3xl" />
-        <div className="relative space-y-8 px-6 py-8 md:px-8 md:py-10">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
+        <div className="relative space-y-6 px-6 py-8 md:px-8 md:py-10">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              <PlayerPhotoZoom
+                avatarUrl={avatarUrl}
+                displayName={player.sheet_name}
+                fallback={getInitials(player.sheet_name)}
+                avatarClassName="size-20 border-0 shadow-sm ring-4 ring-background sm:size-24"
+                fallbackClassName="text-xl sm:text-2xl"
+              />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-muted-foreground">
+                  {player.sheet_name}
+                </p>
+                <h1 className="text-3xl font-semibold tracking-tight text-fcda-navy md:text-4xl">
+                  Editar jogador
+                </h1>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">
+                  Atualiza a informação que aparece na tua página pública.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 nativeButton={false}
                 render={<Link href="/profile" />}
-                className="mb-5 h-9 bg-background/80"
+                className="h-10 bg-background/80"
               >
                 <ArrowLeft className="size-4" />
-                Conta
+                Preferências
               </Button>
-              <h1 className="text-3xl font-semibold tracking-tight text-fcda-navy md:text-4xl">
-                Página de jogador
-              </h1>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">
-                Edita a informação pública do teu jogador.
-              </p>
-            </div>
-            <div className="grid items-stretch gap-3 sm:grid-cols-[auto_1fr_1fr_1fr] lg:min-w-[48rem]">
-              <div className="flex items-center justify-center sm:justify-start">
-                <PlayerPhotoZoom
-                  avatarUrl={avatarUrl}
-                  displayName={player.sheet_name}
-                  fallback={getInitials(player.sheet_name)}
-                  avatarClassName="size-16 border-0 shadow-sm ring-4 ring-background sm:size-16 lg:size-16"
-                  fallbackClassName="text-lg sm:text-lg"
-                />
-              </div>
-              {profileStats.map((item) => {
-                const Icon = item.icon
-                return (
-                  <div
-                    key={item.label}
-                    className="rounded-2xl border border-border/70 bg-background/75 p-4 shadow-sm backdrop-blur"
-                  >
-                    <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      <Icon className="size-3.5 text-fcda-navy" />
-                      {item.label}
-                    </div>
-                    <p className="text-sm font-semibold text-fcda-navy md:text-base">
-                      {item.value}
-                    </p>
-                  </div>
-                )
-              })}
+              <Button
+                variant="outline"
+                nativeButton={false}
+                render={<Link href={`/players/${player.id}`} />}
+                className="h-10 border-fcda-navy/15 bg-background/80"
+              >
+                <ExternalLink className="size-4" />
+                O meu jogador
+              </Button>
             </div>
           </div>
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<Link href={`/players/${player.id}`} />}
-            className="h-10 border-fcda-navy/15 bg-background/80"
-          >
-            <ExternalLink className="size-4" />
-            Ver página pública
-          </Button>
         </div>
       </section>
 
