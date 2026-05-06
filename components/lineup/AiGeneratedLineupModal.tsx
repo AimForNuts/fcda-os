@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
 import { TeamHeader } from '@/components/matches/TeamHeader'
@@ -76,8 +77,13 @@ export function AiGeneratedLineupModal({
   onRegenerate,
   onClose,
 }: Props) {
+  const { t } = useTranslation()
   const [tab, setTab] = useState<'lineup' | 'reasoning'>('lineup')
-  const title = teams ? 'Generated Lineup' : 'AI Team Prompt'
+  const generatedTitle = t('mod.lineup.aiModal.generatedTitle')
+  const promptTitle = t('mod.lineup.aiModal.promptTitle')
+  const title = teams
+    ? generatedTitle === 'mod.lineup.aiModal.generatedTitle' ? 'Generated Lineup' : generatedTitle
+    : promptTitle === 'mod.lineup.aiModal.promptTitle' ? 'AI Team Prompt' : promptTitle
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
@@ -94,17 +100,20 @@ export function AiGeneratedLineupModal({
             </h2>
             <p className="text-xs text-muted-foreground">
               {teams
-                ? `Rating delta ${teams.balance.rating_delta.toFixed(1)} · Player count delta ${teams.balance.player_count_delta}`
+                ? t('mod.lineup.aiModal.balanceSummary', {
+                    ratingDelta: teams.balance.rating_delta.toFixed(1),
+                    playerCountDelta: teams.balance.player_count_delta,
+                  })
                 : promptPreview
-                  ? `Reviewing prompt for ${promptPreview.player_count} players`
-                  : `Preparing prompt for ${playerCount} players`}
+                  ? t('mod.lineup.aiModal.reviewingPrompt', { count: promptPreview.player_count })
+                  : t('mod.lineup.aiModal.preparingPrompt', { count: playerCount })}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label="Close"
+            aria-label={t('common.close')}
           >
             <X size={18} />
           </button>
@@ -120,7 +129,9 @@ export function AiGeneratedLineupModal({
                   ? 'border-b-2 border-fcda-navy pb-3 font-semibold text-fcda-navy'
                   : 'border-b-2 border-transparent pb-3 text-muted-foreground hover:text-foreground'}
               >
-                Teams
+                {t('mod.lineup.aiModal.teamsTab') === 'mod.lineup.aiModal.teamsTab'
+                  ? 'Teams'
+                  : t('mod.lineup.aiModal.teamsTab')}
               </button>
               <button
                 type="button"
@@ -129,7 +140,9 @@ export function AiGeneratedLineupModal({
                   ? 'border-b-2 border-fcda-navy pb-3 font-semibold text-fcda-navy'
                   : 'border-b-2 border-transparent pb-3 text-muted-foreground hover:text-foreground'}
               >
-                Reasoning
+                {t('mod.lineup.aiModal.reasoningTab') === 'mod.lineup.aiModal.reasoningTab'
+                  ? 'Reasoning'
+                  : t('mod.lineup.aiModal.reasoningTab')}
               </button>
             </div>
           </div>
@@ -142,7 +155,7 @@ export function AiGeneratedLineupModal({
             <GeneratingState playerCount={playerCount} />
           ) : error ? (
             <div role="alert" className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-              <p className="text-sm font-medium text-destructive">Failed to generate teams.</p>
+              <p className="text-sm font-medium text-destructive">{t('mod.lineup.aiGenerateError')}</p>
               <p className="mt-1 text-sm text-muted-foreground">{error}</p>
             </div>
           ) : teams && tab === 'lineup' ? (
@@ -163,7 +176,7 @@ export function AiGeneratedLineupModal({
         <div className="flex flex-wrap justify-end gap-3 border-t border-border px-4 py-4 sm:px-5">
           {(teams || error) && (
             <Button variant="outline" onClick={onRegenerate} disabled={isPreparingPrompt || isGenerating || isApplying}>
-              {teams ? 'Regenerate' : 'Retry'}
+              {teams ? t('mod.lineup.aiModal.regenerate') : t('common.retry')}
             </Button>
           )}
           {promptPreview && !teams && !error && (
@@ -172,7 +185,11 @@ export function AiGeneratedLineupModal({
               onClick={onGenerate}
               disabled={isGenerating || isPreparingPrompt || !promptDraft?.system.trim() || !promptDraft.user.trim()}
             >
-              {isGenerating ? 'Generating...' : 'Generate Teams'}
+              {isGenerating
+                ? t('mod.lineup.aiGenerating')
+                : t('mod.lineup.aiModal.generateTeams') === 'mod.lineup.aiModal.generateTeams'
+                  ? 'Generate Teams'
+                  : t('mod.lineup.aiModal.generateTeams')}
             </Button>
           )}
           {teams && (
@@ -181,7 +198,11 @@ export function AiGeneratedLineupModal({
               onClick={onApply}
               disabled={isApplying || isGenerating}
             >
-              {isApplying ? 'Applying…' : 'Apply to Lineup'}
+              {isApplying
+                ? t('mod.lineup.aiModal.applying')
+                : t('mod.lineup.aiModal.applyToLineup') === 'mod.lineup.aiModal.applyToLineup'
+                  ? 'Apply to Lineup'
+                  : t('mod.lineup.aiModal.applyToLineup')}
             </Button>
           )}
         </div>
@@ -191,19 +212,32 @@ export function AiGeneratedLineupModal({
 }
 
 function GeneratingState({ playerCount }: { playerCount: number }) {
+  const { t } = useTranslation()
+  const labels = [
+    t('mod.lineup.aiModal.anchors'),
+    t('mod.lineup.aiModal.teamShape'),
+    t('mod.lineup.aiModal.captains'),
+  ]
+
+  const balancingLabel = t('mod.lineup.aiModal.balancing', { count: playerCount })
+
   return (
     <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-fcda-navy">Balancing {playerCount} players</p>
+          <p className="text-sm font-semibold text-fcda-navy">
+            {balancingLabel === 'mod.lineup.aiModal.balancing'
+              ? `Balancing ${playerCount} ${playerCount === 1 ? 'player' : 'players'}`
+              : balancingLabel}
+          </p>
           <p className="text-xs text-muted-foreground">
-            Ratings, positions, feedback and captain choices are being checked.
+            {t('mod.lineup.aiModal.generatingHint')}
           </p>
         </div>
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-fcda-gold border-t-fcda-navy" />
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
-        {['Anchors', 'Team shape', 'Captains'].map((label) => (
+        {labels.map((label) => (
           <div key={label} className="rounded border border-border/70 bg-background px-3 py-2">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div className="h-full w-2/3 animate-pulse rounded-full bg-fcda-gold" />
@@ -217,13 +251,20 @@ function GeneratingState({ playerCount }: { playerCount: number }) {
 }
 
 function PreparingPromptState({ playerCount }: { playerCount: number }) {
+  const { t } = useTranslation()
+  const promptLabel = t('mod.lineup.aiModal.creatingPrompt', { count: playerCount })
+
   return (
     <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-fcda-navy">Creating prompt for {playerCount} players</p>
+          <p className="text-sm font-semibold text-fcda-navy">
+            {promptLabel === 'mod.lineup.aiModal.creatingPrompt'
+              ? `Creating prompt for ${playerCount} ${playerCount === 1 ? 'player' : 'players'}`
+              : promptLabel}
+          </p>
           <p className="text-xs text-muted-foreground">
-            Ratings, recent form, win rate and feedback are being collected.
+            {t('mod.lineup.aiModal.preparingHint')}
           </p>
         </div>
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-fcda-gold border-t-fcda-navy" />
@@ -239,15 +280,25 @@ function PromptPreviewPanel({
   prompt: AiLineupPromptPreview['prompt']
   onChange: (prompt: AiLineupPromptPreview['prompt']) => void
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="space-y-4">
       <PromptBlock
-        title="System prompt"
+        title={
+          t('mod.lineup.aiModal.systemPrompt') === 'mod.lineup.aiModal.systemPrompt'
+            ? 'System prompt'
+            : t('mod.lineup.aiModal.systemPrompt')
+        }
         value={prompt.system}
         onChange={(system) => onChange({ ...prompt, system })}
       />
       <PromptBlock
-        title="User prompt"
+        title={
+          t('mod.lineup.aiModal.userPrompt') === 'mod.lineup.aiModal.userPrompt'
+            ? 'User prompt'
+            : t('mod.lineup.aiModal.userPrompt')
+        }
         value={prompt.user}
         onChange={(user) => onChange({ ...prompt, user })}
       />
@@ -284,16 +335,21 @@ function PromptBlock({
 }
 
 function TeamPreviewPanel({ team, preview }: { team: 'a' | 'b'; preview: TeamPreview }) {
+  const { t } = useTranslation()
+
   return (
     <div className="space-y-3">
       <TeamHeader team={team} />
       <div className="rounded-lg border border-border bg-card">
         <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {preview.players.length} players
+            {t('mod.lineup.aiModal.playerCount', { count: preview.players.length })}
           </p>
           <p className="text-xs text-muted-foreground">
-            Total {preview.rating_total.toFixed(1)} · Avg {preview.average_rating.toFixed(1)}
+            {t('mod.lineup.aiModal.ratingSummary', {
+              total: preview.rating_total.toFixed(1),
+              average: preview.average_rating.toFixed(1),
+            })}
           </p>
         </div>
         <div className="divide-y divide-border/70">
@@ -326,12 +382,14 @@ function TeamPreviewPanel({ team, preview }: { team: 'a' | 'b'; preview: TeamPre
 }
 
 function ReasoningPanel({ reasoning, notes }: { reasoning: string[]; notes: string[] }) {
+  const { t } = useTranslation()
+
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-border bg-card p-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reasoning</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('mod.lineup.aiModal.reasoningTab')}</h3>
         <ul className="mt-2 space-y-2 text-sm">
-          {(reasoning.length > 0 ? reasoning : ['No reasoning returned.']).map((item, i) => (
+          {(reasoning.length > 0 ? reasoning : [t('mod.lineup.aiModal.noReasoning')]).map((item, i) => (
             <li key={i} className="flex gap-2">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-fcda-gold" />
               <span>{item}</span>
@@ -341,7 +399,7 @@ function ReasoningPanel({ reasoning, notes }: { reasoning: string[]; notes: stri
       </div>
       {notes.length > 0 && (
         <div className="rounded-lg border border-border bg-muted/30 p-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notes</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('mod.lineup.aiModal.notes')}</h3>
           <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             {notes.map((note, i) => (
               <li key={i}>{note}</li>

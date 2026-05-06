@@ -1,5 +1,9 @@
+'use client'
+
 import Image from 'next/image'
-import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
+import { useTranslation } from 'react-i18next'
+import { useTranslatedTeamPresentation } from '@/components/i18n/useTranslatedTeamPresentation'
+import type { MatchTeam } from '@/lib/games/team-presentation'
 
 type TeamScorePanelProps = {
   team: MatchTeam
@@ -7,7 +11,7 @@ type TeamScorePanelProps = {
 }
 
 function TeamScorePanel({ team, score }: TeamScorePanelProps) {
-  const presentation = getTeamPresentation(team)
+  const presentation = useTranslatedTeamPresentation(team)
 
   return (
     <div className="flex items-center justify-center gap-4 sm:gap-6">
@@ -31,13 +35,15 @@ type Props = {
 }
 
 export function MatchScoreHero({ scoreA, scoreB }: Props) {
+  const { t } = useTranslation()
+
   return (
     <div className="rounded-[2rem] bg-fcda-navy p-4 text-white shadow-lg shadow-fcda-navy/10 sm:p-5">
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-6">
         <TeamScorePanel team="a" score={scoreA} />
         <div className="flex items-center justify-center">
           <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-fcda-gold">
-            VS
+            {t('home.versus')}
           </span>
         </div>
         <TeamScorePanel team="b" score={scoreB} />

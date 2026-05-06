@@ -84,12 +84,31 @@
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "confirm": "Confirmar",
-    "back": "Voltar"
+    "back": "Voltar",
+    "close": "Fechar",
+    "retry": "Tentar novamente",
+    "remove": "Remover",
+    "saving": "A guardar...",
+    "networkError": "Erro de rede. Tenta novamente."
   },
   "home": {
     "nextMatch": "Próximo Jogo",
     "noNextMatch": "Sem jogos agendados.",
-    "viewAll": "Ver todos os jogos"
+    "viewAll": "Ver todos os jogos",
+    "clubType": "Futebol Clube",
+    "clubName": "Dragões da Areosa",
+    "heroSubtitleFull": "Acompanha os jogos, vê as estatísticas e gere a equipa.",
+    "scheduledGames": "Jogos agendados",
+    "completedGames": "Jogos concluídos",
+    "noScheduledGames": "Sem jogos agendados de momento.",
+    "noCompletedGames": "Ainda não há jogos concluídos.",
+    "squadSeason": "Plantel 25-26",
+    "viewSquad": "Ver plantel",
+    "versus": "VS",
+    "previousScheduledGame": "Jogo agendado anterior",
+    "nextScheduledGame": "Próximo jogo agendado",
+    "previousCompletedGame": "Jogo concluído anterior",
+    "nextCompletedGame": "Próximo jogo concluído"
   },
   "matches": {
     "title": "Jogos",
@@ -183,6 +202,54 @@
     "feedbackPending": "Feedback pendente",
     "errors": {
       "ratingFailed": "Erro ao submeter avaliações."
+    },
+    "matchSheet": "Ficha de jogo",
+    "ratingScoreLabel": "Nota (0-10)",
+    "feedbackOptionalPlaceholder": "Comentário (opcional)",
+    "recinto": {
+      "recent": "Recintos recentes",
+      "googleMaps": "Google Maps",
+      "searchError": "Erro ao pesquisar recintos.",
+      "loadError": "Erro ao carregar recinto."
+    },
+    "comments": {
+      "title": "Comentários",
+      "comment": "Comentário",
+      "placeholder": "Comentar...",
+      "publish": "Publicar",
+      "edit": "Editar comentário",
+      "delete": "Eliminar comentário",
+      "empty": "Sem comentários.",
+      "loginPrompt": "Inicia sessão para comentar.",
+      "mention": "Menção",
+      "emoji": "Emoji",
+      "insertEmoji": "Inserir {{emoji}}",
+      "confirmDelete": "Eliminar este comentário?",
+      "errors": {
+        "publishFailed": "Não foi possível publicar.",
+        "updateFailed": "Não foi possível atualizar.",
+        "deleteFailed": "Não foi possível eliminar."
+      }
+    },
+    "noAssignedPlayers": "Sem jogadores atribuídos.",
+    "teamAKitAlt": "Kit da Equipa Branca",
+    "teamBKitAlt": "Kit da Equipa Azul",
+    "detail": {
+      "teamsAndPlayers": "Equipas e jogadores",
+      "playerCount_one": "{{count}} jogador",
+      "playerCount_other": "{{count}} jogadores",
+      "conversation": "Conversa",
+      "commentCount_one": "{{count}} comentário",
+      "commentCount_other": "{{count}} comentários",
+      "summary": "Resumo",
+      "date": "Data",
+      "weather": "Tempo",
+      "status": "Estado",
+      "playersCalled": "Convocados",
+      "management": "Gestão",
+      "editGame": "Editar jogo",
+      "manageLineup": "Gerir convocados",
+      "finishGame": "Terminar jogo"
     }
   },
   "players": {
@@ -192,7 +259,43 @@
     "colNumber": "#",
     "colPlayer": "Jogador",
     "colGames": "Jogos",
-    "colRating": "Nota"
+    "colRating": "Nota",
+    "matchHistory": {
+      "title": "Histórico de jogos",
+      "filterAria": "Filtrar por tipo de jogo",
+      "filters": {
+        "all": "Todos"
+      },
+      "emptyFilter": "Sem jogos neste filtro."
+    },
+    "viewProfile": "Ver perfil do jogador",
+    "genericPlayer": "Jogador",
+    "personalProfile": "Perfil pessoal",
+    "gamesLabel": "Jogos",
+    "biography": "Biografia",
+    "viewProfileAria": "Ver perfil de {{name}}",
+    "detail": {
+      "squad": "Plantel",
+      "games": "Jogos",
+      "statistics": "Estatísticas",
+      "biography": "Biografia",
+      "gamesDescription": "Detalhes dos jogos associados ao jogador.",
+      "lastGame": "Último jogo",
+      "result": "Resultado",
+      "noCompletedGames": "Sem jogos concluídos.",
+      "nextGame": "Próximo jogo",
+      "status": "Estado",
+      "scheduled": "Agendado",
+      "noUpcomingGame": "Sem próximo jogo associado.",
+      "noGames": "Sem jogos registados.",
+      "updatedByCompletedGames": "Atualizado por jogos concluídos.",
+      "competitiveRank": "{{rank}}.º no ranking competitivo por pontos",
+      "noCompetitiveRank": "Sem posição no ranking competitivo",
+      "ranking": "Ranking",
+      "viewFullRanking": "Ver classificação completa",
+      "rankingCaption": "Pré-visualização da classificação competitiva por pontos com vitórias, empates e derrotas.",
+      "fallbackBiography": "{{name}} faz parte do plantel FCDA como {{positions}}. O perfil reúne o registo competitivo do jogador, incluindo jogos, pontos, resultados e histórico recente.\n\nNesta época, soma {{matches}} jogos competitivos, {{points}} pontos e uma taxa de vitória competitiva de {{winRate}}%. Os dados são atualizados a partir dos jogos concluídos registados na plataforma."
+    }
   },
   "stats": {
     "heroSubtitle": "Classificação por pontos (3 por vitória, 1 por empate), com líderes, percentagem de vitórias e pontos por jogo para comparar o plantel nos jogos competitivos.",
@@ -283,7 +386,41 @@
       "current": "Convocados atuais",
       "noLineup": "Ainda sem convocados.",
       "errorParse": "Erro ao analisar convocados.",
-      "errorSave": "Erro ao guardar convocados."
+      "errorSave": "Erro ao guardar convocados.",
+      "finishedLocked": "Este jogo já foi terminado. A convocatória não pode ser alterada.",
+      "cancelledLocked": "Este jogo foi cancelado. A convocatória não pode ser alterada.",
+      "aiModal": {
+        "generatedTitle": "Convocatória gerada",
+        "promptTitle": "Prompt de equipas IA",
+        "balanceSummary": "Diferença de rating {{ratingDelta}} · Diferença de jogadores {{playerCountDelta}}",
+        "reviewingPrompt_one": "A rever prompt para {{count}} jogador",
+        "reviewingPrompt_other": "A rever prompt para {{count}} jogadores",
+        "preparingPrompt_one": "A preparar prompt para {{count}} jogador",
+        "preparingPrompt_other": "A preparar prompt para {{count}} jogadores",
+        "teamsTab": "Equipas",
+        "reasoningTab": "Raciocínio",
+        "regenerate": "Gerar novamente",
+        "generateTeams": "Gerar equipas",
+        "applying": "A aplicar...",
+        "applyToLineup": "Aplicar à convocatória",
+        "balancing_one": "A equilibrar {{count}} jogador",
+        "balancing_other": "A equilibrar {{count}} jogadores",
+        "generatingHint": "Ratings, posições, feedback e capitães estão a ser analisados.",
+        "anchors": "Âncoras",
+        "teamShape": "Formato da equipa",
+        "captains": "Capitães",
+        "creatingPrompt_one": "A criar prompt para {{count}} jogador",
+        "creatingPrompt_other": "A criar prompt para {{count}} jogadores",
+        "preparingHint": "Ratings, forma recente, taxa de vitória e feedback estão a ser reunidos.",
+        "systemPrompt": "Prompt de sistema",
+        "userPrompt": "Prompt de utilizador",
+        "playerCount_one": "{{count}} jogador",
+        "playerCount_other": "{{count}} jogadores",
+        "ratingSummary": "Total {{total}} · Média {{average}}",
+        "noReasoning": "Sem raciocínio devolvido.",
+        "notes": "Notas"
+      },
+      "teamAssignmentAria": "Atribuição de equipa"
     },
     "finish": {
       "title": "Terminar Jogo",
@@ -293,7 +430,8 @@
       "warning": "Esta ação não pode ser desfeita.",
       "confirm": "Confirmar e Terminar",
       "alreadyFinished": "Este jogo já foi terminado.",
-      "errorFinish": "Erro ao terminar jogo."
+      "errorFinish": "Erro ao terminar jogo.",
+      "cancelled": "Este jogo foi cancelado."
     }
   },
   "admin": {
@@ -379,6 +517,105 @@
       "linkFailed": "Erro ao ligar.",
       "ratingFailed": "Erro ao atualizar avaliação.",
       "feedbackFailed": "Erro ao atualizar feedback."
+    },
+    "userCount_one": "{{count}} utilizador",
+    "userCount_other": "{{count}} utilizadores",
+    "playerCount_one": "{{count}} jogador",
+    "playerCount_other": "{{count}} jogadores",
+    "aiRating": {
+      "description": "Atualizar avaliações dos jogadores com IA."
+    },
+    "replacePhoto": "Substituir foto",
+    "addPhoto": "Adicionar foto",
+    "removePhoto": "Remover foto",
+    "noRegisteredPlayers": "Sem jogadores registados.",
+    "positionsValue": "Posições: {{positions}}",
+    "positionsEmpty": "Posições: -",
+    "noRegisteredUsers": "Sem utilizadores registados.",
+    "tableName": "Nome",
+    "tablePlayerAliases": "Jogador / Aliases",
+    "tableStatus": "Estado",
+    "tableRoles": "Papéis",
+    "tableActions": "Ações"
+  },
+  "profile": {
+    "positions": {
+      "GK": "Guarda-redes",
+      "CB": "Defesa",
+      "CM": "Médio",
+      "W": "Extremo",
+      "ST": "Avançado"
+    },
+    "account": {
+      "title": "Dados da conta",
+      "description": "Atualiza o nome mostrado na aplicação e gere o acesso à conta.",
+      "badge": "Conta",
+      "name": "Nome",
+      "email": "Email de acesso",
+      "password": "Password",
+      "passwordHint": "Recebe um link por email para definir uma nova password.",
+      "resetByLink": "Redefinir por link",
+      "footerNote": "O email é usado para login e recuperação de acesso.",
+      "save": "Guardar conta",
+      "saved": "Conta guardada com sucesso.",
+      "errors": {
+        "nameRequired": "O nome não pode ficar vazio.",
+        "saveFailed": "Erro ao guardar dados da conta."
+      }
+    },
+    "player": {
+      "title": "Detalhes do jogador",
+      "description": "Estes dados ajudam a identificar o teu perfil e a manter a equipa organizada.",
+      "editable": "Editável",
+      "name": "Nome",
+      "number": "Número",
+      "nationality": "Nacionalidade",
+      "noNumber": "Sem número",
+      "choosePositions": "Escolhe as tuas posições",
+      "photoTitle": "Fotografia",
+      "photoDescription": "Mantém a tua imagem atualizada para uma apresentação mais consistente.",
+      "photoActive": "Ativa",
+      "photoOptional": "Opcional",
+      "photoRequirements": "Usa JPEG, PNG ou WebP até {{size}} MB. Uma foto simples, centrada e bem iluminada funciona melhor.",
+      "uploadingPhoto": "A enviar...",
+      "replacePhoto": "Substituir foto",
+      "uploadPhoto": "Carregar foto",
+      "removingPhoto": "A remover...",
+      "preferredPositions": "Posições preferidas",
+      "preferredPositionsHint": "Escolhe uma ou mais posições em que preferes jogar.",
+      "selectionCount_one": "{{count}} seleção",
+      "selectionCount_other": "{{count}} seleções",
+      "saved": "Perfil guardado com sucesso.",
+      "footerNote": "As alterações ficam associadas ao teu jogador e podem ser usadas noutras áreas da aplicação.",
+      "viewPublicPage": "Ver página pública",
+      "saveChanges": "Guardar alterações",
+      "errors": {
+        "saveFailed": "Erro ao guardar.",
+        "photoUploadFailed": "Erro ao enviar foto.",
+        "photoRemoveFailed": "Erro ao remover foto."
+      }
+    },
+    "page": {
+      "title": "Conta",
+      "description": "Gere os teus dados de acesso e identificação na aplicação.",
+      "emailUnavailable": "Email não disponível",
+      "playerPageTitle": "Página de jogador",
+      "playerPageDescription": "Edita os dados públicos de {{name}} numa página separada.",
+      "viewPublicPage": "Ver página pública",
+      "editPlayerPage": "Editar página de jogador",
+      "noLinkedPlayerTitle": "Conta ainda sem ligação a jogador",
+      "noLinkedPlayerDescription": "A tua conta ainda não está ligada a um jogador. Contacta um administrador para associar o perfil.",
+      "calendarTitle": "Sincronização de calendário",
+      "calendarDescription": "Copia o URL ICS para subscrever no teu calendário.",
+      "calendarLocalhostWarning": "Calendários externos, como Google Calendar, não conseguem aceder a localhost. Usa este URL a partir da versão publicada em produção.",
+      "myGamesCalendar": "Os meus jogos",
+      "allGamesCalendar": "Todos os jogos"
+    },
+    "calendarSync": {
+      "copiedAria": "URL copiado",
+      "copyUrlAria": "Copiar URL de {{label}}",
+      "copied": "Copiado",
+      "copyUrl": "Copiar URL"
     }
   }
 }

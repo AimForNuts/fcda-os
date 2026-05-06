@@ -40,6 +40,16 @@ const POSITION_LABELS: Record<string, string> = {
   ST: 'Avançado',
 }
 
+function translateWithFallback(
+  t: ReturnType<typeof useTranslation>['t'],
+  key: string,
+  fallback: string,
+  values?: Record<string, string | number>,
+) {
+  const translated = t(key, values)
+  return translated === key ? fallback : translated
+}
+
 export function PlayersTable({ players, isApproved, highlightedPlayerId = null }: Props) {
   const { t } = useTranslation()
   const [searchValue, setSearchValue] = useState('')
@@ -89,14 +99,21 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
             const positionLabel =
               player.preferred_positions.length > 0
                 ? player.preferred_positions
-                    .map((position) => POSITION_LABELS[position] ?? position)
-                : ['Jogador']
+                    .map((position) =>
+                      translateWithFallback(t, `profile.positions.${position}`, POSITION_LABELS[position] ?? position)
+                    )
+                : [translateWithFallback(t, 'players.genericPlayer', 'Jogador')]
 
             return (
               <Link
                 key={player.id}
                 href={`/players/${player.id}`}
-                aria-label={`Ver perfil de ${player.display_name}`}
+                aria-label={translateWithFallback(
+                  t,
+                  'players.viewProfileAria',
+                  `Ver perfil de ${player.display_name}`,
+                  { name: player.display_name },
+                )}
                 className={cn(
                   'group relative block min-h-88 overflow-hidden rounded-none border bg-card text-left shadow-sm shadow-foreground/5 transition-all',
                   'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
@@ -126,7 +143,7 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
                   </div>
                   {isHighlighted && (
                     <Badge className="mt-4 bg-fcda-gold text-fcda-navy hover:bg-fcda-gold">
-                      Perfil pessoal
+                      {translateWithFallback(t, 'players.personalProfile', 'Perfil pessoal')}
                     </Badge>
                   )}
                 </div>
@@ -155,12 +172,12 @@ export function PlayersTable({ players, isApproved, highlightedPlayerId = null }
                       {player.total_all}
                     </p>
                     <p className="mt-1 text-xs font-black uppercase tracking-wide text-white/70">
-                      Jogos
+                      {translateWithFallback(t, 'players.gamesLabel', 'Jogos')}
                     </p>
                   </div>
                   <div className="flex items-center justify-between border-t border-white/25 px-5 py-3">
                     <span className="text-xs font-black uppercase tracking-[0.16em]">
-                      Biografia
+                      {translateWithFallback(t, 'players.biography', 'Biografia')}
                     </span>
                     <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" aria-hidden />
                   </div>

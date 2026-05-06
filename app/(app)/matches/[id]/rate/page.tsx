@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
 import { RatingForm } from '@/components/ratings/RatingForm'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import type { PlayerPublic } from '@/types'
 
 export default async function RatePage({
@@ -107,7 +108,7 @@ export default async function RatePage({
   return (
     <div className="container max-w-screen-md mx-auto px-4 py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-fcda-navy">Avaliar colegas</h1>
+        <h1 className="text-2xl font-bold text-fcda-navy"><TranslatedText i18nKey="matches.rateTeammates" /></h1>
         <p className="text-sm text-muted-foreground mt-1">
           {dateStr.charAt(0).toUpperCase() + dateStr.slice(1)} · {game.location}
         </p>

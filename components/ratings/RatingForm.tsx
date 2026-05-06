@@ -110,8 +110,8 @@ export function RatingForm({ gameId, teammates, existingRatings, existingFeedbac
       <table className="w-full text-sm">
         <thead>
           <tr>
-            <th className="text-left font-normal text-muted-foreground pb-1">Jogador</th>
-            <th className="text-right font-normal text-muted-foreground pb-1">Nota (0–10)</th>
+            <th className="text-left font-normal text-muted-foreground pb-1">{t('players.colPlayer')}</th>
+            <th className="text-right font-normal text-muted-foreground pb-1">{t('matches.ratingScoreLabel')}</th>
           </tr>
         </thead>
         <tbody>
@@ -151,7 +151,7 @@ export function RatingForm({ gameId, teammates, existingRatings, existingFeedbac
                   <textarea
                     value={feedbacks[p.id] ?? ''}
                     onChange={(e) => setFeedbacks((prev) => ({ ...prev, [p.id]: e.target.value }))}
-                    placeholder="Comentário (opcional)"
+                    placeholder={t('matches.feedbackOptionalPlaceholder')}
                     disabled={isNaN(parseFloat(ratings[p.id] ?? '')) || submitting}
                     maxLength={300}
                     rows={2}

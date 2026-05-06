@@ -35,6 +35,7 @@ function PlayerRow({
   isApproved?: boolean
   muted?: boolean
 }) {
+  const { t } = useTranslation()
   const rowClassName = cn(
     'grid min-h-9 grid-cols-[2.25rem_1.75rem_2rem_minmax(0,1fr)] items-center gap-2 rounded-md px-2 py-1.5 text-[1.05rem] leading-tight transition-colors sm:text-lg',
     isApproved && 'group hover:bg-fcda-ice/35',
@@ -74,7 +75,8 @@ function PlayerRow({
   return isApproved ? (
     <Link
       href={`/players/${player.id}`}
-      title="Ver perfil do jogador"
+      title={t('players.viewProfile')}
+      aria-label={player.display_name}
       className={rowClassName}
     >
       {content}
@@ -99,6 +101,8 @@ function TeamLineupColumn({
   isApproved?: boolean
   isWinner?: boolean
 }) {
+  const { t } = useTranslation()
+
   return (
     <section className="min-w-0 space-y-3">
       <TeamHeader team={team} variant="plain" isWinner={isWinner} />
@@ -109,7 +113,7 @@ function TeamLineupColumn({
           ))
         ) : (
           <p className="py-4 text-sm text-muted-foreground">
-            Sem jogadores atribuídos.
+            {t('matches.noAssignedPlayers')}
           </p>
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Check, Loader2, MapPin, Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
@@ -38,6 +39,7 @@ export function RecintoPicker({
   disabled,
   onChange,
 }: Props) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [recent, setRecent] = useState<RecintoOption[]>([])
   const [predictions, setPredictions] = useState<GooglePrediction[]>([])
@@ -97,7 +99,7 @@ export function RecintoPicker({
       })
         .then(async (res) => {
           const payload = await res.json().catch(() => ({}))
-          if (!res.ok) throw new Error(payload.error || 'Erro ao pesquisar recintos.')
+          if (!res.ok) throw new Error(payload.error || t('matches.recinto.searchError'))
           return payload as { predictions: GooglePrediction[]; sessionToken: string }
         })
         .then((payload) => {
@@ -108,7 +110,7 @@ export function RecintoPicker({
         .catch((err) => {
           if (searchRequestRef.current !== requestId) return
           setPredictions([])
-          setError(err instanceof Error ? err.message : 'Erro ao pesquisar recintos.')
+          setError(err instanceof Error ? err.message : t('matches.recinto.searchError'))
         })
         .finally(() => {
           if (searchRequestRef.current === requestId) setLoading(false)
@@ -116,7 +118,7 @@ export function RecintoPicker({
     }, 350)
 
     return () => window.clearTimeout(timeout)
-  }, [isOpen, recintoId, sessionToken, value])
+  }, [isOpen, recintoId, sessionToken, t, value])
 
   function selectRecent(recinto: RecintoOption) {
     onChange({ location: recinto.name, recintoId: recinto.id })
@@ -141,7 +143,7 @@ export function RecintoPicker({
         }),
       })
       const payload = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(payload.error || 'Erro ao carregar recinto.')
+      if (!res.ok) throw new Error(payload.error || t('matches.recinto.loadError'))
       if (detailsRequestRef.current !== requestId) return
 
       const recinto = payload.recinto as RecintoOption
@@ -152,7 +154,7 @@ export function RecintoPicker({
       setIsOpen(false)
     } catch (err) {
       if (detailsRequestRef.current === requestId) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar recinto.')
+        setError(err instanceof Error ? err.message : t('matches.recinto.loadError'))
       }
     } finally {
       if (detailsRequestRef.current === requestId) setLoading(false)
@@ -196,7 +198,7 @@ export function RecintoPicker({
         <div className="max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-sm">
           {showRecent ? (
             <div>
-              <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Recintos recentes</p>
+              <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">{t('matches.recinto.recent')}</p>
               {filteredRecent.map((recinto) => (
                 <button
                   key={recinto.id}
@@ -224,7 +226,7 @@ export function RecintoPicker({
 
           {showGoogle ? (
             <div className={showRecent ? 'mt-1 border-t border-border pt-1' : undefined}>
-              <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Google Maps</p>
+              <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">{t('matches.recinto.googleMaps')}</p>
               {predictions.map((prediction) => (
                 <button
                   key={prediction.placeId}

@@ -4,17 +4,15 @@ import { useCallback, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { formatScheduleDate } from '@/lib/games/format-schedule-date'
-import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { GameStatusBadge } from '@/components/matches/GameStatusBadge'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { WeatherSummary } from '@/components/matches/WeatherSummary'
+import { useTranslatedTeamPresentation } from '@/components/i18n/useTranslatedTeamPresentation'
 import { cn } from '@/lib/utils'
 import type { MatchWeather } from '@/lib/weather/open-meteo'
 import type { Game } from '@/types'
-
-const teamA = getTeamPresentation('a')
-const teamB = getTeamPresentation('b')
 
 function ScheduledGameCard({
   game,
@@ -29,7 +27,10 @@ function ScheduledGameCard({
   weather?: MatchWeather | null
   showNextMatchLabel?: boolean
 }) {
-  const formatted = formatScheduleDate(game.date)
+  const { i18n, t } = useTranslation()
+  const formatted = formatScheduleDate(game.date, i18n.language)
+  const teamA = useTranslatedTeamPresentation('a')
+  const teamB = useTranslatedTeamPresentation('b')
 
   return (
     <article className={cn('min-w-0', className)} data-carousel-card>
@@ -44,8 +45,8 @@ function ScheduledGameCard({
         />
         <span
           className="absolute right-4 top-4 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium text-white ring-1 ring-white/15"
-          aria-label={`${commentCount} comentários`}
-          title={`${commentCount} comentários`}
+          aria-label={t('matches.commentsAria', { count: commentCount })}
+          title={t('matches.commentsAria', { count: commentCount })}
         >
           <MessageCircle size={14} aria-hidden />
           <span className="tabular-nums">{commentCount}</span>
@@ -63,7 +64,7 @@ function ScheduledGameCard({
               )}
               aria-hidden={!showNextMatchLabel}
             >
-              Próximo jogo
+              {t('home.nextMatch')}
             </p>
             <h2 className="mt-1 text-2xl font-bold tracking-tight">
               {formatted.dayMonth}{' '}
@@ -88,7 +89,7 @@ function ScheduledGameCard({
             </div>
 
             <div className="rounded-full bg-white px-4 py-1.5 text-sm font-bold text-fcda-navy shadow-sm">
-              VS
+              {t('home.versus')}
             </div>
 
             <div className="min-w-0 text-center">
@@ -108,7 +109,7 @@ function ScheduledGameCard({
           href={`/matches/${game.id}`}
           className="relative z-10 block border-t border-white/15 bg-white px-4 py-3 text-center text-sm font-bold text-fcda-navy transition-colors hover:bg-white/90"
         >
-          Detalhes
+          {t('matches.page.listColDetails')}
         </Link>
       </div>
     </article>
@@ -124,6 +125,7 @@ export function ScheduledGamesCarousel({
   commentCounts?: Record<string, number>
   weatherByGameId?: Record<string, MatchWeather | null>
 }) {
+  const { t } = useTranslation()
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -179,7 +181,7 @@ export function ScheduledGamesCarousel({
       <div
         ref={scrollerRef}
         className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-4 px-4 pb-2 touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:px-0"
-        aria-label="Jogos agendados"
+        aria-label={t('home.scheduledGames')}
         onScroll={updateActiveIndex}
       >
         {games.map((game, index) => (
@@ -199,7 +201,7 @@ export function ScheduledGamesCarousel({
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Jogo agendado anterior"
+            aria-label={t('home.previousScheduledGame')}
             disabled={!canGoBack}
             onClick={() => scrollToIndex(selectedIndex - 1)}
           >
@@ -223,7 +225,7 @@ export function ScheduledGamesCarousel({
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Próximo jogo agendado"
+            aria-label={t('home.nextScheduledGame')}
             disabled={!canGoForward}
             onClick={() => scrollToIndex(selectedIndex + 1)}
           >

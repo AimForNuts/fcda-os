@@ -391,7 +391,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
 
       {filteredRows.length === 0 ? (
         <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">
-          {rows.length === 0 ? 'Sem utilizadores registados.' : t('admin.noUsersFound')}
+          {rows.length === 0 ? t('admin.noRegisteredUsers') : t('admin.noUsersFound')}
         </p>
       ) : (
         <>
@@ -493,11 +493,11 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium">Nome</th>
-                  <th className="px-4 py-3 text-left font-medium">Jogador / Aliases</th>
-                  <th className="px-4 py-3 text-left font-medium">Estado</th>
-                  <th className="px-4 py-3 text-left font-medium">Papéis</th>
-                  <th className="px-4 py-3 text-right font-medium">Ações</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('admin.tableName')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('admin.tablePlayerAliases')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('admin.tableStatus')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('admin.tableRoles')}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t('admin.tableActions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -1017,10 +1017,10 @@ function UserDetailsModal({
                       className="w-full sm:w-auto"
                       onClick={() => photoInputRef.current?.click()}
                       disabled={isLoading}
-                      title={player.avatar_url ? 'Substituir foto' : 'Adicionar foto'}
+                      title={player.avatar_url ? t('admin.replacePhoto') : t('admin.addPhoto')}
                     >
                       <Camera data-icon="inline-start" />
-                      {loadingKey === 'photo-upload' ? '...' : player.avatar_url ? 'Substituir foto' : 'Adicionar foto'}
+                      {loadingKey === 'photo-upload' ? '...' : player.avatar_url ? t('admin.replacePhoto') : t('admin.addPhoto')}
                     </Button>
                     <Button
                       size="sm"
@@ -1028,10 +1028,10 @@ function UserDetailsModal({
                       className="w-full text-muted-foreground sm:w-auto"
                       onClick={() => onPhotoDelete(user.id, player.id)}
                       disabled={isLoading || player.avatar_url == null}
-                      title="Remover foto"
+                      title={t('admin.removePhoto')}
                     >
                       <Trash2 data-icon="inline-start" />
-                      {loadingKey === 'photo-delete' ? '...' : 'Remover foto'}
+                      {loadingKey === 'photo-delete' ? '...' : t('admin.removePhoto')}
                     </Button>
                     <Button
                       size="sm"
@@ -1047,7 +1047,7 @@ function UserDetailsModal({
 
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_8rem_8rem]">
                   <label className="space-y-1.5">
-                    <span className="text-sm font-medium text-foreground">Nome de jogador</span>
+                    <span className="text-sm font-medium text-foreground">{t('admin.playerName')}</span>
                     <Input
                       value={sheetName}
                       onChange={(e) => setSheetName(e.target.value)}
@@ -1055,7 +1055,7 @@ function UserDetailsModal({
                     />
                   </label>
                   <label className="space-y-1.5">
-                    <span className="text-sm font-medium text-foreground">Número</span>
+                    <span className="text-sm font-medium text-foreground">{t('profile.player.number')}</span>
                     <Input
                       type="number"
                       min="1"
@@ -1066,7 +1066,7 @@ function UserDetailsModal({
                     />
                   </label>
                   <label className="space-y-1.5">
-                    <span className="text-sm font-medium text-foreground">Rating</span>
+                    <span className="text-sm font-medium text-foreground">{t('stats.rating')}</span>
                     <Input
                       type="number"
                       min="0"
@@ -1078,7 +1078,7 @@ function UserDetailsModal({
                     />
                   </label>
                   <label className="space-y-1.5">
-                    <span className="text-sm font-medium text-foreground">Nacionalidade</span>
+                    <span className="text-sm font-medium text-foreground">{t('profile.player.nationality')}</span>
                     <Input
                       type="text"
                       list="admin-user-nationality-options"
@@ -1101,7 +1101,7 @@ function UserDetailsModal({
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-foreground">Posições</p>
+                  <p className="text-sm font-medium text-foreground">{t('profile.player.preferredPositions')}</p>
                   <div className="flex flex-wrap gap-2">
                     {POSITIONS.map((position) => {
                       const selected = positions.includes(position)
@@ -1140,7 +1140,7 @@ function UserDetailsModal({
                 </div>
 
                 <div className="space-y-2 border-t border-border pt-5">
-                  <p className="text-sm font-medium text-foreground">Aliases</p>
+                  <p className="text-sm font-medium text-foreground">{t('admin.addAlias')}</p>
                   {player.aliases.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {player.aliases.map((alias) => (
@@ -1287,7 +1287,7 @@ function UserDetailsModal({
                       </select>
                     </label>
                     <label className="space-y-1.5">
-                      <span className="text-sm font-medium text-foreground">Nota (0-10)</span>
+                      <span className="text-sm font-medium text-foreground">{t('matches.ratingScoreLabel')}</span>
                       <Input
                         type="number"
                         min="0"
@@ -1304,7 +1304,7 @@ function UserDetailsModal({
                     <textarea
                       value={feedbackText}
                       onChange={(e) => setFeedbackText(e.target.value)}
-                      placeholder="Comentário (opcional)"
+                      placeholder={t('matches.feedbackOptionalPlaceholder')}
                       disabled={feedbackSubmitting}
                       maxLength={300}
                       rows={3}

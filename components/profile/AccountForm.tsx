@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { AtSign, KeyRound, Save, UserRound } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,6 +24,7 @@ type Props = {
 }
 
 export function AccountForm({ displayName, email }: Props) {
+  const { t } = useTranslation()
   const router = useRouter()
   const [name, setName] = useState(displayName)
   const [submitting, setSubmitting] = useState(false)
@@ -39,7 +41,7 @@ export function AccountForm({ displayName, email }: Props) {
 
     if (nextName.length === 0) {
       setSubmitting(false)
-      setError('O nome não pode ficar vazio.')
+      setError(t('profile.account.errors.nameRequired'))
       return
     }
 
@@ -53,14 +55,14 @@ export function AccountForm({ displayName, email }: Props) {
       if (!profileRes.ok) {
         const data = await profileRes.json().catch(() => ({}))
         const raw = data.error
-        setError(typeof raw === 'string' ? raw : 'Erro ao guardar dados da conta.')
+        setError(typeof raw === 'string' ? raw : t('profile.account.errors.saveFailed'))
         return
       }
 
-      setSavedMessage('Conta guardada com sucesso.')
+      setSavedMessage(t('profile.account.saved'))
       router.refresh()
     } catch {
-      setError('Erro de rede. Tenta novamente.')
+      setError(t('common.networkError'))
     } finally {
       setSubmitting(false)
     }
@@ -71,13 +73,13 @@ export function AccountForm({ displayName, email }: Props) {
       <CardHeader className="gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
-            <CardTitle className="text-fcda-navy">Dados da conta</CardTitle>
+            <CardTitle className="text-fcda-navy">{t('profile.account.title')}</CardTitle>
             <CardDescription>
-              Atualiza o nome mostrado na aplicação e gere o acesso à conta.
+              {t('profile.account.description')}
             </CardDescription>
           </div>
           <Badge variant="outline" className="border-fcda-navy/15 bg-fcda-ice text-fcda-navy">
-            Conta
+            {t('profile.account.badge')}
           </Badge>
         </div>
       </CardHeader>
@@ -86,7 +88,7 @@ export function AccountForm({ displayName, email }: Props) {
         <CardContent className="space-y-5">
           <div className="grid gap-5 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="account-display-name">Nome</Label>
+              <Label htmlFor="account-display-name">{t('profile.account.name')}</Label>
               <div className="relative">
                 <UserRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -102,7 +104,7 @@ export function AccountForm({ displayName, email }: Props) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="account-email">Email de acesso</Label>
+              <Label htmlFor="account-email">{t('profile.account.email')}</Label>
               <div className="relative">
                 <AtSign className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -122,9 +124,9 @@ export function AccountForm({ displayName, email }: Props) {
                 <KeyRound className="size-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-fcda-navy">Password</p>
+                <p className="text-sm font-semibold text-fcda-navy">{t('profile.account.password')}</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Recebe um link por email para definir uma nova password.
+                  {t('profile.account.passwordHint')}
                 </p>
               </div>
             </div>
@@ -134,7 +136,7 @@ export function AccountForm({ displayName, email }: Props) {
               render={<Link href="/auth/forgot-password" />}
               className="w-fit"
             >
-              Redefinir por link
+              {t('profile.account.resetByLink')}
             </Button>
           </div>
 
@@ -151,7 +153,7 @@ export function AccountForm({ displayName, email }: Props) {
         </CardContent>
         <CardFooter className="flex flex-col items-start justify-between gap-3 border-t md:flex-row md:items-center">
           <p className="text-xs leading-5 text-muted-foreground">
-            O email é usado para login e recuperação de acesso.
+            {t('profile.account.footerNote')}
           </p>
           <Button
             type="submit"
@@ -160,7 +162,7 @@ export function AccountForm({ displayName, email }: Props) {
             className="min-w-40"
           >
             <Save className="size-4" />
-            {submitting ? 'A guardar...' : 'Guardar conta'}
+            {submitting ? t('common.saving') : t('profile.account.save')}
           </Button>
         </CardFooter>
       </form>

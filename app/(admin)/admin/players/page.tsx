@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import { PlayerTable } from './PlayerTable'
 
 export type PlayerRow = {
@@ -135,8 +136,10 @@ export default async function PlayersPage() {
   return (
     <div className="min-w-0 space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-fcda-navy sm:text-2xl">Jogadores</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{rows.length} jogadores</p>
+        <h1 className="text-xl font-bold text-fcda-navy sm:text-2xl"><TranslatedText i18nKey="admin.players" /></h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          <TranslatedText i18nKey="admin.playerCount" values={{ count: rows.length }} />
+        </p>
       </div>
       <PlayerTable players={rows} />
     </div>

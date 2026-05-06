@@ -644,8 +644,8 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                     }}
                   >
                     {player.preferred_positions.length > 0
-                      ? `Positions: ${player.preferred_positions.join(', ')}`
-                      : 'Positions: –'}
+                      ? t('admin.positionsValue', { positions: player.preferred_positions.join(', ') })
+                      : t('admin.positionsEmpty')}
                   </button>
                 )}
               </div>
@@ -679,7 +679,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                       variant="outline"
                       className="h-8 shrink-0 gap-0 px-2.5 text-xs md:gap-1.5 md:px-3"
                       title={
-                        player.avatar_url ? 'Substituir foto' : 'Adicionar foto'
+                        player.avatar_url ? t('admin.replacePhoto') : t('admin.addPhoto')
                       }
                       onClick={() => photoInputRefs.current[player.id]?.click()}
                       disabled={isLoading}
@@ -689,21 +689,21 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                         {loadingMap[player.id] === 'photo-upload'
                           ? '...'
                           : player.avatar_url
-                            ? 'Substituir foto'
-                            : 'Adicionar foto'}
+                            ? t('admin.replacePhoto')
+                            : t('admin.addPhoto')}
                       </span>
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       className="h-8 shrink-0 gap-0 px-2.5 text-xs text-muted-foreground md:gap-1.5 md:px-3"
-                      title="Remover foto"
+                      title={t('admin.removePhoto')}
                       onClick={() => handlePhotoDelete(player.id)}
                       disabled={isLoading || player.avatar_url == null}
                     >
                       <Trash2 className="size-3.5 shrink-0" aria-hidden />
                       <span className="max-md:sr-only">
-                        {loadingMap[player.id] === 'photo-delete' ? '...' : 'Remover foto'}
+                        {loadingMap[player.id] === 'photo-delete' ? '...' : t('admin.removePhoto')}
                       </span>
                     </Button>
                     <Button
@@ -889,7 +889,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
       {filteredRows.length === 0 && (
         <p className="rounded-lg border px-4 py-8 text-center text-sm text-muted-foreground">
           {rows.length === 0
-            ? 'Sem jogadores registados.'
+            ? t('admin.noRegisteredPlayers')
             : guestOnly && !rows.some((p) => p.profile_id == null)
               ? t('admin.noGuestPlayers')
               : t('admin.noPlayersFound')}
@@ -958,7 +958,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
 
                   <div className="space-y-1.5">
                     <label htmlFor="admin-feedback-rating" className="text-sm font-medium text-foreground">
-                      Nota (0-10)
+                      {t('matches.ratingScoreLabel')}
                     </label>
                     <input
                       id="admin-feedback-rating"
@@ -986,7 +986,7 @@ export function PlayerTable({ players: initial }: { players: PlayerRow[] }) {
                       id="admin-feedback-text"
                       value={feedbackText}
                       onChange={(e) => setFeedbackText(e.target.value)}
-                      placeholder="Comentário (opcional)"
+                      placeholder={t('matches.feedbackOptionalPlaceholder')}
                       disabled={isNaN(parseFloat(feedbackRating)) || feedbackSubmitting}
                       maxLength={300}
                       rows={4}

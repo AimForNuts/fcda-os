@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import { UserTable } from './UserTable'
 import type { UserRole } from '@/types'
 
@@ -196,8 +197,10 @@ export default async function UsersPage() {
   return (
     <div className="min-w-0 space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-fcda-navy sm:text-2xl">Utilizadores</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{users.length} utilizadores</p>
+        <h1 className="text-xl font-bold text-fcda-navy sm:text-2xl"><TranslatedText i18nKey="admin.users" /></h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          <TranslatedText i18nKey="admin.userCount" values={{ count: users.length }} />
+        </p>
       </div>
       <UserTable users={users} />
     </div>

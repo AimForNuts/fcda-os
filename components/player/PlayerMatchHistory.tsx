@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { CompetitiveGameIcon, FriendlyGameIcon } from '@/components/matches/game-type-icons'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
@@ -17,10 +18,10 @@ import { cn } from '@/lib/utils'
 
 type GameTypeFilter = 'all' | 'competitive' | 'friendly'
 
-const FILTERS: { value: GameTypeFilter; label: string }[] = [
-  { value: 'all', label: 'Todos' },
-  { value: 'competitive', label: 'Competitivo' },
-  { value: 'friendly', label: 'Amigável' },
+const FILTERS: { value: GameTypeFilter; labelKey: string }[] = [
+  { value: 'all', labelKey: 'players.matchHistory.filters.all' },
+  { value: 'competitive', labelKey: 'matches.gameType.competitive' },
+  { value: 'friendly', labelKey: 'matches.gameType.friendly' },
 ]
 
 function formatHistoryDate(iso: string) {
@@ -32,6 +33,7 @@ function formatHistoryDate(iso: string) {
 }
 
 export function PlayerMatchHistory({ matches }: { matches: PlayerMatchHistoryRow[] }) {
+  const { t } = useTranslation()
   const [filter, setFilter] = useState<GameTypeFilter>('all')
 
   const filtered = useMemo(() => {
@@ -52,13 +54,13 @@ export function PlayerMatchHistory({ matches }: { matches: PlayerMatchHistoryRow
   return (
     <section className="bg-card p-4 shadow-sm shadow-sm md:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-4">
-        <h3 className="text-xl font-black text-foreground md:text-2xl">Histórico de jogos</h3>
+        <h3 className="text-xl font-black text-foreground md:text-2xl">{t('players.matchHistory.title')}</h3>
         <div
           className="flex flex-wrap gap-2"
           role="group"
-          aria-label="Filtrar por tipo de jogo"
+          aria-label={t('players.matchHistory.filterAria')}
         >
-          {FILTERS.map(({ value, label }) => {
+          {FILTERS.map(({ value, labelKey }) => {
             const count =
               value === 'all'
                 ? counts.all
@@ -85,7 +87,7 @@ export function PlayerMatchHistory({ matches }: { matches: PlayerMatchHistoryRow
                 ) : value === 'friendly' ? (
                   <FriendlyGameIcon className="size-3.5 shrink-0 sm:size-4" aria-hidden />
                 ) : null}
-                {label}
+                {t(labelKey)}
                 <span className="tabular-nums text-muted-foreground">({count})</span>
               </button>
             )
@@ -175,7 +177,7 @@ export function PlayerMatchHistory({ matches }: { matches: PlayerMatchHistoryRow
                     href={`/matches/${match.game_id}`}
                     className="shrink-0 border-l border-border pl-2 text-xs font-semibold text-primary underline underline-offset-2 hover:text-primary/80 sm:pl-3"
                   >
-                    Ficha de jogo
+                    {t('matches.matchSheet')}
                   </Link>
                 </div>
               </div>
@@ -183,7 +185,7 @@ export function PlayerMatchHistory({ matches }: { matches: PlayerMatchHistoryRow
           })}
         </div>
       ) : (
-        <p className="mt-4 text-sm text-muted-foreground">Sem jogos neste filtro.</p>
+        <p className="mt-4 text-sm text-muted-foreground">{t('players.matchHistory.emptyFilter')}</p>
       )}
     </section>
   )

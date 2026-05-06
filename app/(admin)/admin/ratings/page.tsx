@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import { RatingBatches, type Batch } from './RatingBatches'
 
 type PendingRow = {
@@ -23,7 +24,7 @@ export default async function AdminRatingsPage() {
 
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">Sem avaliações pendentes.</p>
+      <p className="text-sm text-muted-foreground"><TranslatedText i18nKey="admin.noRatings" /></p>
     )
   }
 

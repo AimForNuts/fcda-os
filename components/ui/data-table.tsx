@@ -218,7 +218,8 @@ export function DataTable<Row>({
                 key={getRowKey(row, index)}
                 className={
                   rowClassName?.(row, index)
-                  ?? (index % 2 === 0 ? 'bg-background' : 'bg-muted/30')
+                    ??
+                    (index % 2 === 0 ? 'bg-background' : 'bg-muted/30')
                 }
               >
                 {columns.map((column) => {

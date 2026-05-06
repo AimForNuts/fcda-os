@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { CompletedGamesCarousel } from '@/components/home/CompletedGamesCarousel'
 import { ScheduledGamesCarousel } from '@/components/home/ScheduledGamesCarousel'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import { createClient } from '@/lib/supabase/server'
 import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
 import { fetchMatchWeather, type MatchWeather } from '@/lib/weather/open-meteo'
@@ -34,7 +35,7 @@ function SquadSeparator() {
           id="squad-separator-title"
           className="max-w-[12ch] text-4xl font-extrabold tracking-tight text-white drop-shadow-sm sm:max-w-none sm:text-5xl md:text-6xl"
         >
-          Plantel 25-26
+          <TranslatedText i18nKey="home.squadSeason" />
         </h2>
       </div>
 
@@ -44,7 +45,7 @@ function SquadSeparator() {
             href="/players"
             className="block w-fit bg-blue-700 px-8 py-4 text-sm font-bold text-white transition-colors hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:min-w-56 sm:px-9 md:[clip-path:polygon(0_0,100%_0,92%_100%,0_100%)]"
           >
-            Ver plantel
+            <TranslatedText i18nKey="home.viewSquad" />
           </Link>
         </div>
       </div>
@@ -138,14 +139,14 @@ export default async function HomePage() {
         />
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/70">
-            Futebol Clube
+            <TranslatedText i18nKey="home.clubType" />
           </p>
           <h1 className="mt-1 text-3xl font-extrabold uppercase tracking-tight text-white md:text-5xl">
-            Dragões da Areosa
+            <TranslatedText i18nKey="home.clubName" />
           </h1>
         </div>
         <p className="max-w-md text-white/75">
-          Acompanha os jogos, vê as estatísticas e gere a equipa.
+          <TranslatedText i18nKey="home.heroSubtitleFull" />
         </p>
         <div className="flex items-center gap-3 text-fcda-gold">
           <span className="h-px w-16 bg-fcda-gold/50" />
@@ -158,13 +159,13 @@ export default async function HomePage() {
       <section className="container mx-auto max-w-screen-xl px-4 py-10">
         <div className="mb-5 flex items-center justify-between gap-4">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Jogos Agendados
+            <TranslatedText i18nKey="home.scheduledGames" />
           </h2>
           <Link
             href="/matches"
             className="text-xs text-primary underline underline-offset-2 hover:text-primary/80"
           >
-            Ver todos
+            <TranslatedText i18nKey="home.viewAll" />
           </Link>
         </div>
 
@@ -176,7 +177,7 @@ export default async function HomePage() {
           />
         ) : (
           <p className="text-sm text-muted-foreground">
-            Sem jogos agendados de momento.
+            <TranslatedText i18nKey="home.noScheduledGames" />
           </p>
         )}
       </section>
@@ -186,13 +187,13 @@ export default async function HomePage() {
         <div className="container mx-auto max-w-screen-xl px-4">
           <div className="mb-5 flex items-center justify-between gap-4">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Jogos Concluídos
+              <TranslatedText i18nKey="home.completedGames" />
             </h2>
             <Link
               href="/matches"
               className="text-xs text-primary underline underline-offset-2 hover:text-primary/80"
             >
-              Ver todos
+              <TranslatedText i18nKey="home.viewAll" />
             </Link>
           </div>
 
@@ -204,7 +205,7 @@ export default async function HomePage() {
             />
           ) : (
             <p className="text-sm text-muted-foreground">
-              Ainda não há jogos concluídos.
+              <TranslatedText i18nKey="home.noCompletedGames" />
             </p>
           )}
         </div>

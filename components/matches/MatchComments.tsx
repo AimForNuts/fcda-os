@@ -4,6 +4,7 @@ import { FormEvent, Fragment, useMemo, useRef, useState, type ReactNode } from '
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AtSign, Check, Loader2, Pencil, Send, SmilePlus, Trash2, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
@@ -111,6 +112,7 @@ function CommentBody({ content, users }: { content: string; users: MentionableUs
 }
 
 export function MatchComments({ gameId, comments, mentionableUsers, currentUser }: Props) {
+  const { t } = useTranslation()
   const router = useRouter()
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const editTextareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -219,7 +221,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
 
       const data = await res.json().catch(() => null)
       if (!res.ok) {
-        setError(typeof data?.error === 'string' ? data.error : 'Não foi possível publicar')
+        setError(typeof data?.error === 'string' ? data.error : t('matches.comments.errors.publishFailed'))
         return
       }
 
@@ -250,7 +252,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
 
       const data = await res.json().catch(() => null)
       if (!res.ok) {
-        setEditError(typeof data?.error === 'string' ? data.error : 'Não foi possível atualizar')
+        setEditError(typeof data?.error === 'string' ? data.error : t('matches.comments.errors.updateFailed'))
         return
       }
 
@@ -274,7 +276,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
 
   async function deleteComment(comment: MatchComment) {
     if (!currentUser || busyCommentId) return
-    if (!window.confirm('Eliminar este comentário?')) return
+    if (!window.confirm(t('matches.comments.confirmDelete'))) return
 
     setBusyCommentId(comment.id)
     try {
@@ -283,7 +285,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) {
-        setError(typeof data?.error === 'string' ? data.error : 'Não foi possível eliminar')
+        setError(typeof data?.error === 'string' ? data.error : t('matches.comments.errors.deleteFailed'))
         return
       }
 
@@ -299,7 +301,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Comentários
+          {t('matches.comments.title')}
         </h2>
         <span className="text-xs tabular-nums text-muted-foreground">{items.length}</span>
       </div>
@@ -334,7 +336,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
                         type="button"
                         size="icon-sm"
                         variant="ghost"
-                        title="Editar comentário"
+                        title={t('matches.comments.edit')}
                         onClick={() => startEdit(comment)}
                         disabled={isBusy}
                       >
@@ -344,7 +346,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
                         type="button"
                         size="icon-sm"
                         variant="ghost"
-                        title="Eliminar comentário"
+                        title={t('matches.comments.delete')}
                         onClick={() => deleteComment(comment)}
                         disabled={isBusy}
                       >
@@ -357,7 +359,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
                   <div className="space-y-2">
                     <div className="relative">
                       <label htmlFor={`match-comment-edit-${comment.id}`} className="sr-only">
-                        Editar comentário
+                        {t('matches.comments.edit')}
                       </label>
                       <textarea
                         ref={editTextareaRef}
@@ -391,7 +393,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
                           type="button"
                           size="icon-sm"
                           variant="ghost"
-                          title="Menção"
+                          title={t('matches.comments.mention')}
                           onClick={() => insertEditText('@')}
                         >
                           <AtSign />
@@ -403,20 +405,20 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
                             type="button"
                             size="icon-sm"
                             variant="ghost"
-                            aria-label={`Inserir ${emoji}`}
+                            aria-label={t('matches.comments.insertEmoji', { emoji })}
                             onClick={() => insertEditText(emoji)}
                           >
                             <span aria-hidden>{emoji}</span>
                           </Button>
                         ))}
-                        <Button type="button" size="icon-sm" variant="ghost" title="Emoji" onClick={() => insertEditText('🙂')}>
+                        <Button type="button" size="icon-sm" variant="ghost" title={t('matches.comments.emoji')} onClick={() => insertEditText('🙂')}>
                           <SmilePlus />
                         </Button>
                       </div>
                       <div className="flex flex-wrap justify-end gap-2">
                         <Button type="button" size="sm" variant="outline" onClick={cancelEdit} disabled={isBusy}>
                           <X />
-                          Cancelar
+                          {t('common.cancel')}
                         </Button>
                         <Button
                           type="button"
@@ -425,7 +427,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
                           disabled={isBusy || editContent.trim().length === 0}
                         >
                           {isBusy ? <Loader2 className="animate-spin" /> : <Check />}
-                          Guardar
+                          {t('common.save')}
                         </Button>
                       </div>
                     </div>
@@ -440,7 +442,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
 
         {items.length === 0 && (
           <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-            Sem comentários.
+            {t('matches.comments.empty')}
           </p>
         )}
       </div>
@@ -458,7 +460,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
             </Avatar>
             <div className="relative flex-1">
               <label htmlFor="match-comment" className="sr-only">
-                Comentário
+                {t('matches.comments.comment')}
               </label>
               <textarea
                 ref={textareaRef}
@@ -467,7 +469,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
                 onChange={(event) => setContent(event.target.value)}
                 maxLength={2000}
                 rows={4}
-                placeholder="Comentar..."
+                placeholder={t('matches.comments.placeholder')}
                 className="min-h-24 w-full resize-y rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               />
               {mentionSuggestions.length > 0 && (
@@ -492,7 +494,7 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
 
           <div className="ml-8 flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-1">
-              <Button type="button" size="icon-sm" variant="ghost" title="Menção" onClick={() => insertText('@')}>
+              <Button type="button" size="icon-sm" variant="ghost" title={t('matches.comments.mention')} onClick={() => insertText('@')}>
                 <AtSign />
               </Button>
               <span className="mx-1 h-5 w-px bg-border" />
@@ -502,27 +504,27 @@ export function MatchComments({ gameId, comments, mentionableUsers, currentUser 
                   type="button"
                   size="icon-sm"
                   variant="ghost"
-                  aria-label={`Inserir ${emoji}`}
+                  aria-label={t('matches.comments.insertEmoji', { emoji })}
                   onClick={() => insertText(emoji)}
                 >
                   <span aria-hidden>{emoji}</span>
                 </Button>
               ))}
-              <Button type="button" size="icon-sm" variant="ghost" title="Emoji" onClick={() => insertText('🙂')}>
+              <Button type="button" size="icon-sm" variant="ghost" title={t('matches.comments.emoji')} onClick={() => insertText('🙂')}>
                 <SmilePlus />
               </Button>
             </div>
             <Button type="submit" size="sm" disabled={!canSubmit} className={cn('min-w-24', isSubmitting && 'opacity-80')}>
               {isSubmitting ? <Loader2 className="animate-spin" /> : <Send />}
-              Publicar
+              {t('matches.comments.publish')}
             </Button>
           </div>
         </form>
       ) : (
         <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
-          <p className="text-sm text-muted-foreground">Inicia sessão para comentar.</p>
+          <p className="text-sm text-muted-foreground">{t('matches.comments.loginPrompt')}</p>
           <Button size="sm" variant="outline" nativeButton={false} render={<Link href="/auth/login" />}>
-            Entrar
+            {t('nav.login')}
           </Button>
         </div>
       )}

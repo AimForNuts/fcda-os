@@ -13,6 +13,7 @@ import { CompetitiveGameIcon } from '@/components/matches/game-type-icons'
 import { PlayerMatchHistory } from '@/components/player/PlayerMatchHistory'
 import { PlayerDescriptionEditor } from '@/components/player/PlayerDescriptionEditor'
 import { NationalityFlag } from '@/components/player/NationalityFlag'
+import { TranslatedText } from '@/components/i18n/TranslatedText'
 import {
   buildLeaderboardRows,
   compareLeaderboardRows,
@@ -325,10 +326,14 @@ export default async function PlayerProfilePage({
     resolvedPlayer.shirt_number != null
       ? String(resolvedPlayer.shirt_number).padStart(2, '0')
       : 'FC'
-  const positionLabels =
+  const positionItems =
     resolvedPlayer.preferred_positions.length > 0
-      ? resolvedPlayer.preferred_positions.map((position) => POSITION_LABELS[position] ?? position)
-      : ['Jogador']
+      ? resolvedPlayer.preferred_positions.map((position) => ({
+          key: `profile.positions.${position}`,
+          fallback: POSITION_LABELS[position] ?? position,
+        }))
+      : [{ key: 'players.genericPlayer', fallback: 'Jogador' }]
+  const positionLabels = positionItems.map((position) => position.fallback)
   const fallbackBiography = `${resolvedPlayer.display_name} faz parte do plantel FCDA como ${positionLabels.join(' / ').toLowerCase()}. O perfil reúne o registo competitivo do jogador, incluindo jogos, pontos, resultados e histórico recente.
 
 Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e uma taxa de vitória competitiva de ${winRate}%. Os dados são atualizados a partir dos jogos concluídos registados na plataforma.`
@@ -345,7 +350,7 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
                 className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground"
               >
                 <ArrowLeft className="size-4" />
-                Plantel
+                <TranslatedText i18nKey="players.detail.squad" />
               </Link>
             </div>
 
@@ -363,8 +368,8 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
                       nationality={resolvedPlayer.nationality}
                       className="h-5 w-8 sm:h-6 sm:w-9"
                     />
-                    {positionLabels.map((position, index) => (
-                      <Fragment key={`${position}-${index}`}>
+                    {positionItems.map((position, index) => (
+                      <Fragment key={`${position.key}-${index}`}>
                         {index > 0 ? (
                           <span
                             className="select-none text-lg font-light text-fcda-gold/50 sm:text-2xl"
@@ -374,7 +379,7 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
                           </span>
                         ) : null}
                         <span className="text-lg font-light uppercase tracking-wide text-fcda-gold sm:text-2xl">
-                          {position}
+                          <TranslatedText i18nKey={position.key} />
                         </span>
                       </Fragment>
                     ))}
@@ -414,16 +419,16 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
       <nav className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80">
         <div className="container mx-auto flex max-w-screen-xl gap-6 overflow-x-auto px-4 sm:gap-8">
           {[
-            ['Jogos', '#jogos'],
-            ['Estatísticas', '#estatisticas'],
-            ['Biografia', '#biografia'],
+            ['players.detail.games', '#jogos'],
+            ['players.detail.statistics', '#estatisticas'],
+            ['players.detail.biography', '#biografia'],
           ].map(([label, href]) => (
             <a
               key={href}
               href={href}
               className="inline-flex h-12 shrink-0 items-center border-b-2 border-transparent text-xs font-black uppercase tracking-[0.14em] text-muted-foreground transition-colors first:border-fcda-gold first:text-foreground hover:border-fcda-gold hover:text-foreground sm:h-14 sm:text-sm sm:tracking-[0.16em]"
             >
-              {label}
+              <TranslatedText i18nKey={label} />
             </a>
           ))}
         </div>
@@ -434,10 +439,10 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-2xl font-black tracking-normal text-foreground md:text-4xl">
-                Jogos
+                <TranslatedText i18nKey="players.detail.games" />
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Detalhes dos jogos associados ao jogador.
+                <TranslatedText i18nKey="players.detail.gamesDescription" />
               </p>
             </div>
           </div>
@@ -447,11 +452,11 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
               {latestMatch ? (
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                    Último jogo
+                    <TranslatedText i18nKey="players.detail.lastGame" />
                   </p>
                   <div className="shrink-0 text-right">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      Resultado
+                      <TranslatedText i18nKey="players.detail.result" />
                     </p>
                     <p
                       className={cn(
@@ -469,7 +474,7 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
                 </div>
               ) : (
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Último jogo
+                  <TranslatedText i18nKey="players.detail.lastGame" />
                 </p>
               )}
               {latestMatch ? (
@@ -512,34 +517,34 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
                           href={`/matches/${latestMatch.game_id}`}
                           className="shrink-0 text-xs font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
                         >
-                          Ficha de jogo
+                          <TranslatedText i18nKey="matches.matchSheet" />
                         </Link>
                       </div>
                     </div>
                   </div>
                 </>
               ) : (
-                <p className="mt-3 text-sm text-muted-foreground">Sem jogos concluídos.</p>
+                <p className="mt-3 text-sm text-muted-foreground"><TranslatedText i18nKey="players.detail.noCompletedGames" /></p>
               )}
             </div>
             <div className="flex h-full flex-col rounded-lg border border-border bg-card p-4 shadow-sm md:p-5">
               {upcomingMatch ? (
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                    Próximo jogo
+                    <TranslatedText i18nKey="players.detail.nextGame" />
                   </p>
                   <div className="shrink-0 text-right">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      Estado
+                      <TranslatedText i18nKey="players.detail.status" />
                     </p>
                     <p className="mt-0.5 text-xs font-black uppercase tracking-wide text-muted-foreground">
-                      Agendado
+                      <TranslatedText i18nKey="players.detail.scheduled" />
                     </p>
                   </div>
                 </div>
               ) : (
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Próximo jogo
+                  <TranslatedText i18nKey="players.detail.nextGame" />
                 </p>
               )}
               {upcomingMatch ? (
@@ -583,14 +588,14 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
                           href={`/matches/${upcomingMatch.id}`}
                           className="shrink-0 text-xs font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
                         >
-                          Ficha de jogo
+                          <TranslatedText i18nKey="matches.matchSheet" />
                         </Link>
                       </div>
                     </div>
                   </div>
                 </>
               ) : (
-                <p className="mt-3 text-sm text-muted-foreground">Sem próximo jogo associado.</p>
+                <p className="mt-3 text-sm text-muted-foreground"><TranslatedText i18nKey="players.detail.noUpcomingGame" /></p>
               )}
             </div>
           </section>
@@ -599,7 +604,7 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
             <PlayerMatchHistory matches={matchHistory} />
           ) : (
             <section className="bg-card p-6 shadow-sm shadow-sm">
-              <p className="text-sm text-muted-foreground">Sem jogos registados.</p>
+              <p className="text-sm text-muted-foreground"><TranslatedText i18nKey="players.detail.noGames" /></p>
             </section>
           )}
         </section>
@@ -608,12 +613,16 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-2xl font-black tracking-normal text-foreground md:text-4xl">
-                Estatísticas
+                <TranslatedText i18nKey="players.detail.statistics" />
               </h2>
-              <p className="mt-2 text-sm text-muted-foreground">Atualizado por jogos concluídos.</p>
+              <p className="mt-2 text-sm text-muted-foreground"><TranslatedText i18nKey="players.detail.updatedByCompletedGames" /></p>
             </div>
             <p className="text-sm font-semibold text-muted-foreground">
-              {playerRank ? `${playerRank}.º no ranking competitivo por pontos` : 'Sem posição no ranking competitivo'}
+              {playerRank ? (
+                <TranslatedText i18nKey="players.detail.competitiveRank" values={{ rank: playerRank }} />
+              ) : (
+                <TranslatedText i18nKey="players.detail.noCompetitiveRank" />
+              )}
             </p>
           </div>
 
@@ -621,19 +630,19 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <div className="flex items-center gap-2">
                 <CompetitiveGameIcon className="size-5 shrink-0 text-fcda-gold" aria-hidden />
-                <h3 className="text-lg font-black leading-tight text-foreground">Ranking</h3>
+                <h3 className="text-lg font-black leading-tight text-foreground"><TranslatedText i18nKey="players.detail.ranking" /></h3>
               </div>
               <Link
                 href="/stats"
                 className="shrink-0 text-xs font-semibold uppercase tracking-wide text-primary underline underline-offset-2 hover:text-primary/80"
               >
-                Ver classificação completa
+                <TranslatedText i18nKey="players.detail.viewFullRanking" />
               </Link>
             </div>
             <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[34rem] border-separate border-spacing-y-1 text-xs">
                 <caption className="sr-only">
-                  Pré-visualização da classificação competitiva por pontos com vitórias, empates e derrotas.
+                  <TranslatedText i18nKey="players.detail.rankingCaption" />
                 </caption>
                 <thead>
                 <tr className="text-left font-semibold uppercase tracking-wide text-muted-foreground">
@@ -641,7 +650,7 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
                     #
                   </th>
                   <th scope="col" className="min-w-[7rem] px-1 pb-1 align-bottom font-semibold">
-                    Jogador
+                    <TranslatedText i18nKey="stats.player" />
                   </th>
                   <th scope="col" className="w-9 px-1 pb-1 text-right align-bottom font-semibold tabular-nums">
                     V
@@ -716,7 +725,7 @@ Nesta época, soma ${matchesPlayed} jogos competitivos, ${totalPoints} pontos e 
         <section id="biografia" className="scroll-mt-24">
           <article className="bg-card p-5 shadow-sm shadow-sm md:p-8">
             <h2 className="text-2xl font-black tracking-normal text-foreground md:text-4xl">
-              Biografia
+              <TranslatedText i18nKey="players.detail.biography" />
             </h2>
             <div className="mt-6 max-w-4xl">
               <PlayerDescriptionEditor

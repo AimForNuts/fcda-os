@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { Camera, Check, ExternalLink, Flag, Hash, Save, UserRound } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -26,13 +27,7 @@ import {
 import { PLAYER_AVATAR_MAX_BYTES } from '@/lib/players/avatar'
 import { cn } from '@/lib/utils'
 
-const POSITIONS = [
-  { value: 'GK', label: 'Guarda-redes' },
-  { value: 'CB', label: 'Defesa' },
-  { value: 'CM', label: 'Médio' },
-  { value: 'W', label: 'Extremo' },
-  { value: 'ST', label: 'Avançado' },
-]
+const POSITIONS = ['GK', 'CB', 'CM', 'W', 'ST'] as const
 
 type Props = {
   playerId: string
@@ -60,6 +55,7 @@ export function ProfileForm({
   preferredPositions,
   avatarUrl,
 }: Props) {
+  const { t } = useTranslation()
   const [name, setName] = useState(sheetName)
   const [shirt, setShirt] = useState<string>(shirtNumber != null ? String(shirtNumber) : '')
   const [nationalityValue, setNationalityValue] = useState(normalizeNationality(nationality))
@@ -72,9 +68,9 @@ export function ProfileForm({
   const [photoError, setPhotoError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const displayName = name.trim() || playerName
-  const shirtLabel = shirt.trim() === '' ? 'Sem número' : `#${shirt.trim()}`
+  const shirtLabel = shirt.trim() === '' ? t('profile.player.noNumber') : `#${shirt.trim()}`
   const normalizedNationality = normalizeNationality(nationalityValue)
-  const positionSummary = positions.length > 0 ? positions.join(' · ') : 'Escolhe as tuas posições'
+  const positionSummary = positions.length > 0 ? positions.join(' · ') : t('profile.player.choosePositions')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -103,11 +99,11 @@ export function ProfileForm({
       } else {
         const data = await res.json().catch(() => ({}))
         const raw = data.error
-        setError(typeof raw === 'string' ? raw : 'Erro ao guardar.')
+        setError(typeof raw === 'string' ? raw : t('profile.player.errors.saveFailed'))
       }
     } catch {
       setSubmitting(false)
-      setError('Erro de rede. Tenta novamente.')
+      setError(t('common.networkError'))
     }
   }
 
@@ -135,12 +131,12 @@ export function ProfileForm({
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         const raw = data.error
-        setPhotoError(typeof raw === 'string' ? raw : 'Erro ao enviar foto.')
+        setPhotoError(typeof raw === 'string' ? raw : t('profile.player.errors.photoUploadFailed'))
         return
       }
       setCurrentAvatarUrl(typeof data.avatar_url === 'string' ? data.avatar_url : null)
     } catch {
-      setPhotoError('Erro de rede. Tenta novamente.')
+      setPhotoError(t('common.networkError'))
     } finally {
       setPhotoBusy(null)
       e.target.value = ''
@@ -156,12 +152,12 @@ export function ProfileForm({
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         const raw = data.error
-        setPhotoError(typeof raw === 'string' ? raw : 'Erro ao remover foto.')
+        setPhotoError(typeof raw === 'string' ? raw : t('profile.player.errors.photoRemoveFailed'))
         return
       }
       setCurrentAvatarUrl(null)
     } catch {
-      setPhotoError('Erro de rede. Tenta novamente.')
+      setPhotoError(t('common.networkError'))
     } finally {
       setPhotoBusy(null)
     }
@@ -175,10 +171,10 @@ export function ProfileForm({
             <div className="space-y-1">
               <CardTitle className="flex items-center gap-2 text-fcda-navy">
                 <Camera className="size-4" />
-                Fotografia
+                {t('profile.player.photoTitle')}
               </CardTitle>
               <CardDescription>
-                Mantém a tua imagem atualizada para uma apresentação mais consistente.
+                {t('profile.player.photoDescription')}
               </CardDescription>
             </div>
             <Badge
@@ -190,7 +186,7 @@ export function ProfileForm({
                   : 'bg-muted text-muted-foreground'
               )}
             >
-              {currentAvatarUrl ? 'Ativa' : 'Opcional'}
+              {currentAvatarUrl ? t('profile.player.photoActive') : t('profile.player.photoOptional')}
             </Badge>
           </div>
         </CardHeader>
@@ -221,8 +217,9 @@ export function ProfileForm({
           </div>
 
           <div className="rounded-2xl border border-dashed border-border/80 bg-muted/20 p-4 text-xs leading-5 text-muted-foreground">
-            Usa JPEG, PNG ou WebP até {Math.round(PLAYER_AVATAR_MAX_BYTES / (1024 * 1024))} MB.
-            Uma foto simples, centrada e bem iluminada funciona melhor.
+            {t('profile.player.photoRequirements', {
+              size: Math.round(PLAYER_AVATAR_MAX_BYTES / (1024 * 1024)),
+            })}
           </div>
 
           {photoError ? (
@@ -246,10 +243,10 @@ export function ProfileForm({
             className="h-10 px-4"
           >
             {photoBusy === 'upload'
-              ? 'A enviar...'
+              ? t('profile.player.uploadingPhoto')
               : currentAvatarUrl
-                ? 'Substituir foto'
-                : 'Carregar foto'}
+                ? t('profile.player.replacePhoto')
+                : t('profile.player.uploadPhoto')}
           </Button>
           <Button
             type="button"
@@ -258,7 +255,7 @@ export function ProfileForm({
             onClick={handlePhotoDelete}
             className="h-10 px-4"
           >
-            {photoBusy === 'delete' ? 'A remover...' : 'Remover'}
+            {photoBusy === 'delete' ? t('profile.player.removingPhoto') : t('common.remove')}
           </Button>
         </CardFooter>
       </Card>
@@ -267,20 +264,20 @@ export function ProfileForm({
         <CardHeader className="gap-3">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
-              <CardTitle className="text-fcda-navy">Detalhes do jogador</CardTitle>
+              <CardTitle className="text-fcda-navy">{t('profile.player.title')}</CardTitle>
               <CardDescription>
-                Estes dados ajudam a identificar o teu perfil e a manter a equipa organizada.
+                {t('profile.player.description')}
               </CardDescription>
             </div>
             <Badge variant="outline" className="border-fcda-navy/15 bg-fcda-ice text-fcda-navy">
-              Editável
+              {t('profile.player.editable')}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_10rem_12rem]">
             <div className="space-y-2">
-              <Label htmlFor="profile-name">Nome</Label>
+              <Label htmlFor="profile-name">{t('profile.player.name')}</Label>
               <div className="relative">
                 <UserRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -296,7 +293,7 @@ export function ProfileForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="profile-shirt">Número</Label>
+              <Label htmlFor="profile-shirt">{t('profile.player.number')}</Label>
               <div className="relative">
                 <Hash className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -313,7 +310,7 @@ export function ProfileForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="profile-nationality">Nacionalidade</Label>
+              <Label htmlFor="profile-nationality">{t('profile.player.nationality')}</Label>
               <div className="relative">
                 <Flag className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -342,25 +339,25 @@ export function ProfileForm({
           <div className="space-y-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-1">
-                <Label>Posições preferidas</Label>
+                <Label>{t('profile.player.preferredPositions')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Escolhe uma ou mais posições em que preferes jogar.
+                  {t('profile.player.preferredPositionsHint')}
                 </p>
               </div>
               <Badge variant="outline" className="border-border/80 bg-background text-muted-foreground">
-                {positions.length} {positions.length === 1 ? 'seleção' : 'seleções'}
+                {t('profile.player.selectionCount', { count: positions.length })}
               </Badge>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {POSITIONS.map((pos) => {
-                const isSelected = positions.includes(pos.value)
+                const isSelected = positions.includes(pos)
 
                 return (
                   <button
-                    key={pos.value}
+                    key={pos}
                     type="button"
-                    onClick={() => togglePosition(pos.value)}
+                    onClick={() => togglePosition(pos)}
                     disabled={submitting}
                     className={cn(
                       'group rounded-2xl border p-4 text-left transition-all',
@@ -381,14 +378,14 @@ export function ProfileForm({
                         <Check className="size-3.5" />
                       </span>
                       <span className="space-y-1">
-                        <span className="block text-sm font-semibold">{pos.value}</span>
+                        <span className="block text-sm font-semibold">{pos}</span>
                         <span
                           className={cn(
                             'block text-xs',
                             isSelected ? 'text-white/75' : 'text-muted-foreground'
                           )}
                         >
-                          {pos.label}
+                          {t(`profile.positions.${pos}`)}
                         </span>
                       </span>
                     </div>
@@ -405,14 +402,13 @@ export function ProfileForm({
           ) : null}
           {saved ? (
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
-              Perfil guardado com sucesso.
+              {t('profile.player.saved')}
             </div>
           ) : null}
         </CardContent>
         <CardFooter className="flex flex-col items-start justify-between gap-3 border-t md:flex-row md:items-center">
           <p className="text-xs leading-5 text-muted-foreground">
-            As alterações ficam associadas ao teu jogador e podem ser usadas noutras áreas
-            da aplicação.
+            {t('profile.player.footerNote')}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -422,7 +418,7 @@ export function ProfileForm({
               className="min-w-36"
             >
               <ExternalLink className="size-4" />
-              Ver página pública
+              {t('profile.player.viewPublicPage')}
             </Button>
             <Button
               type="submit"
@@ -431,7 +427,7 @@ export function ProfileForm({
               className="min-w-40"
             >
               <Save className="size-4" />
-              {submitting ? 'A guardar...' : 'Guardar alterações'}
+              {submitting ? t('common.saving') : t('profile.player.saveChanges')}
             </Button>
           </div>
         </CardFooter>
