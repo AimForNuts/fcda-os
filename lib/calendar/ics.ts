@@ -2,6 +2,7 @@ type CalendarGame = {
   id: string
   date: string
   location: string
+  playerTeamLabel?: string | null
 }
 type CalendarOptions = {
   calendarName: string
@@ -9,11 +10,11 @@ type CalendarOptions = {
   games: CalendarGame[]
   origin: string
   eventSummary: (game: CalendarGame) => string
-  eventDescription: (game: CalendarGame, matchUrl: string) => string
+  eventDescription: (game: CalendarGame, matchUrl: string, startsAt: Date, endsAt: Date) => string
   generatedAt?: Date
 }
 
-const MATCH_DURATION_MINUTES = 90
+const MATCH_DURATION_MINUTES = 60
 
 function escapeIcsText(value: string) {
   return value
@@ -25,6 +26,18 @@ function escapeIcsText(value: string) {
 
 function formatIcsDate(date: Date) {
   return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
+}
+
+function formatPortugalTime(iso: string) {
+  return new Intl.DateTimeFormat('pt-PT', {
+    timeZone: 'Europe/Lisbon',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso))
+}
+
+function formatPortugalTimeRange(start: Date, end: Date) {
+  return `${formatPortugalTime(start.toISOString())} - ${formatPortugalTime(end.toISOString())}`
 }
 
 function foldIcsLine(line: string) {
@@ -75,7 +88,7 @@ export function buildCalendarIcs({
       `DTEND:${formatIcsDate(endsAt)}`,
       `SUMMARY:${escapeIcsText(eventSummary(game))}`,
       `LOCATION:${escapeIcsText(game.location)}`,
-      `DESCRIPTION:${escapeIcsText(eventDescription(game, matchUrl))}`,
+      `DESCRIPTION:${escapeIcsText(eventDescription(game, matchUrl, startsAt, endsAt))}`,
       `URL:${matchUrl}`,
       'END:VEVENT'
     )
@@ -103,8 +116,12 @@ export function buildPlayerCalendarIcs({
     games,
     origin,
     generatedAt,
-    eventSummary: () => `FCDA - ${playerName}`,
-    eventDescription: (_game, matchUrl) => `Jogo FCDA com ${playerName}. Ficha de jogo: ${matchUrl}`,
+    eventSummary: (game) => `FCDA - ${game.playerTeamLabel ?? playerName}`,
+    eventDescription: (game, matchUrl, startsAt, endsAt) => [
+      `Game time: ${formatPortugalTimeRange(startsAt, endsAt)}`,
+      `Location: ${game.location}`,
+      `Ficha de jogo: ${matchUrl}`,
+    ].join('\n'),
   })
 }
 
@@ -124,6 +141,10 @@ export function buildAllGamesCalendarIcs({
     origin,
     generatedAt,
     eventSummary: (game) => `FCDA - ${game.location}`,
-    eventDescription: (_game, matchUrl) => `Jogo FCDA. Ficha de jogo: ${matchUrl}`,
+    eventDescription: (game, matchUrl, startsAt, endsAt) => [
+      `Game time: ${formatPortugalTimeRange(startsAt, endsAt)}`,
+      `Location: ${game.location}`,
+      `Ficha de jogo: ${matchUrl}`,
+    ].join('\n'),
   })
 }
