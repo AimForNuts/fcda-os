@@ -25,11 +25,13 @@ import { MatchComments, type MatchComment } from '@/components/matches/MatchComm
 import { GameStatusBadge } from '@/components/matches/GameStatusBadge'
 import { GameStatusPlainText } from '@/components/matches/GameStatusPlainText'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
+import { RecintoLink } from '@/components/matches/RecintoLink'
+import { RecintoMapPreview } from '@/components/matches/RecintoMapPreview'
 import { Button } from '@/components/ui/button'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation, type MatchTeam } from '@/lib/games/team-presentation'
 import { cn } from '@/lib/utils'
-import type { PlayerPublic, GamePlayer, Game } from '@/types'
+import type { PlayerPublic, GamePlayer, Game, Recinto } from '@/types'
 
 export async function generateMetadata({
   params,
@@ -108,9 +110,11 @@ function getWinningTeam(game: Game): MatchTeam | null {
 
 function MatchDetailHero({
   game,
+  recinto,
   showRateButton,
 }: {
   game: Game
+  recinto: Recinto | null
   showRateButton: boolean
 }) {
   const formatted = formatMatchDateParts(game.date)
@@ -218,7 +222,11 @@ function MatchDetailHero({
             <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3 border-b border-white/12 pb-3">
               <MapPin className="mt-0.5 size-5 text-white/45" aria-hidden />
               <div className="min-w-0">
-                <p className="truncate font-semibold">{game.location}</p>
+                <RecintoLink
+                  location={game.location}
+                  recinto={recinto}
+                  className="inline-flex max-w-full items-center gap-1 truncate font-semibold text-white hover:text-white hover:underline"
+                />
                 <p className="mt-1 text-white/48">Recinto</p>
               </div>
             </div>
@@ -281,6 +289,16 @@ export default async function MatchDetailPage({
     .single() as { data: Game | null; error: unknown }
 
   if (!game) notFound()
+
+  let recinto: Recinto | null = null
+  if (game.recinto_id) {
+    const { data } = await supabase
+      .from('recintos')
+      .select('*')
+      .eq('id', game.recinto_id)
+      .maybeSingle() as { data: Recinto | null; error: unknown }
+    recinto = data
+  }
 
   const { data: gamePlayers } = await supabase
     .from('game_players')
@@ -393,6 +411,7 @@ export default async function MatchDetailPage({
     <div className="bg-white">
       <MatchDetailHero
         game={game}
+        recinto={recinto}
         showRateButton={showRateButton}
       />
 
@@ -475,7 +494,13 @@ export default async function MatchDetailPage({
                   <MapPin className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
                   <div className="min-w-0">
                     <dt className="text-muted-foreground">Recinto</dt>
-                    <dd className="mt-1 truncate font-semibold">{game.location}</dd>
+                    <dd className="mt-1">
+                      <RecintoLink
+                        location={game.location}
+                        recinto={recinto}
+                        className="inline-flex max-w-full items-center gap-1 truncate font-semibold text-foreground hover:text-foreground hover:underline"
+                      />
+                    </dd>
                   </div>
                 </div>
                 <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
@@ -501,6 +526,8 @@ export default async function MatchDetailPage({
                 </div>
               </dl>
             </section>
+
+            <RecintoMapPreview location={game.location} recinto={recinto} />
 
             {isMod && (
               <section className="border-y border-border py-5">

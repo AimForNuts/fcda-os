@@ -7,6 +7,7 @@ function makeGame(id: string, date: string): Game {
     id,
     date,
     location: 'X',
+    recinto_id: null,
     status: 'scheduled',
     counts_for_stats: true,
     score_a: null,

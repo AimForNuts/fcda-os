@@ -38,6 +38,7 @@ const baseGame: Game = {
   id: 'game-1',
   date: '2026-05-01T10:00:00.000Z',
   location: 'Arca de Água',
+  recinto_id: null,
   status: 'scheduled',
   counts_for_stats: true,
   score_a: null,
@@ -85,6 +86,33 @@ describe('MatchCard', () => {
     render(<MatchCard game={baseGame} />)
     const link = screen.getByRole('link')
     expect(link.getAttribute('href')).toBe('/matches/game-1')
+  })
+
+  it('opens Google Maps for linked recintos without navigating to the match', () => {
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+
+    render(
+      <MatchCard
+        game={{ ...baseGame, recinto_id: '11111111-1111-4111-8111-111111111111' }}
+        recinto={{
+          name: 'Arca de Água',
+          google_place_id: 'google-place-1',
+          latitude: 41.174,
+          longitude: -8.609,
+          maps_url: null,
+        }}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /abrir arca de água no google maps/i }))
+
+    expect(open).toHaveBeenCalledWith(
+      expect.stringContaining('query_place_id=google-place-1'),
+      '_blank',
+      'noopener,noreferrer',
+    )
+
+    open.mockRestore()
   })
 
   it('shows Agendado badge for scheduled game', () => {
