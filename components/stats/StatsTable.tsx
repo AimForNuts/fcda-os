@@ -2,8 +2,11 @@
 
 import { useState, useMemo, useDeferredValue } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Search, Trophy } from 'lucide-react'
+import Link from 'next/link'
+import { Crown, Search } from 'lucide-react'
+import { NationalityFlag } from '@/components/player/NationalityFlag'
 import { PlayerIdentity } from '@/components/player/PlayerIdentity'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,16 +42,89 @@ function formatDecimal(value: number) {
   })
 }
 
-function getPodiumClassName(index: number) {
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) {
+    return '?'
+  }
+
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase()
+  }
+
+  return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase()
+}
+
+function getPodiumAccentClassName(standing: number) {
+  switch (standing) {
+    case 1:
+      return 'bg-fcda-gold text-fcda-navy'
+    case 2:
+      return 'bg-sky-500 text-white'
+    case 3:
+      return 'bg-rose-500 text-white'
+    default:
+      return 'bg-fcda-navy text-white'
+  }
+}
+
+function getPodiumRingClassName(standing: number) {
+  switch (standing) {
+    case 1:
+      return 'ring-fcda-gold/25'
+    case 2:
+      return 'ring-sky-500/20'
+    case 3:
+      return 'ring-rose-500/20'
+    default:
+      return 'ring-border'
+  }
+}
+
+function getPodiumPlacementClassName(index: number) {
   switch (index) {
     case 0:
-      return 'border-fcda-gold bg-fcda-gold/10'
+      return 'order-2'
     case 1:
-      return 'border-slate-300 bg-slate-50'
+      return 'order-1'
     case 2:
-      return 'border-amber-700/30 bg-amber-700/5'
+      return 'order-3'
     default:
-      return 'border-border bg-background'
+      return ''
+  }
+}
+
+function getPodiumAvatarClassName(index: number) {
+  return index === 0
+    ? 'size-20 sm:size-32 md:size-28 lg:size-32'
+    : 'size-[4.5rem] sm:size-28 md:size-24 lg:size-28'
+}
+
+function getPodiumBarClassName(standing: number) {
+  switch (standing) {
+    case 1:
+      return 'h-3 max-w-48'
+    case 2:
+      return 'h-2.5 max-w-44'
+    case 3:
+      return 'h-2 max-w-44'
+    default:
+      return 'h-2 max-w-40'
+  }
+}
+
+function getRankBadgeClassName(standing: number, isBottomThree: boolean) {
+  switch (standing) {
+    case 1:
+      return 'bg-fcda-gold text-fcda-navy'
+    case 2:
+      return 'bg-sky-500 text-white'
+    case 3:
+      return 'bg-rose-500 text-white'
+    default:
+      return isBottomThree
+        ? 'bg-slate-400 text-white'
+        : 'border border-fcda-navy/15 bg-white text-fcda-navy'
   }
 }
 
@@ -146,52 +222,83 @@ function LeaderCard({
   isAnonymised: boolean
 }) {
   const { t } = useTranslation()
+  const nameNode = !isAnonymised ? (
+    <Link href={`/players/${player.id}`} className="min-w-0 truncate font-black text-fcda-navy hover:underline">
+      {player.display_name}
+    </Link>
+  ) : (
+    <span className="min-w-0 truncate font-black text-fcda-navy">{player.display_name}</span>
+  )
 
   return (
-    <div
+    <article
       className={cn(
-        'rounded-lg border p-4 shadow-sm',
-        getPodiumClassName(index)
+        'relative flex min-h-40 min-w-0 flex-col items-center justify-end text-center sm:min-h-64 md:grid md:min-h-44 md:w-full md:max-w-72 md:grid-cols-[auto_minmax(0,1fr)] md:grid-rows-[1fr_auto] md:items-end md:justify-self-center md:gap-x-4 lg:max-w-80',
+        getPodiumPlacementClassName(index)
       )}
     >
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-fcda-navy text-sm font-black tabular-nums text-white">
-          {player.standing}
+      <div className="relative flex flex-col items-center md:self-end">
+        {index === 0 ? (
+          <Crown
+            className="absolute -top-5 left-1/2 z-10 size-6 -translate-x-1/2 fill-fcda-gold text-fcda-gold drop-shadow-sm sm:-top-7 sm:size-8 md:-top-6 md:size-7 lg:-top-7 lg:size-8"
+            aria-hidden
+          />
+        ) : null}
+        <Avatar
+          className={cn(
+            'border-[3px] border-white bg-muted shadow-xl shadow-fcda-navy/10 ring-4 sm:border-4 sm:ring-8',
+            getPodiumAvatarClassName(index),
+            getPodiumRingClassName(player.standing)
+          )}
+        >
+          {!isAnonymised && player.avatar_url ? (
+            <AvatarImage src={player.avatar_url} alt={player.display_name} />
+          ) : null}
+          <AvatarFallback className="bg-fcda-navy text-xl font-black text-white">
+            {getInitials(player.display_name)}
+          </AvatarFallback>
+        </Avatar>
+        <span
+          className={cn(
+            'absolute -right-3 bottom-1 flex size-7 items-center justify-center rounded-full border-[3px] border-white text-[0.6rem] font-black tabular-nums shadow-lg sm:-right-5 sm:bottom-2 sm:size-9 sm:border-4 sm:text-xs md:-right-6 md:size-10 md:text-sm',
+            getPodiumAccentClassName(player.standing)
+          )}
+          aria-label={`${t('stats.colRank')} ${player.standing}`}
+        >
+          #{player.standing}
         </span>
-        {index === 0 ? <Trophy className="h-5 w-5 text-fcda-gold" aria-hidden /> : null}
       </div>
-      <PlayerIdentity
-        name={player.display_name}
-        shirtNumber={player.shirt_number}
-        shirtNumberPlacement="after-name"
-        href={!isAnonymised ? `/players/${player.id}` : undefined}
-        avatarUrl={player.avatar_url ?? null}
-        nationality={player.nationality}
-        showAvatar={!isAnonymised}
-        avatarSize="sm"
-        nameClassName="font-bold text-fcda-navy"
+      <div className="mt-2 flex w-full min-w-0 flex-col items-center gap-1 px-0.5 sm:mt-3 sm:gap-1.5 sm:px-2 md:self-end md:px-0 md:pb-2">
+        <div className="flex max-w-full min-w-0 items-center justify-center gap-1 text-[0.68rem] sm:gap-1.5 sm:text-sm">
+          {player.nationality ? (
+            <NationalityFlag nationality={player.nationality} className="h-3 w-4 sm:h-3.5 sm:w-5" />
+          ) : null}
+          {nameNode}
+          {player.shirt_number != null ? (
+            <span className="shrink-0 text-[0.68rem] font-bold tabular-nums text-slate-500 sm:text-sm">
+              {player.shirt_number}
+            </span>
+          ) : null}
+        </div>
+        <div
+          className={cn(
+            'inline-flex min-w-12 items-center justify-center whitespace-nowrap rounded-full px-2 py-1 text-[0.6rem] font-black leading-none shadow-sm sm:min-w-16 sm:px-3 sm:text-xs',
+            getPodiumAccentClassName(player.standing)
+          )}
+        >
+          <span className="tabular-nums">{player.points}</span>
+          <span className="ml-1">{t('stats.colPoints').toLocaleLowerCase('pt-PT')}</span>
+        </div>
+      </div>
+      <div
+        className={cn(
+          'mt-3 w-full rounded-full sm:mt-4 md:col-span-2',
+          getPodiumBarClassName(player.standing),
+          getPodiumAccentClassName(player.standing)
+        )}
+        aria-hidden
       />
-      <dl className="mt-4 grid grid-cols-3 gap-3 text-xs">
-        <div>
-          <dt className="text-muted-foreground">{t('stats.colPoints')}</dt>
-          <dd className="mt-1 text-lg font-black tabular-nums text-fcda-navy">
-            {player.points}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">{t('stats.colGames')}</dt>
-          <dd className="mt-1 text-lg font-black tabular-nums text-fcda-navy">
-            {player.total}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">{t('stats.colWinRate')}</dt>
-          <dd className="mt-1 text-lg font-black tabular-nums text-fcda-navy">
-            {formatPercent(player.winRate)}
-          </dd>
-        </div>
-      </dl>
-    </div>
+    </article>
   )
 }
 
@@ -199,10 +306,12 @@ function MobileLeaderboardRow({
   player,
   isAnonymised,
   highlighted,
+  isBottomThree,
 }: {
   player: LeaderboardRow
   isAnonymised: boolean
   highlighted: boolean
+  isBottomThree: boolean
 }) {
   const { t } = useTranslation()
 
@@ -214,7 +323,12 @@ function MobileLeaderboardRow({
       )}
     >
       <div className="flex items-start gap-3">
-        <span className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-fcda-navy text-sm font-black tabular-nums text-white">
+        <span
+          className={cn(
+            'mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-black tabular-nums',
+            getRankBadgeClassName(player.standing, isBottomThree)
+          )}
+        >
           {player.standing}
         </span>
         <div className="min-w-0 flex-1">
@@ -291,6 +405,7 @@ export function StatsTable({
     [leaderboardRows]
   )
   const leaders = sortedLeaderboardRows.slice(0, 3)
+  const bottomLeaderIds = new Set(sortedLeaderboardRows.slice(-3).map((player) => player.id))
   const highlightedRow = highlightedPlayerId
     ? sortedLeaderboardRows.find((player) => player.id === highlightedPlayerId)
     : null
@@ -310,7 +425,14 @@ export function StatsTable({
       sortable: false,
       align: 'center',
       cell: (player) => (
-        <span className="tabular-nums font-semibold text-fcda-navy">{player.standing}</span>
+        <span
+          className={cn(
+            'inline-flex size-7 items-center justify-center rounded-full text-xs font-black tabular-nums',
+            getRankBadgeClassName(player.standing, bottomLeaderIds.has(player.id))
+          )}
+        >
+          {player.standing}
+        </span>
       ),
     },
     {
@@ -425,20 +547,22 @@ export function StatsTable({
             </div>
           ) : null}
         </div>
-        <div className="grid gap-3 md:grid-cols-3">
-          {leaders.map((player, index) => (
-            <LeaderCard
-              key={player.id}
-              player={player}
-              index={index}
-              isAnonymised={isAnonymised}
-            />
-          ))}
+        <div className="rounded-md border border-border bg-white px-2 pb-6 pt-7 shadow-sm shadow-fcda-navy/5 sm:px-3 sm:pb-7 sm:pt-9 md:mt-3 md:px-6 md:pb-6 md:pt-8 lg:px-8">
+          <div className="grid grid-cols-3 items-end gap-2 sm:gap-6 md:gap-9">
+            {leaders.map((player, index) => (
+              <LeaderCard
+                key={player.id}
+                player={player}
+                index={index}
+                isAnonymised={isAnonymised}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
       <section aria-labelledby="leaderboard-table-title" className="space-y-3">
-        <div className="sticky top-20 z-40 -mx-4 flex flex-col gap-3 rounded-lg border border-border bg-background p-3 shadow-sm md:-mx-0 md:flex-row md:items-end md:justify-between">
+        <div className="sticky top-20 z-40 flex flex-col gap-3 rounded-lg border border-border bg-background p-3 shadow-sm md:flex-row md:items-end md:justify-between">
           <div className="min-w-0 flex-1">
             <h2 id="leaderboard-table-title" className="sr-only">
               {t('stats.tableTitle')}
@@ -497,6 +621,7 @@ export function StatsTable({
                 player={player}
                 isAnonymised={isAnonymised}
                 highlighted={player.id === highlightedPlayerId}
+                isBottomThree={bottomLeaderIds.has(player.id)}
               />
             ))
           ) : (

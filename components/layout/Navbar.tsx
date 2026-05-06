@@ -14,7 +14,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Globe, ShieldCheck, Menu, X } from 'lucide-react'
+import {
+  Bot,
+  ExternalLink,
+  Globe,
+  LogOut,
+  Menu,
+  MessageSquareText,
+  Pencil,
+  Settings,
+  ShieldCheck,
+  Star,
+  UserRound,
+  UsersRound,
+  X,
+} from 'lucide-react'
 import type { Profile, UserRole } from '@/types'
 import i18n from '@/i18n/config'
 import { ThemeToggle } from './ThemeToggle'
@@ -55,6 +69,16 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
 
   const avatarLabel = linkedPlayer?.name ?? profile?.display_name ?? '?'
   const initials = avatarLabel ? avatarLabel.slice(0, 2).toUpperCase() : '?'
+  const renderUserMenuAvatar = () => (
+    <Avatar className="h-8 w-8">
+      {linkedPlayer?.avatar_url ? (
+        <AvatarImage src={linkedPlayer.avatar_url} alt={avatarLabel} />
+      ) : null}
+      <AvatarFallback className="bg-fcda-gold text-fcda-navy text-xs font-bold">
+        {initials}
+      </AvatarFallback>
+    </Avatar>
+  )
 
   useEffect(() => {
     if (!isOpen) return
@@ -82,6 +106,43 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
     { href: '/matches', label: t('nav.matches') },
     { href: '/players', label: t('nav.players') },
     { href: '/stats', label: t('nav.stats') },
+  ]
+  const adminMenuItems = [
+    {
+      href: '/admin/users',
+      label: t('nav.userMenu.admin.users'),
+      description: t('nav.userMenu.admin.usersDescription'),
+      icon: UsersRound,
+      count: pendingCount,
+    },
+    {
+      href: '/admin/players',
+      label: t('nav.userMenu.admin.players'),
+      description: t('nav.userMenu.admin.playersDescription'),
+      icon: UserRound,
+      count: 0,
+    },
+    {
+      href: '/admin/ratings',
+      label: t('nav.userMenu.admin.ratings'),
+      description: t('nav.userMenu.admin.ratingsDescription'),
+      icon: Star,
+      count: 0,
+    },
+    {
+      href: '/admin/feedback',
+      label: t('nav.userMenu.admin.feedback'),
+      description: t('nav.userMenu.admin.feedbackDescription'),
+      icon: MessageSquareText,
+      count: 0,
+    },
+    {
+      href: '/admin/ai-rating',
+      label: t('nav.userMenu.admin.aiRating'),
+      description: t('nav.userMenu.admin.aiRatingDescription'),
+      icon: Bot,
+      count: 0,
+    },
   ]
   const isActiveHref = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
   const mainNavLinkClass = (active: boolean) =>
@@ -154,30 +215,125 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
 
           {profile ? (
             <DropdownMenu>
+              <div className="relative inline-flex h-8 w-8 items-center justify-center rounded-full md:hidden">
+                {renderUserMenuAvatar()}
+              </div>
               <DropdownMenuTrigger
-                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 focus-visible:outline-none"
+                className="relative hidden h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 focus-visible:outline-none md:inline-flex"
                 aria-label="User menu"
               >
-                <Avatar className="h-8 w-8">
-                  {linkedPlayer?.avatar_url ? (
-                    <AvatarImage src={linkedPlayer.avatar_url} alt={avatarLabel} />
-                  ) : null}
-                  <AvatarFallback className="bg-fcda-gold text-fcda-navy text-xs font-bold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                {renderUserMenuAvatar()}
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{profile.display_name}</p>
+              <DropdownMenuContent align="end" className="w-80 p-2">
+                <div className="flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-3">
+                  <Avatar className="h-10 w-10">
+                    {linkedPlayer?.avatar_url ? (
+                      <AvatarImage src={linkedPlayer.avatar_url} alt={avatarLabel} />
+                    ) : null}
+                    <AvatarFallback className="bg-fcda-gold text-fcda-navy text-sm font-bold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-fcda-navy">
+                      {profile.display_name}
+                    </p>
+                    {linkedPlayer ? (
+                      <p className="truncate text-xs text-muted-foreground">
+                        {linkedPlayer.name}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/profile')}>
-                  {t('nav.profile')}
+                <DropdownMenuSeparator className="my-2" />
+                <DropdownMenuItem
+                  onClick={() => router.push('/profile')}
+                  className="items-start gap-3 px-3 py-2.5"
+                >
+                  <Settings className="mt-0.5 size-4 text-fcda-navy" />
+                  <span className="min-w-0">
+                    <span className="block font-medium">
+                      {t('nav.userMenu.preferences')}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {t('nav.userMenu.preferencesDescription')}
+                    </span>
+                  </span>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                  {t('nav.logout')}
+                {linkedPlayer ? (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => router.push('/profile/player')}
+                      className="items-start gap-3 px-3 py-2.5"
+                    >
+                      <Pencil className="mt-0.5 size-4 text-fcda-navy" />
+                      <span className="min-w-0">
+                        <span className="block font-medium">
+                          {t('nav.userMenu.editPlayer')}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          {t('nav.userMenu.editPlayerDescription')}
+                        </span>
+                      </span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push(`/players/${linkedPlayer.id}`)}
+                      className="items-start gap-3 px-3 py-2.5"
+                    >
+                      <UserRound className="mt-0.5 size-4 text-fcda-navy" />
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-1 font-medium">
+                          {t('nav.userMenu.myPlayer')}
+                          <ExternalLink className="size-3 text-muted-foreground" />
+                        </span>
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          {t('nav.userMenu.myPlayerDescription')}
+                        </span>
+                      </span>
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
+                {isAdmin ? (
+                  <>
+                    <DropdownMenuSeparator className="my-2" />
+                    <div className="px-3 pb-1 pt-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      {t('nav.userMenu.admin.title')}
+                    </div>
+                    {adminMenuItems.map((item) => {
+                      const Icon = item.icon
+
+                      return (
+                        <DropdownMenuItem
+                          key={item.href}
+                          onClick={() => router.push(item.href)}
+                          className="items-start gap-3 px-3 py-2.5"
+                        >
+                          <Icon className="mt-0.5 size-4 text-fcda-navy" />
+                          <span className="min-w-0">
+                            <span className="flex items-center gap-2 font-medium">
+                              {item.label}
+                              {item.count > 0 ? (
+                                <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                                  {item.count}
+                                </span>
+                              ) : null}
+                            </span>
+                            <span className="mt-0.5 block text-xs text-muted-foreground">
+                              {item.description}
+                            </span>
+                          </span>
+                        </DropdownMenuItem>
+                      )
+                    })}
+                  </>
+                ) : null}
+                <DropdownMenuSeparator className="my-2" />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="items-center gap-3 px-3 py-2.5 text-destructive"
+                >
+                  <LogOut className="size-4" />
+                  <span className="font-medium">{t('nav.userMenu.signOut')}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -283,14 +439,54 @@ export function Navbar({ profile, roles, pendingCount, linkedPlayer = null }: Na
                 {profile ? (
                   <>
                     <Link href="/profile" onClick={() => setIsOpen(false)} className={drawerLinkClass}>
-                      {t('nav.profile')}
+                      {t('nav.userMenu.preferences')}
                     </Link>
+                    {linkedPlayer ? (
+                      <>
+                        <Link
+                          href="/profile/player"
+                          onClick={() => setIsOpen(false)}
+                          className={drawerLinkClass}
+                        >
+                          {t('nav.userMenu.editPlayer')}
+                        </Link>
+                        <Link
+                          href={`/players/${linkedPlayer.id}`}
+                          onClick={() => setIsOpen(false)}
+                          className={drawerLinkClass}
+                        >
+                          {t('nav.userMenu.myPlayer')}
+                        </Link>
+                      </>
+                    ) : null}
+                    {isAdmin ? (
+                      <div className="border-b border-white/10 py-3">
+                        <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/40">
+                          {t('nav.userMenu.admin.title')}
+                        </p>
+                        {adminMenuItems.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setIsOpen(false)}
+                            className="flex items-center gap-2 px-2 py-2 text-sm text-white/70 transition-colors hover:text-white"
+                          >
+                            <span className="min-w-0 truncate">{item.label}</span>
+                            {item.count > 0 ? (
+                              <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                                {item.count}
+                              </span>
+                            ) : null}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => { setIsOpen(false); handleLogout() }}
                       className={`${drawerLinkClass} w-full text-left text-red-400 hover:text-red-300`}
                     >
-                      {t('nav.logout')}
+                      {t('nav.userMenu.signOut')}
                     </button>
                   </>
                 ) : (
