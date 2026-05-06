@@ -107,6 +107,7 @@ export type Database = {
           id: string
           date: string
           location: string
+          recinto_id: string | null
           status: 'scheduled' | 'finished' | 'cancelled'
           counts_for_stats: boolean
           score_a: number | null
@@ -121,6 +122,7 @@ export type Database = {
           id?: string
           date: string
           location: string
+          recinto_id?: string | null
           status?: 'scheduled' | 'finished' | 'cancelled'
           counts_for_stats?: boolean
           score_a?: number | null
@@ -134,12 +136,50 @@ export type Database = {
         Update: {
           date?: string
           location?: string
+          recinto_id?: string | null
           status?: 'scheduled' | 'finished' | 'cancelled'
           counts_for_stats?: boolean
           score_a?: number | null
           score_b?: number | null
           finished_by?: string | null
           finished_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recintos: {
+        Row: {
+          id: string
+          name: string
+          google_place_id: string | null
+          formatted_address: string | null
+          latitude: number | null
+          longitude: number | null
+          maps_url: string | null
+          last_used_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          google_place_id?: string | null
+          formatted_address?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          maps_url?: string | null
+          last_used_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          name?: string
+          google_place_id?: string | null
+          formatted_address?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          maps_url?: string | null
+          last_used_at?: string | null
           updated_at?: string
         }
         Relationships: []

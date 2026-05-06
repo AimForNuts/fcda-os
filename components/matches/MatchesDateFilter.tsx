@@ -1,15 +1,31 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
+import i18n, { INITIAL_I18N_LANGUAGE } from '@/i18n/config'
 
 export function MatchesDateFilter({ className }: { className?: string }) {
   const { t } = useTranslation()
+  const [hasMounted, setHasMounted] = useState(false)
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setHasMounted(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
+  const tHydrationSafe = useCallback(
+    (key: string) =>
+      hasMounted
+        ? t(key)
+        : i18n.getFixedT(INITIAL_I18N_LANGUAGE, 'common')(key),
+    [hasMounted, t],
+  )
+
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -35,11 +51,11 @@ export function MatchesDateFilter({ className }: { className?: string }) {
         className,
       )}
       role="search"
-      aria-label={t('matches.dateFilter.aria')}
+      aria-label={tHydrationSafe('matches.dateFilter.aria')}
     >
       <Calendar className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
       <Input
-        aria-label={t('matches.dateFilter.from')}
+        aria-label={tHydrationSafe('matches.dateFilter.from')}
         type="date"
         value={from}
         onChange={(e) => {
@@ -55,7 +71,7 @@ export function MatchesDateFilter({ className }: { className?: string }) {
         —
       </span>
       <Input
-        aria-label={t('matches.dateFilter.to')}
+        aria-label={tHydrationSafe('matches.dateFilter.to')}
         type="date"
         value={to}
         onChange={(e) => {
@@ -80,7 +96,7 @@ export function MatchesDateFilter({ className }: { className?: string }) {
             })
           }}
         >
-          {t('matches.dateFilter.clear')}
+          {tHydrationSafe('matches.dateFilter.clear')}
         </Button>
       ) : null}
     </div>

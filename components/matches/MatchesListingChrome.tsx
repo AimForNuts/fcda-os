@@ -8,11 +8,12 @@ import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n/config'
 import { MatchesDateFilter } from '@/components/matches/MatchesDateFilter'
 import { NewGameModal } from '@/components/matches/NewGameModal'
+import { RecintoLink } from '@/components/matches/RecintoLink'
 import { cn } from '@/lib/utils'
 import { GAME_TIME_ZONE } from '@/lib/games/format-schedule-date'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { bcp47ForI18nLanguage } from '@/lib/i18n/date-locale'
-import type { Game } from '@/types'
+import type { Game, Recinto } from '@/types'
 import type { MatchesView } from '@/lib/matches/matches-view'
 
 const teamA = getTeamPresentation('a')
@@ -74,7 +75,9 @@ function formatHeroDate(iso: string, lng: string, t: (key: string, opts?: Record
   }
 }
 
-function MatchesHero({ game }: { game: Game | null }) {
+type RecintoLinkData = Pick<Recinto, 'name' | 'google_place_id' | 'latitude' | 'longitude' | 'maps_url'>
+
+function MatchesHero({ game, recinto }: { game: Game | null; recinto?: RecintoLinkData | null }) {
   const { t } = useTranslation()
   const lng = i18n.language
   const formatted = game ? formatHeroDate(game.date, lng, t) : null
@@ -172,7 +175,11 @@ function MatchesHero({ game }: { game: Game | null }) {
               </div>
               <div className="min-w-0 border-r border-white/14 px-4 sm:px-5">
                 <p className="text-base font-medium text-white/38">{t('matches.page.venueLabel')}</p>
-                <p className="mt-1 font-semibold">{game?.location ?? t('matches.page.defaultVenue')}</p>
+                <RecintoLink
+                  location={game?.location ?? t('matches.page.defaultVenue')}
+                  recinto={recinto}
+                  className="mt-1 inline-flex max-w-full items-center gap-1 font-semibold text-white hover:text-white hover:underline"
+                />
               </div>
               <div className="min-w-0 pl-4 sm:pl-5">
                 <p className="text-base font-medium text-white/38">{t('matches.page.gatesOpenLabel')}</p>
@@ -255,6 +262,7 @@ export type PersonalEmptyKind = 'none' | 'login' | 'pending' | 'no_player'
 
 export function MatchesListingChrome({
   heroGame,
+  heroRecinto,
   activeView,
   from,
   to,
@@ -270,6 +278,7 @@ export function MatchesListingChrome({
   children,
 }: {
   heroGame: Game | null
+  heroRecinto?: RecintoLinkData | null
   activeView: MatchesView
   from?: string
   to?: string
@@ -315,7 +324,7 @@ export function MatchesListingChrome({
 
   return (
     <div className="bg-white">
-      <MatchesHero game={heroGame} />
+      <MatchesHero game={heroGame} recinto={heroRecinto} />
 
       <main id="matches-list" className="container mx-auto max-w-screen-xl px-4 py-8 md:py-10">
         <div className="mb-8 border-b border-border">
