@@ -375,7 +375,7 @@ export function UserTable({ users: initial }: { users: UserRow[] }) {
   return (
     <div className="min-w-0 space-y-3">
       <div className="sticky top-20 z-40 -mx-4 border-b border-border bg-background px-4 py-3 shadow-sm">
-        <div className="w-full max-w-md">
+        <div className="w-full">
           <label htmlFor="admin-user-search" className="sr-only">
             {t('admin.searchUsers')}
           </label>
