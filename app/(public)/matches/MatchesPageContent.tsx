@@ -6,7 +6,6 @@ import {
   MatchesListingChrome,
   type PersonalEmptyKind,
 } from '@/components/matches/MatchesListingChrome'
-import { filterGamesByDateRange } from '@/lib/games/filter-by-date-range'
 import { sortGames } from '@/lib/games/sort'
 import { getFeedbackEligibilityStartIso } from '@/lib/matches/pending-feedback'
 import { fetchMatchCommentCounts } from '@/lib/matches/comment-counts'
@@ -29,14 +28,53 @@ export async function MatchesPageContent({
   const session = await fetchSessionContext()
   const isApproved = session?.profile.approved ?? false
   const canCreateGame = Boolean(session?.profile.approved && canAccessMod(session.roles))
-  const linkedPlayer = session?.profile.approved
-    ? await resolveLinkedPlayerIdentity(session.userId, false)
-    : null
+  const linkedPlayerPromise = session?.profile.approved
+    ? resolveLinkedPlayerIdentity(session.userId, false)
+    : Promise.resolve(null)
 
-  const [{ data: games }, { data: heroGame }] = await Promise.all([
-    supabase
-      .from('games')
-      .select('*'),
+  let visibleGamesQuery = supabase.from('games').select('*')
+  if (activeView === 'calendar') {
+    visibleGamesQuery = visibleGamesQuery
+      .eq('status', 'scheduled')
+      .order('date', { ascending: true })
+  } else if (activeView === 'results') {
+    visibleGamesQuery = visibleGamesQuery
+      .neq('status', 'scheduled')
+      .order('date', { ascending: false })
+  } else {
+    visibleGamesQuery = visibleGamesQuery.order('date', { ascending: false })
+  }
+
+  if (from) visibleGamesQuery = visibleGamesQuery.gte('date', from)
+  if (to) visibleGamesQuery = visibleGamesQuery.lte('date', to)
+
+  let calendarCountQuery = supabase
+    .from('games')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'scheduled')
+  let resultsCountQuery = supabase
+    .from('games')
+    .select('id', { count: 'exact', head: true })
+    .neq('status', 'scheduled')
+
+  if (from) {
+    calendarCountQuery = calendarCountQuery.gte('date', from)
+    resultsCountQuery = resultsCountQuery.gte('date', from)
+  }
+  if (to) {
+    calendarCountQuery = calendarCountQuery.lte('date', to)
+    resultsCountQuery = resultsCountQuery.lte('date', to)
+  }
+
+  const [
+    visibleGamesResult,
+    heroGameResult,
+    calendarCountResult,
+    resultsCountResult,
+    totalGamesCountResult,
+    linkedPlayer,
+  ] = await Promise.all([
+    visibleGamesQuery as unknown as PromiseLike<{ data: Game[] | null; error: unknown }>,
     supabase
       .from('games')
       .select('*')
@@ -44,17 +82,20 @@ export async function MatchesPageContent({
       .gte('date', 'now')
       .order('date', { ascending: true })
       .limit(1)
-      .maybeSingle(),
-  ]) as [
-    { data: Game[] | null; error: unknown },
-    { data: Game | null; error: unknown },
-  ]
+      .maybeSingle() as unknown as PromiseLike<{ data: Game | null; error: unknown }>,
+    calendarCountQuery,
+    resultsCountQuery,
+    supabase.from('games').select('id', { count: 'exact', head: true }),
+    linkedPlayerPromise,
+  ])
 
-  const sorted = sortGames(games ?? [])
-  const gameList = filterGamesByDateRange(sorted, from, to)
-  const calendarGames = gameList.filter((game) => game.status === 'scheduled')
-  const resultsGames = gameList.filter((game) => game.status !== 'scheduled')
+  const visibleGames = sortGames(visibleGamesResult.data ?? [])
+  const heroGame = heroGameResult.data
+  const hasDateFilter = Boolean(from || to)
+  const noGamesInDb = (totalGamesCountResult.count ?? 0) === 0
+
   let playerGameIds = new Set<string>()
+  let mineCount = 0
 
   if (linkedPlayer) {
     const { data: playerGames } = await supabase
@@ -66,17 +107,31 @@ export async function MatchesPageContent({
       }
 
     playerGameIds = new Set((playerGames ?? []).map((game) => game.game_id))
+
+    if (playerGameIds.size > 0) {
+      let mineCountQuery = supabase
+        .from('games')
+        .select('id', { count: 'exact', head: true })
+        .in('id', [...playerGameIds])
+
+      if (from) mineCountQuery = mineCountQuery.gte('date', from)
+      if (to) mineCountQuery = mineCountQuery.lte('date', to)
+
+      const { count } = await mineCountQuery
+      mineCount = count ?? 0
+    }
   }
 
-  const mineGames = linkedPlayer
-    ? gameList.filter((game) => playerGameIds.has(game.id))
-    : []
+  const listedGames = activeView === 'mine'
+    ? visibleGames.filter((game) => playerGameIds.has(game.id))
+    : visibleGames
   const pendingFeedbackGameIds = new Set<string>()
 
-  if (session && linkedPlayer && isApproved) {
+  if (session && linkedPlayer && isApproved && activeView !== 'calendar') {
     const feedbackEligibilityStart = getFeedbackEligibilityStartIso()
-    const eligibleMineGameIds = mineGames
+    const eligibleMineGameIds = listedGames
       .filter((game) =>
+        playerGameIds.has(game.id) &&
         game.status === 'finished' &&
         game.counts_for_stats === true &&
         game.date >= feedbackEligibilityStart
@@ -99,19 +154,12 @@ export async function MatchesPageContent({
       }
     }
   }
-  const visibleGames = activeView === 'calendar'
-    ? calendarGames
-    : activeView === 'results'
-      ? resultsGames
-      : mineGames
-  const hasDateFilter = Boolean(from || to)
-  const commentCounts = await fetchMatchCommentCounts(supabase, visibleGames.map((game) => game.id))
 
+  const commentCountsPromise = fetchMatchCommentCounts(supabase, listedGames.map((game) => game.id))
   const lineupsByGame = new Map<string, LineupSummary>()
 
-  if (visibleGames.length > 0) {
-    const gameIds = visibleGames.map((g) => g.id)
-
+  if (listedGames.length > 0 && activeView !== 'results') {
+    const gameIds = listedGames.map((g) => g.id)
     const { data: allGamePlayers } = await supabase
       .from('game_players')
       .select('game_id, player_id, team, is_captain')
@@ -126,8 +174,8 @@ export async function MatchesPageContent({
       }
 
     const playerIds = [...new Set((allGamePlayers ?? []).map((gp) => gp.player_id))]
-
     const playersById = new Map<string, { id: string; display_name: string; avatar_url: string | null; shirt_number: number | null; nationality: string }>()
+
     if (playerIds.length > 0) {
       const { data: players } = await supabase
         .from('players_public')
@@ -136,6 +184,7 @@ export async function MatchesPageContent({
           data: Array<{ id: string; display_name: string; avatar_path: string | null; shirt_number: number | null; nationality: string }> | null
           error: unknown
         }
+
       for (const p of await signPlayerAvatarRecords(players ?? [], isApproved)) {
         playersById.set(p.id, p)
       }
@@ -162,10 +211,9 @@ export async function MatchesPageContent({
     }
   }
 
-  const noGamesInDb = sorted.length === 0
-  const emptyAfterFilter = !noGamesInDb && gameList.length === 0 && hasDateFilter
-
+  const emptyAfterFilter = !noGamesInDb && listedGames.length === 0 && hasDateFilter
   let personalEmptyKind: PersonalEmptyKind = 'none'
+
   if (activeView === 'mine') {
     if (!session) personalEmptyKind = 'login'
     else if (!session.profile.approved) personalEmptyKind = 'pending'
@@ -173,13 +221,12 @@ export async function MatchesPageContent({
   }
 
   const emptyVisibleList = !noGamesInDb
-    && gameList.length > 0
-    && visibleGames.length === 0
+    && listedGames.length === 0
     && personalEmptyKind === 'none'
 
   const recintoIds = [
     ...new Set(
-      [heroGame, ...visibleGames]
+      [heroGame, ...listedGames]
         .map((game) => game?.recinto_id)
         .filter((id): id is string => Boolean(id)),
     ),
@@ -198,45 +245,32 @@ export async function MatchesPageContent({
   }
 
   const weatherByGameId = new Map<string, Awaited<ReturnType<typeof fetchMatchWeather>>>()
-  const weatherGamesById = new Map<string, Game>()
-  for (const game of [heroGame, ...visibleGames]) {
-    if (game?.status === 'scheduled') {
-      weatherGamesById.set(game.id, game)
-    }
+  if (heroGame?.status === 'scheduled') {
+    const recinto = heroGame.recinto_id ? recintosById.get(heroGame.recinto_id) : null
+    weatherByGameId.set(heroGame.id, await fetchMatchWeather(recinto, heroGame.date))
   }
 
-  if (weatherGamesById.size > 0) {
-    const weatherEntries = await Promise.all(
-      [...weatherGamesById.values()].map(async (game) => {
-        const recinto = game.recinto_id ? recintosById.get(game.recinto_id) : null
-        return [game.id, await fetchMatchWeather(recinto, game.date)] as const
-      }),
-    )
-
-    for (const [gameId, weather] of weatherEntries) {
-      weatherByGameId.set(gameId, weather)
-    }
-  }
+  const commentCounts = await commentCountsPromise
 
   return (
-      <MatchesListingChrome
-        heroGame={heroGame}
-        heroRecinto={heroGame?.recinto_id ? recintosById.get(heroGame.recinto_id) : null}
-        heroWeather={heroGame ? weatherByGameId.get(heroGame.id) : null}
-        activeView={activeView}
+    <MatchesListingChrome
+      heroGame={heroGame}
+      heroRecinto={heroGame?.recinto_id ? recintosById.get(heroGame.recinto_id) : null}
+      heroWeather={heroGame ? weatherByGameId.get(heroGame.id) : null}
+      activeView={activeView}
       from={from}
       to={to}
-      calendarCount={calendarGames.length}
-      resultsCount={resultsGames.length}
-      mineCount={mineGames.length}
+      calendarCount={calendarCountResult.count ?? 0}
+      resultsCount={resultsCountResult.count ?? 0}
+      mineCount={mineCount}
       noGamesInDb={noGamesInDb}
       emptyAfterFilter={emptyAfterFilter}
       emptyVisibleList={emptyVisibleList}
       personalEmptyKind={personalEmptyKind}
       canCreateGame={canCreateGame}
-      listedGameCount={visibleGames.length}
+      listedGameCount={listedGames.length}
     >
-      {visibleGames.map((g) => (
+      {listedGames.map((g) => (
         <MatchCard
           key={g.id}
           game={g}

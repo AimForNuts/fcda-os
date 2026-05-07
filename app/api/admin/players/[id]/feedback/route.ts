@@ -39,6 +39,43 @@ type InsertOnly<TInput> = {
   insert(values: TInput): PromiseLike<{ error: unknown }>
 }
 
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await fetchSessionContext()
+  if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
+  if (!canAccessAdmin(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { id: playerId } = await params
+  const admin = createServiceClient()
+  const { data: participation } = await admin
+    .from('game_players')
+    .select('game_id')
+    .eq('player_id', playerId) as {
+      data: Array<{ game_id: string }> | null
+      error: unknown
+    }
+
+  const gameIds = [...new Set((participation ?? []).map((gp) => gp.game_id))]
+  if (gameIds.length === 0) {
+    return Response.json({ games: [] })
+  }
+
+  const { data: games } = await admin
+    .from('games')
+    .select('id, date, location')
+    .in('id', gameIds)
+    .eq('status', 'finished')
+    .eq('counts_for_stats', true)
+    .order('date', { ascending: false }) as {
+      data: Array<{ id: string; date: string; location: string }> | null
+      error: unknown
+    }
+
+  return Response.json({ games: games ?? [] })
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

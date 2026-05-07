@@ -694,6 +694,10 @@ function UserDetailsModal({
   const [playerSearchQuery, setPlayerSearchQuery] = useState('')
   const [playerSearchResults, setPlayerSearchResults] = useState<SearchResult[]>([])
   const [createPlayerName, setCreatePlayerName] = useState(user.display_name)
+  const [detailEmail, setDetailEmail] = useState(user.email)
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [feedbackGames, setFeedbackGames] = useState(player?.feedback_games ?? [])
+  const [feedbackGamesLoading, setFeedbackGamesLoading] = useState(false)
   const [feedbackGameId, setFeedbackGameId] = useState(player?.feedback_games[0]?.id ?? '')
   const [feedbackRating, setFeedbackRating] = useState('')
   const [feedbackText, setFeedbackText] = useState('')
@@ -713,12 +717,74 @@ function UserDetailsModal({
     setPlayerSearchQuery('')
     setPlayerSearchResults([])
     setCreatePlayerName(user.display_name)
+    setDetailEmail(user.email)
+    setEmailLoading(false)
+    setFeedbackGames(player?.feedback_games ?? [])
+    setFeedbackGamesLoading(false)
     setFeedbackGameId(player?.feedback_games[0]?.id ?? '')
     setFeedbackRating('')
     setFeedbackText('')
     setFeedbackSubmitted(false)
     setFeedbackError(null)
-  }, [player, user.display_name])
+  }, [player, user.display_name, user.email])
+
+  useEffect(() => {
+    if (activeTab !== 'account' || detailEmail != null || emailLoading) return
+
+    let cancelled = false
+    setEmailLoading(true)
+    fetch(`/api/admin/users/${user.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { email?: string | null } | null) => {
+        if (!cancelled) setDetailEmail(data?.email ?? null)
+      })
+      .catch(() => {
+        if (!cancelled) setDetailEmail(null)
+      })
+      .finally(() => {
+        if (!cancelled) setEmailLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeTab, detailEmail, emailLoading, user.email, user.id])
+
+  useEffect(() => {
+    if (
+      activeTab !== 'feedback' ||
+      !player ||
+      player.feedback_games_loaded ||
+      feedbackGamesLoading ||
+      feedbackGames.length > 0
+    ) {
+      return
+    }
+
+    let cancelled = false
+    setFeedbackGamesLoading(true)
+    fetch(`/api/admin/players/${player.id}/feedback`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { games?: Array<{ id: string; date: string; location: string }> } | null) => {
+        if (cancelled) return
+        const games = data?.games ?? []
+        setFeedbackGames(games)
+        setFeedbackGameId(games[0]?.id ?? '')
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFeedbackGames([])
+          setFeedbackGameId('')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setFeedbackGamesLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeTab, feedbackGames.length, feedbackGamesLoading, player])
 
   async function searchPlayers(q: string) {
     setPlayerSearchQuery(q)
@@ -919,7 +985,11 @@ function UserDetailsModal({
                 </label>
                 <label className="space-y-1.5">
                   <span className="text-sm font-medium text-foreground">{t('admin.email')}</span>
-                  <Input value={user.email ?? t('admin.noEmail')} readOnly disabled />
+                  <Input
+                    value={emailLoading ? t('common.loading') : detailEmail ?? t('admin.noEmail')}
+                    readOnly
+                    disabled
+                  />
                 </label>
                 <Button
                   type="button"
@@ -1264,7 +1334,11 @@ function UserDetailsModal({
                 </p>
               ) : feedbackSubmitted ? (
                 <p className="text-sm text-muted-foreground">{t('admin.playerFeedbackSubmitted')}</p>
-              ) : player.feedback_games.length === 0 ? (
+              ) : feedbackGamesLoading ? (
+                <p className="rounded-lg border px-4 py-6 text-center text-sm text-muted-foreground">
+                  {t('common.loading')}
+                </p>
+              ) : feedbackGames.length === 0 ? (
                 <p className="rounded-lg border px-4 py-6 text-center text-sm text-muted-foreground">
                   {t('admin.noFeedbackGames')}
                 </p>
@@ -1279,7 +1353,7 @@ function UserDetailsModal({
                         disabled={feedbackSubmitting}
                         className="h-8 w-full rounded-lg border border-input bg-background px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
                       >
-                        {player.feedback_games.map((game) => (
+                        {feedbackGames.map((game) => (
                           <option key={game.id} value={game.id}>
                             {formatGameOption(game)}
                           </option>
