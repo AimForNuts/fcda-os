@@ -152,3 +152,22 @@ export async function PATCH(
 
   return Response.json({ error: 'Invalid body' }, { status: 400 })
 }
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await fetchSessionContext()
+  if (!session) return Response.json({ error: 'Unauthorised' }, { status: 401 })
+  if (!canAccessAdmin(session.roles)) return Response.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { id } = await params
+  const admin = createServiceClient()
+  const { data, error } = await admin.auth.admin.getUserById(id)
+
+  if (error) {
+    return Response.json({ error: 'Failed to fetch user' }, { status: 500 })
+  }
+
+  return Response.json({ email: data.user?.email ?? null })
+}
