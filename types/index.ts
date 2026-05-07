@@ -22,6 +22,7 @@ export type FeedbackStatus = Feedback['status']
 /** Resolved session context passed down to Server Components */
 export type SessionContext = {
   userId: string
+  email: string | null
   profile: Profile
   roles: UserRole[]
 }
