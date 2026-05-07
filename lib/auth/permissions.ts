@@ -62,15 +62,23 @@ export async function fetchSessionContext() {
 
   if (!user) return null
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  const [profileResult, rolesResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id),
+  ])
 
+  const profile = profileResult.data
   if (!profile) return null
 
-  const roles = await fetchUserRoles(user.id)
+  const rows = rolesResult.data as Array<{ role: UserRole }> | null
+  const roles = rows?.map((r) => r.role) ?? []
 
   return { userId: user.id, profile: profile as Profile, roles } satisfies SessionContext
 }
