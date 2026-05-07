@@ -80,5 +80,10 @@ export async function fetchSessionContext() {
   const rows = rolesResult.data as Array<{ role: UserRole }> | null
   const roles = rows?.map((r) => r.role) ?? []
 
-  return { userId: user.id, profile: profile as Profile, roles } satisfies SessionContext
+  return {
+    userId: user.id,
+    email: user.email ?? null,
+    profile: profile as Profile,
+    roles,
+  } satisfies SessionContext
 }

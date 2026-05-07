@@ -8,6 +8,20 @@ export const PLAYER_AVATAR_ALLOWED_TYPES = [
   'image/webp',
 ] as const
 
+export const PLAYER_AVATAR_THUMB_TRANSFORM = {
+  width: 320,
+  height: 320,
+  resize: 'cover',
+  quality: 76,
+} as const
+
+export const PLAYER_AVATAR_PROFILE_TRANSFORM = {
+  width: 768,
+  height: 1024,
+  resize: 'cover',
+  quality: 78,
+} as const
+
 export type PlayerAvatarContentType = (typeof PLAYER_AVATAR_ALLOWED_TYPES)[number]
 
 export type AvatarBackedRecord = {

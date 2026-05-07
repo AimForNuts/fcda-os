@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { CalendarDays, ExternalLink, ShieldAlert } from 'lucide-react'
 import { signPlayerAvatarPath } from '@/lib/players/avatar.server'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { fetchSessionContext } from '@/lib/auth/permissions'
 import { createPlayerCalendarToken } from '@/lib/calendar/token'
 import { PlayerPhotoZoom } from '@/components/player/PlayerPhotoZoom'
@@ -53,11 +53,6 @@ export default async function ProfilePage() {
   if (!session) redirect('/auth/login')
   const headerList = await headers()
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
   const admin = createServiceClient()
   const { data: player, error: playerError } = await admin
     .from('players')
@@ -103,7 +98,7 @@ export default async function ProfilePage() {
               </div>
             </div>
             <div className="inline-flex w-fit items-center rounded-full border border-border/70 bg-background/75 px-4 py-2 text-sm font-medium text-fcda-navy shadow-sm backdrop-blur">
-              {user?.email ?? <TranslatedText i18nKey="profile.page.emailUnavailable" />}
+              {session.email ?? <TranslatedText i18nKey="profile.page.emailUnavailable" />}
             </div>
           </div>
         </div>
@@ -112,7 +107,7 @@ export default async function ProfilePage() {
       <div className="mt-8 space-y-6">
         <AccountForm
           displayName={session.profile.display_name}
-          email={user?.email ?? ''}
+          email={session.email ?? ''}
         />
 
         {player ? (

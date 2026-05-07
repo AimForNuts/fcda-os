@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { canAccessAdmin, fetchSessionContext } from '@/lib/auth/permissions'
 import { signPlayerAvatarRecords } from '@/lib/players/avatar.server'
+import { PLAYER_AVATAR_PROFILE_TRANSFORM } from '@/lib/players/avatar'
 import { getTeamPresentation } from '@/lib/games/team-presentation'
 import { GameTypeBadge } from '@/components/matches/GameTypeBadge'
 import { CompetitiveGameIcon } from '@/components/matches/game-type-icons'
@@ -223,25 +224,33 @@ export default async function PlayerProfilePage({
   }
 
   if (!player) notFound()
-  const [resolvedPlayer] = await signPlayerAvatarRecords([player], isApproved)
+  const [resolvedPlayer, gpsResult, statsResult, rankingRowsResult] = await Promise.all([
+    signPlayerAvatarRecords([player], isApproved, PLAYER_AVATAR_PROFILE_TRANSFORM)
+      .then(([resolved]) => resolved),
+    supabase
+      .from('game_players')
+      .select('game_id, team')
+      .eq('player_id', id) as unknown as PromiseLike<{
+        data: { game_id: string; team: string | null }[] | null
+        error: unknown
+      }>,
+    supabase
+      .from('player_stats')
+      .select('total_comp, wins_comp, draws_comp')
+      .eq('id', id)
+      .maybeSingle() as unknown as PromiseLike<{ data: PublicPlayerStats | null; error: unknown }>,
+    supabase
+      .from('player_stats')
+      .select('id, display_name, shirt_number, nationality, profile_id, avatar_path, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp') as unknown as PromiseLike<{
+        data: LeaderboardPlayer[] | null
+        error: unknown
+      }>,
+  ])
   const canEditDescription =
     isApproved && (canAccessAdmin(session.roles) || resolvedPlayer.profile_id === session.userId)
 
-  const { data: gps } = await supabase
-    .from('game_players')
-    .select('game_id, team')
-    .eq('player_id', id) as {
-      data: { game_id: string; team: string | null }[] | null
-      error: unknown
-    }
-
-  const { data: stats } = await supabase
-    .from('player_stats')
-    .select('total_comp, wins_comp, draws_comp')
-    .eq('id', id)
-    .maybeSingle() as { data: PublicPlayerStats | null; error: unknown }
-
-  const statsSummary = stats ?? {
+  const gps = gpsResult.data
+  const statsSummary = statsResult.data ?? {
     total_comp: 0,
     wins_comp: 0,
     draws_comp: 0,
@@ -258,17 +267,29 @@ export default async function PlayerProfilePage({
   if (gameIds.length > 0) {
     const teamByGame = new Map((gps ?? []).map((gp) => [gp.game_id, gp.team]))
 
-    const { data: games } = await supabase
-      .from('games')
-      .select('id, date, location, score_a, score_b, counts_for_stats')
-      .in('id', gameIds)
-      .eq('status', 'finished')
-      .order('date', { ascending: false }) as {
-        data: Pick<Game, 'id' | 'date' | 'location' | 'score_a' | 'score_b' | 'counts_for_stats'>[] | null
-        error: unknown
-      }
+    const [gamesResult, upcomingGamesResult] = await Promise.all([
+      supabase
+        .from('games')
+        .select('id, date, location, score_a, score_b, counts_for_stats')
+        .in('id', gameIds)
+        .eq('status', 'finished')
+        .order('date', { ascending: false }) as unknown as PromiseLike<{
+          data: Pick<Game, 'id' | 'date' | 'location' | 'score_a' | 'score_b' | 'counts_for_stats'>[] | null
+          error: unknown
+        }>,
+      supabase
+        .from('games')
+        .select('id, date, location, counts_for_stats')
+        .in('id', gameIds)
+        .eq('status', 'scheduled')
+        .order('date', { ascending: true })
+        .limit(1) as unknown as PromiseLike<{
+          data: UpcomingMatch[] | null
+          error: unknown
+        }>,
+    ])
 
-    matchHistory = (games ?? []).map((game) => ({
+    matchHistory = (gamesResult.data ?? []).map((game) => ({
       game_id: game.id,
       team: teamByGame.get(game.id) ?? null,
       date: game.date,
@@ -278,28 +299,10 @@ export default async function PlayerProfilePage({
       counts_for_stats: game.counts_for_stats,
     }))
 
-    const { data: upcomingGames } = await supabase
-      .from('games')
-      .select('id, date, location, counts_for_stats')
-      .in('id', gameIds)
-      .eq('status', 'scheduled')
-      .order('date', { ascending: true })
-      .limit(1) as {
-        data: UpcomingMatch[] | null
-        error: unknown
-      }
-
-    upcomingMatch = upcomingGames?.[0] ?? null
+    upcomingMatch = upcomingGamesResult.data?.[0] ?? null
   }
 
-  const { data: rankingRows } = await supabase
-    .from('player_stats')
-    .select('id, display_name, shirt_number, nationality, profile_id, avatar_path, total_all, total_comp, wins_all, draws_all, losses_all, wins_comp, draws_comp, losses_comp') as {
-      data: LeaderboardPlayer[] | null
-      error: unknown
-    }
-
-  const ranking = buildLeaderboardRows(rankingRows ?? [], 'competitive')
+  const ranking = buildLeaderboardRows(rankingRowsResult.data ?? [], 'competitive')
     .sort(compareLeaderboardRows)
 
   const playerRankIndex = ranking.findIndex((row) => row.id === id)

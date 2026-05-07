@@ -3,11 +3,20 @@ import 'server-only'
 import { createServiceClient } from '@/lib/supabase/server'
 import {
   PLAYER_AVATAR_BUCKET,
+  PLAYER_AVATAR_PROFILE_TRANSFORM,
   PLAYER_AVATAR_SIGNED_URL_TTL,
+  PLAYER_AVATAR_THUMB_TRANSFORM,
   getPlayerAvatarObjectPath,
   type AvatarBackedRecord,
   type AvatarResolvedRecord,
 } from './avatar'
+
+type PlayerAvatarTransform = {
+  width?: number
+  height?: number
+  resize?: 'cover' | 'contain' | 'fill'
+  quality?: number
+}
 
 function isMissingStorageObjectError(error: { message?: string } | null) {
   return /not found/i.test(error?.message ?? '')
@@ -15,7 +24,8 @@ function isMissingStorageObjectError(error: { message?: string } | null) {
 
 export async function signPlayerAvatarPath(
   avatarPath: string | null,
-  canView: boolean
+  canView: boolean,
+  transform: PlayerAvatarTransform = PLAYER_AVATAR_PROFILE_TRANSFORM
 ) {
   if (!canView || !avatarPath) {
     return null
@@ -24,7 +34,7 @@ export async function signPlayerAvatarPath(
   const admin = createServiceClient()
   const { data, error } = await admin.storage
     .from(PLAYER_AVATAR_BUCKET)
-    .createSignedUrl(avatarPath, PLAYER_AVATAR_SIGNED_URL_TTL)
+    .createSignedUrl(avatarPath, PLAYER_AVATAR_SIGNED_URL_TTL, { transform })
 
   if (error) {
     console.error('player avatar signed url failed', error)
@@ -36,7 +46,8 @@ export async function signPlayerAvatarPath(
 
 export async function signPlayerAvatarRecords<T extends AvatarBackedRecord>(
   rows: T[],
-  canView: boolean
+  canView: boolean,
+  transform: PlayerAvatarTransform = PLAYER_AVATAR_THUMB_TRANSFORM
 ): Promise<Array<AvatarResolvedRecord<T>>> {
   if (rows.length === 0) {
     return []
@@ -61,7 +72,7 @@ export async function signPlayerAvatarRecords<T extends AvatarBackedRecord>(
 
     const next = admin.storage
       .from(PLAYER_AVATAR_BUCKET)
-      .createSignedUrl(avatarPath, PLAYER_AVATAR_SIGNED_URL_TTL)
+      .createSignedUrl(avatarPath, PLAYER_AVATAR_SIGNED_URL_TTL, { transform })
       .then(({ data, error }) => {
         if (error) {
           console.error('player avatar signed url failed', error)
